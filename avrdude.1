@@ -76,7 +76,7 @@ signal is available to control a buffer/driver IC 74LS367 (or
 from the MCU when in-system programming is used.
 .Pp
 See the file
-.Pa ${PREFIX}/share/doc/avrdude/avrdude.pdf
+.Pa /usr/share/doc/avrdude-doc/avrdude.pdf
 for a schematic of the
 .Xr ppi 4
 based programming hardware.
@@ -177,7 +177,7 @@ knows about.  If you have a programmer or part that
 does not know about, you can add it to the config file (be sure and
 submit a patch back to the author so that it can be incorporated for
 the next version).  See the config file, located at
-.Pa ${PREFIX}/etc/avrdude.conf ,
+.Pa /etc/avrdude.conf ,
 which contains a description of the format.
 .It Fl D
 Disable auto erase for flash.  When the
@@ -468,7 +468,7 @@ ll.
 .It Pa /dev/ppi0
 default device to be used for communication with the programming
 hardware
-.It Pa ${PREFIX}/etc/avrdude.conf
+.It Pa /etc/avrdude.conf
 programmer and parts configuration file
 .It Pa ${HOME}/.avrduderc
 programmer and parts configuration file (per-user overrides)
@@ -476,7 +476,7 @@ programmer and parts configuration file (per-user overrides)
 Initialization file for the
 .Xr readline 3
 library
-.It Pa ${PREFIX}/share/doc/avrdude/avrdude.pdf
+.It Pa /usr/share/doc/avrdude-doc/avrdude.pdf
 Schematic of programming hardware
 .El
 .\" .Sh EXAMPLES

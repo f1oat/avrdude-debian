@@ -1,0 +1,7 @@
+avrdude (4.4.0-1) unstable; urgency=low
+
+  * Initial release (closes: #217453).
+  * Thanks to Anibal Monsalve Salazar for sponsoring this package. 
+
+ -- Michael Biebl <biebl@teco.edu>  Mon, 13 Jun 2005 10:58:32 +0200
+
