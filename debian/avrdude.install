@@ -1,2 +1,2 @@
-usr/bin/avrdude
-etc/avrdude.conf
+debian/tmp/usr/bin/avrdude
+debian/tmp/etc/avrdude.conf
