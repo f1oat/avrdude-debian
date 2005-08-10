@@ -6,6 +6,8 @@ Build-Depends: debhelper (>= 4.1.16), texi2html, texinfo, tetex-bin, libncurses5
 Standards-Version: 3.6.2.1
 
 Package: avrdude
+Section: electronics
+Priority: extra
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: avrdude-doc
@@ -17,6 +19,8 @@ Description: software for programming Atmel AVR microcontrollers
  Homepage: http://savannah.nongnu.org/projects/avrdude
 
 Package: avrdude-doc
+Section: doc
+Priority: extra
 Architecture: all
 Suggests: doc-base
 Description: documentation for avrdude

@@ -1,3 +1,11 @@
+avrdude (4.4.0-3) unstable; urgency=low
+
+  * Reverted changes to Makefile.in files made by automake. Changed
+    doc/Makefile.in by hand.
+  * Added Section: and Priority: to package descriptions in debian/control.
+
+ -- Michael Biebl <biebl@teco.edu>  Wed, 10 Aug 2005 04:18:24 +0200
+
 avrdude (4.4.0-2) unstable; urgency=low
 
   * The new version of texi2html caused avrdude to FTBFS. This update fixes
