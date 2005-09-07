@@ -1,0 +1,38 @@
+--- doc/Makefile.in	(Revision 39)
++++ doc/Makefile.in	(Revision 43)
+@@ -425,9 +425,14 @@
+ all-local: info html ps pdf
+ 
+ html: 
+-	mkdir -p avrdude-html
+ 	texi2html -split_node $(srcdir)/$(info_TEXINFOS)
+-	mv *.html avrdude-html
++	if [ -e ./avrdude.html ]; then \
++		mkdir -p avrdude-html; \
++		mv *.html avrdude-html; \
++	else \
++		rm -rf avrdude-html; \
++		mv avrdude avrdude-html; \
++	fi
+ 
+ clean-local:
+ 	rm -rf avrdude-html *.info
+--- doc/Makefile.am	(Revision 39)
++++ doc/Makefile.am	(Revision 43)
+@@ -30,9 +30,14 @@
+ all-local: info html ps pdf
+ 
+ html: 
+-	mkdir -p avrdude-html
+ 	texi2html -split_node $(srcdir)/$(info_TEXINFOS)
+-	mv *.html avrdude-html
++	if [ -e ./avrdude.html ]; then \
++		mkdir -p avrdude-html; \
++		mv *.html avrdude-html; \
++	else \
++		rm -rf avrdude-html; \
++		mv avrdude avrdude-html; \
++	fi
+ 
+ clean-local:
+ 	rm -rf avrdude-html *.info

@@ -2,8 +2,8 @@ Source: avrdude
 Section: electronics
 Priority: extra
 Maintainer: Michael Biebl <biebl@teco.edu>
-Build-Depends: @cdbs@, texi2html, texinfo, tetex-bin, libncurses5-dev
-Standards-Version: 3.6.2.1
+Build-Depends: @cdbs@, texi2html, texinfo, tetex-bin, flex, bison, libncurses5-dev, libreadline5-dev
+Standards-Version: 3.6.2
 
 Package: avrdude
 Section: electronics

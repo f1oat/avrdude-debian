@@ -1,3 +1,9 @@
+avrdude (4.4.0-5) unstable; urgency=low
+
+  * Build against libreadline5.
+
+ -- Michael Biebl <biebl@teco.edu>  Thu,  8 Sep 2005 01:13:51 +0200
+
 avrdude (4.4.0-4) unstable; urgency=low
 
   * Switched build system to cdbs.
@@ -17,7 +23,7 @@ avrdude (4.4.0-2) unstable; urgency=low
 
   * The new version of texi2html caused avrdude to FTBFS. This update fixes
     this (closes: #318729).
-  * Updated to standards version 3.6.2.1.
+  * Updated to standards version 3.6.2.
 
  -- Michael Biebl <biebl@teco.edu>  Tue, 19 Jul 2005 00:04:24 +0200
 
