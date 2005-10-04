@@ -1,3 +1,15 @@
+avrdude (5.0-1) unstable; urgency=low
+
+  * New upstream release (closes: #330243).
+    + Removed patch html_doc_build_fix.diff, fixed upstream.
+  * Added patch kfreebsd.diff to make avrdude compile on GNU/kFreeBSD
+    (closes: #329448). Thanks to Aurelien Jarno.
+  * Added patch manpage_fix.diff to reflect Debian specific locations of
+    certain files.
+  * Updated watch file.
+
+ -- Michael Biebl <biebl@teco.edu>  Tue,  4 Oct 2005 17:41:14 +0200
+
 avrdude (4.4.0-5) unstable; urgency=low
 
   * Build against libreadline5.

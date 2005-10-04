@@ -236,7 +236,7 @@ knows about.  If you have a programmer or part that
 does not know about, you can add it to the config file (be sure and
 submit a patch back to the author so that it can be incorporated for
 the next version).  See the config file, located at
-.Pa /etc/avrdude.conf ,
+.Pa ${PREFIX}/etc/avrdude.conf ,
 which contains a description of the format.
 .It Fl D
 Disable auto erase for flash.  When the
@@ -607,7 +607,7 @@ ll.
 .It Pa /dev/ppi0
 default device to be used for communication with the programming
 hardware
-.It Pa /etc/avrdude.conf
+.It Pa ${PREFIX}/etc/avrdude.conf
 programmer and parts configuration file
 .It Pa ${HOME}/.avrduderc
 programmer and parts configuration file (per-user overrides)
@@ -615,7 +615,7 @@ programmer and parts configuration file (per-user overrides)
 Initialization file for the
 .Xr readline 3
 library
-.It Pa /usr/share/doc/avrdude-doc/avrdude.pdf
+.It Pa ${PREFIX}/share/doc/avrdude/avrdude.pdf
 Schematic of programming hardware
 .El
 .\" .Sh EXAMPLES

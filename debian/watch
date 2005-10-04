@@ -1,2 +1,2 @@
 version=3
-http://savannah.nongnu.org/download/avrdude/avrdude-(.*)\.tar\.gz
+http://savannah.nongnu.org/download/avrdude/avrdude-([\d\.]*)\.tar\.gz
