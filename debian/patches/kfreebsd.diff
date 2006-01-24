@@ -1,31 +1,26 @@
---- avrdude-4.4.0.orig/par.c
-+++ avrdude-4.4.0/par.c
+Index: ppi.c
+===================================================================
+--- ppi.c	(Revision 301)
++++ ppi.c	(Arbeitskopie)
+@@ -33,7 +33,7 @@
+ #include <unistd.h>
+ #include <errno.h>
+ 
+-#if defined(__FreeBSD__)
++#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+ # include "freebsd_ppi.h"
+ #elif defined(__linux__)
+ # include "linux_ppdev.h"
+Index: par.c
+===================================================================
+--- par.c	(Revision 301)
++++ par.c	(Arbeitskopie)
 @@ -28,7 +28,7 @@
  #include <unistd.h>
  #include <errno.h>
  
 -#if defined(__FreeBSD__)
 +#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
- #include <dev/ppbus/ppi.h>
+ # include "freebsd_ppi.h"
  #elif defined(__linux__)
- #include "linux_ppdev.h"
---- avrdude-4.4.0.orig/ppi.c
-+++ avrdude-4.4.0/ppi.c
-@@ -19,7 +19,7 @@
- 
- /* $Id: ppi.c,v 1.22 2004/05/19 21:02:25 bdean Exp $ */
- 
--#if defined(__FreeBSD__) || defined(__linux__)
-+#if defined(__FreeBSD__) || defined (__FreeBSD_kernel__) || defined(__linux__)
- 
- #include "ac_cfg.h"
- 
-@@ -30,7 +30,7 @@
- #include <unistd.h>
- #include <errno.h>
- 
--#if defined(__FreeBSD__)
-+#if defined(__FreeBSD__) || defined (__FreeBSD_kernel__)
- #include <dev/ppbus/ppi.h>
- #elif defined(__linux__)
- #include "linux_ppdev.h"
+ # include "linux_ppdev.h"

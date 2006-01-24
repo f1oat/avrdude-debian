@@ -1,11 +1,8 @@
 #!/usr/bin/make -f
 
-# automatic debian/control generation disabled, cdbs bug #311724.
-# to re-generate debian/control, invoke
-# fakeroot debian/rules debian/control DEB_AUTO_UPDATE_DEBIAN_CONTROL:=yes
-
 include /usr/share/cdbs/1/class/autotools.mk
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
 
 DEB_CONFIGURE_EXTRA_FLAGS := --enable-versioned-doc=no --enable-doc
+DEB_INSTALL_DOCS_ALL := NEWS AUTHORS
