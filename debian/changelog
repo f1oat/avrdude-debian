@@ -1,3 +1,10 @@
+avrdude (5.1-2) unstable; urgency=low
+
+  * Delete outdated lexer.c, enforces recreation with an up to date version
+    of flex (closes: #350092). 
+
+ -- Michael Biebl <biebl@teco.edu>  Fri, 27 Jan 2006 21:27:16 +0100
+
 avrdude (5.1-1) unstable; urgency=low
 
   * New upstream release.
