@@ -2,8 +2,8 @@ Source: avrdude
 Section: electronics
 Priority: extra
 Maintainer: Michael Biebl <biebl@teco.edu>
-Build-Depends: cdbs, debhelper (>= 4.1.0), autotools-dev, texi2html, texinfo, tetex-bin, flex, bison, libncurses5-dev, libreadline5-dev, libusb-dev
-Standards-Version: 3.6.2
+Build-Depends: cdbs, debhelper (>= 5.0.0), autotools-dev, texi2html, texinfo, tetex-bin, flex, bison, libncurses5-dev, libreadline5-dev, libusb-dev
+Standards-Version: 3.7.2
 
 Package: avrdude
 Section: electronics
@@ -16,7 +16,7 @@ Description: software for programming Atmel AVR microcontrollers
  ROM and EEPROM contents of AVR microcontrollers using the in-system 
  programming technique (ISP).
  .
- Homepage: http://savannah.nongnu.org/projects/avrdude
+  Homepage: http://savannah.nongnu.org/projects/avrdude/
 
 Package: avrdude-doc
 Section: doc
@@ -31,4 +31,4 @@ Description: documentation for avrdude
  This package contains documentation for configuring and running
  AVRDUDE.
  .
- Homepage: http://savannah.nongnu.org/projects/avrdude
+  Homepage: http://savannah.nongnu.org/projects/avrdude/
