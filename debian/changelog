@@ -1,3 +1,12 @@
+avrdude (5.2-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/rules
+    + Remove obsolete clean rule, lexer.c is not shipped anymore in the
+      upstream tarball.
+
+ -- Michael Biebl <biebl@teco.edu>  Tue, 10 Oct 2006 02:30:19 +0200
+
 avrdude (5.1-3) unstable; urgency=low
 
   * Properly indent homepage URL in package description.

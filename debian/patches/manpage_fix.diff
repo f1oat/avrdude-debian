@@ -1,8 +1,8 @@
 Index: avrdude.1
 ===================================================================
---- avrdude.1	(Revision 301)
+--- avrdude.1	(Revision 636)
 +++ avrdude.1	(Arbeitskopie)
-@@ -240,7 +240,7 @@
+@@ -258,7 +258,7 @@
  does not know about, you can add it to the config file (be sure and
  submit a patch back to the author so that it can be incorporated for
  the next version).  See the config file, located at
@@ -11,7 +11,7 @@ Index: avrdude.1
  which contains a description of the format.
  .It Fl D
  Disable auto erase for flash.  When the
-@@ -614,7 +614,7 @@
+@@ -703,7 +703,7 @@
  .It Pa /dev/ppi0
  default device to be used for communication with the programming
  hardware
@@ -20,7 +20,7 @@ Index: avrdude.1
  programmer and parts configuration file
  .It Pa ${HOME}/.avrduderc
  programmer and parts configuration file (per-user overrides)
-@@ -622,7 +622,7 @@
+@@ -711,7 +711,7 @@
  Initialization file for the
  .Xr readline 3
  library
