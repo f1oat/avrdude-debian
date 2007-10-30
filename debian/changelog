@@ -1,3 +1,11 @@
+avrdude (5.5-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/avrdude.docs
+    - Install the ChangeLog-2004-2006 file.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 30 Oct 2007 21:02:48 +0100
+
 avrdude (5.4-2) unstable; urgency=low
 
   * debian/control
