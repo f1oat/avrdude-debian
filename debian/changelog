@@ -1,3 +1,12 @@
+avrdude (5.5-3) unstable; urgency=low
+
+  * debian/avrdude-doc.doc-base
+    - Update the Section: field to comply with the new doc-base Manual.
+  * debian/control
+    - Add ${misc:Depends}.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 04 Mar 2008 23:17:20 +0100
+
 avrdude (5.5-2) unstable; urgency=low
 
   * debian/control

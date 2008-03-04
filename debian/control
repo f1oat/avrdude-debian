@@ -10,7 +10,7 @@ Package: avrdude
 Section: electronics
 Priority: extra
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: avrdude-doc
 Description: software for programming Atmel AVR microcontrollers
  AVRDUDE is an open source utility to download/upload/manipulate the 
@@ -21,6 +21,7 @@ Package: avrdude-doc
 Section: doc
 Priority: extra
 Architecture: all
+Depends: ${misc:Depends}
 Suggests: doc-base
 Description: documentation for avrdude
  AVRDUDE is an open source utility to download/upload/manipulate the 
