@@ -1,3 +1,18 @@
+avrdude (5.5-4) unstable; urgency=low
+
+  * Switch patch system to quilt.
+  * debian/control
+    - Add Build-Depends on quilt.
+    - Bump Standards-Version to 3.8.0. Add debian/README.source as recommended
+      by the new policy.
+  * debian/rules
+    - Include patchsys-quilt.mk instead of simple-patchsys.mk.
+  * debian/patches/series
+    - Add all existing patches.
+  * Refresh all patches. 
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 19 Jul 2008 03:22:50 +0200
+
 avrdude (5.5-3) unstable; urgency=low
 
   * debian/avrdude-doc.doc-base

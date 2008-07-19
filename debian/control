@@ -2,8 +2,8 @@ Source: avrdude
 Section: electronics
 Priority: extra
 Maintainer: Michael Biebl <biebl@debian.org>
-Build-Depends: cdbs, debhelper (>= 5.0.0), autotools-dev, texi2html, texinfo, texlive-latex-base, flex, bison, libncurses5-dev, libreadline5-dev, libusb-dev
-Standards-Version: 3.7.3
+Build-Depends: cdbs, debhelper (>= 5.0.0), autotools-dev, quilt, texi2html, texinfo, texlive-latex-base, flex, bison, libncurses5-dev, libreadline5-dev, libusb-dev
+Standards-Version: 3.8.0
 Homepage: http://savannah.nongnu.org/projects/avrdude/
 
 Package: avrdude
