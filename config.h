@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config.h,v 1.15 2004/12/22 01:52:45 bdean Exp $ */
+/* $Id: config.h,v 1.16 2005/11/02 21:03:51 joerg_wunsch Exp $ */
 
 #ifndef __config_h__
 #define __config_h__
@@ -41,6 +41,7 @@ typedef struct token_t {
   int primary;
   VALUE value;
 } TOKEN;
+typedef struct token_t *token_p;
 
 
 extern FILE       * yyin;
@@ -58,7 +59,7 @@ extern char         default_serial[];
 
 
 #if !defined(HAS_YYSTYPE)
-#define YYSTYPE struct token_t *
+#define YYSTYPE token_p
 #endif
 extern YYSTYPE yylval;
 

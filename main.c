@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: main.c,v 1.110 2005/09/22 14:14:14 joerg_wunsch Exp $ */
+/* $Id: main.c,v 1.113 2006/01/17 21:11:39 c_oflynn Exp $ */
 
 /*
  * Code to program an Atmel AVR device through one of the supported
@@ -101,7 +101,7 @@ void usage(void)
  "Options:\n"
  "  -p <partno>                Required. Specify AVR device.\n"
  "  -b <baudrate>              Override RS-232 baud rate.\n"
- "  -B <bitclock>              Specify JTAG bit clock period (us).\n"
+ "  -B <bitclock>              Specify JTAG/STK500v2 bit clock period (us).\n"
  "  -C <config-file>           Specify location of configuration file.\n"
  "  -c <programmer>            Specify programmer type.\n"
  "  -D                         Disable auto erase for flash memory\n"
@@ -127,39 +127,6 @@ void usage(void)
  "\navrdude project: <URL:http://savannah.nongnu.org/projects/avrdude>\n"
           ,progname);
 }
-
-
-/*
- * parse the -E string
- */
-int getexitspecs(char *s, int *set, int *clr)
-{
-  char *cp;
-
-  while ((cp = strtok(s, ","))) {
-    if (strcmp(cp, "reset") == 0) {
-      *clr |= par_getpinmask(pgm->pinno[PIN_AVR_RESET]);
-    }
-    else if (strcmp(cp, "noreset") == 0) {
-      *set |= par_getpinmask(pgm->pinno[PIN_AVR_RESET]);
-    }
-    else if (strcmp(cp, "vcc") == 0) {
-      if (pgm->pinno[PPI_AVR_VCC])
-        *set |= pgm->pinno[PPI_AVR_VCC];
-    }
-    else if (strcmp(cp, "novcc") == 0) {
-      if (pgm->pinno[PPI_AVR_VCC])
-        *clr |= pgm->pinno[PPI_AVR_VCC];
-    }
-    else {
-      return -1;
-    }
-    s = 0; /* strtok() should be called with the actual string only once */
-  }
-
-  return 0;
-}
-
 
 
 int read_config(char * file)
@@ -742,11 +709,11 @@ int main(int argc, char * argv [])
   char  * homedir;
 #endif
 
-  progname = rindex(argv[0],'/');
+  progname = strrchr(argv[0],'/');
 
 #if defined (WIN32NATIVE)
   /* take care of backslash as dir sep in W32 */
-  if (!progname) progname = rindex(argv[0],'\\');
+  if (!progname) progname = strrchr(argv[0],'\\');
 #endif /* WIN32NATIVE */
 
   if (progname)
@@ -1106,14 +1073,13 @@ int main(int argc, char * argv [])
 
 
   if (exitspecs != NULL) {
-    if (strcmp(pgm->type, "PPI") != 0) {
+    if (pgm->getexitspecs == NULL) {
       fprintf(stderr,
-              "%s: WARNING: -E option is only valid with \"PPI\" "
-              "programmer types\n",
+              "%s: WARNING: -E option not supported by this programmer type\n",
               progname);
       exitspecs = NULL;
     }
-    else if (getexitspecs(exitspecs, &ppisetbits, &ppiclrbits) < 0) {
+    else if (pgm->getexitspecs(pgm, exitspecs, &ppisetbits, &ppiclrbits) < 0) {
       usage();
       exit(1);
     }
@@ -1163,6 +1129,7 @@ int main(int argc, char * argv [])
     if (verbose) {
       fprintf(stderr, "%sSetting bit clk period: %.1f\n", progbuf, bitclock);
     }
+
     pgm->bitclock = bitclock * 1e-6;
   }
 
@@ -1420,7 +1387,7 @@ int main(int argc, char * argv [])
 
     /* Try reading back fuses, make sure they are reliable to read back */
     if (safemode_readfuses(&safemodeafter_lfuse, &safemodeafter_hfuse,
-                           &safemodeafter_efuse, &safemode_fuse, pgm, p, verbose) != 0) {
+                           &safemodeafter_efuse, &safemodeafter_fuse, pgm, p, verbose) != 0) {
       /* Uh-oh.. try once more to read back fuses */
       if (safemode_readfuses(&safemodeafter_lfuse, &safemodeafter_hfuse,
                              &safemodeafter_efuse, &safemodeafter_fuse, pgm, p, verbose) != 0) { 

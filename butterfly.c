@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: butterfly.c,v 1.11 2005/09/20 04:53:09 joerg_wunsch Exp $ */
+/* $Id: butterfly.c,v 1.12 2005/10/20 11:36:19 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for the serial programming mode of the Atmel butterfly
@@ -297,9 +297,9 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
     exit(1);
   };
   butterfly_recv(pgm, &c, 1);
-  buffersize = c<<8;
+  buffersize = (unsigned int)(unsigned char)c<<8;
   butterfly_recv(pgm, &c, 1);
-  buffersize += c;
+  buffersize += (unsigned int)(unsigned char)c;
   fprintf(stderr,
     "Programmer supports buffered memory access with buffersize=%i bytes.\n",
      buffersize);

@@ -1,3 +1,191 @@
+2006-01-23  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.in: Bump version.
+
+2006-01-17 Colin O'Flynn <coflynn@newae.com>
+    * main.c: Fixed a typo in safemode variable names, fixed bug 15113
+    * avrdude.conf.in : Added BS2 and pagel to M162, Patch 4766
+    * main.c, stk500v2.c: Added patch 4804 from eolson@mit.edu
+                          Which stops sck from being writtend needlessly
+
+2006-01-13  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Contributed by David Moore: add support for the
+	AVRISP mkII device. (Savannah patch #4789.)
+	* serial.h: Declare usb_serdev_frame device descriptor.
+	* stk500v2.c: Implementation of the AVRISP mkII handling.
+	* usb_libusb.c: Add USB handling for short-frame delimited
+	AVRISP mkII USB protocol; add distinction of different
+	devices in usbdev_open().
+	* jtagmkII.c: Tell usbdev_open() to search for the JTAG ICE mkII.
+	* usbdevs.h: (New file.)
+	* Makefile.am: Add usbdevs.h, as well as some other forgotten
+	files "make distcheck" complained about.
+	* avrdude.conf.in: Add more aliases for the AVRISP mkII.
+	* avrdude.1: Document how to use the AVRISP mkII.
+	* doc/avrdude.texi: (Ditto.)
+
+2006-01-12  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Add EEPROM page instructions for the
+	ATmega169 so it will work for STK500v2.
+
+2005-12-16  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Added support for ATtiny24/44/84.
+
+2005-12-05  Colin O'Flynn <coflynn@newae.com>
+
+	* avrdude.conf.in: Added m162 support for stk500v2
+
+2005-12-01  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: fix the number of significant bits for
+	the efuse memory in ATmega48/88/168; the datasheet is a bit
+	off here as well.
+
+2005-11-29  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.1: update for JTAG ICE mkI support.
+	* doc/avrdude.texi: (Ditto.)
+
+2005-11-29  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by Galen Seitz:
+	patch #4459: Fix for rpm package builds
+	* avrdude.spec.in: update the RPM spec file:
+	  - Default to enable-doc=yes during configure.
+	  - Move info file to docs package.
+	  - Make building of docs package conditional.  Basic
+	    idea copied from avr-gcc.
+
+2005-11-29  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by someone who thinks he's called "Daper":
+	Fix bug #15013: Wrong use of PPICLAIM (kernel: ppdev0: claim the
+	port first)
+	* par.c: don't claim/release here (thus win_ppdev.h not needed
+	anymore)
+	* ppi.c: claim/release here.
+	* freebsd_ppi.h: ppi_claim/ppi_release now take an fd as parameter.
+	* solaris_ecpp.h: (Ditto.)
+	* linux_ppdev.h: (Ditto.)  (Also add copyright.)
+	* win_ppdev.h: Not needed anymore, remove.
+
+2005-11-28  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* jtagmkI.c: Improve the communication startup with the ICE.
+
+2005-11-28  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac: enable parport access on x86_64 Linux and
+	FreeBSD systems.
+
+2005-11-27  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: add the "calibration" space to ATmega16.
+
+2005-11-25 Colin O'Flynn <coflynn@newae.com>
+
+	Fixed bug 15051, building for Windows breaks.
+	* par.c: ppi_claim and ppi_release definitions now in a Windows header file
+	* ppi.c: Only included if you are building for Windows
+	* win_ppdev.h: Initial Commit, see par.c
+
+2005-11-24  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Add basic support for the Atmel JTAG ICE mkI:
+	* config_gram.y: add mkI support to config sytax.
+	* lexer.l: (Ditto.)
+	* avrdude.conf.in: add sample programmer entries.
+	* jtagmkI.c: New file
+	* jtagmkI.h: New file
+	* jtagmkI_private.h: New file
+	* Makefile.am: include new files in build.
+
+2005-11-24 Colin O'Flynn <coflynn@newae.com>
+
+	Fix bug 14681 - Serial Communication Fails on -vvvv with Windows
+	* ser_win32.c: Patched with Brian Dean's patch
+
+2005-11-05 Colin O'Flynn <coflynn@newae.com>
+
+	Patch #4532 by Manfred Bartz
+	* avrdude.conf.in: added support for ATMega168 (also added support
+	for the stk500v2 protocol which was not in the patch).
+
+2005-11-03  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Add ecpp(7D) (parallel port) for Solaris.
+	* configure.ac: add Solaris' default parallel port.
+	* linux_ppdev.h: change parallel port access to the new style.
+	* freebsd_ppi.h: New file, abstract FreeBSD's ppi(4).
+	* solaris_ecpp.h: New file, abstract Solaris' ecpp(7D).
+	* par.c: change header inclusion sequence.
+	* pgm.h: remove obsolete ppi_claim() and ppi_release() dummies.
+	* ppi.c: change header inclusion sequence, use new parport
+	abstraction, drop obsolete dummy implementation.
+
+2005-11-02  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* config.h: change YYSTYPE to be a single word, to work around
+	a bug in Solaris' yacc.
+	* lexer.l: remove incompatibilities with Solaris' default lex,
+	bump resource limits for lex.
+
+2005-11-01  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Make avrdude Solaris-compatible.
+	* Makefile.am: distclean avrdude.conf.
+	* avrdude.conf.in: make the parallel-port programmers optional.
+	* bitbang.c: move the bitbang features out into PROGRAMMER.
+	* configure.ac: introduce --enable-parport, add Solaris.
+	* lexer.l: replace str by strng to work around problems in some
+	versions of flex.
+	* main.c: move getexitspecs into the respective programmer's
+	domain; replace rindex by the C-standard strrchr.
+	* par.c: make parallel port optional.
+	* par.h: everything but par_initpgm() is private now.
+	* pgm.h: add setping/getping/highpulsepin/getexitspecs.
+	* serbb_posix.c: generalize bitbang interface; replace
+	cfmakeraw() by explicit code.
+	* serbb_win32.c: generalize bitbang interface.
+
+2005-10-20  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* butterfly.c: fix yet another sign extension bug.
+
+2005-10-14  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in (ATmega8515): fix size of calibration
+	memory.
+
+2005-10-09  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: add support for ATmega640/1280/1281.
+	* avrdude.1: document the above.
+	* doc/avrdude.texi: (Ditto.)
+
+2005-09-27  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* doc/avrdude.texi: Polish up the docs a bit.  Use smallexample
+	instead of example for wide tty output.  Document a trick to
+	find out about the serial numbers of all JTAG ICEs attached
+	to USB.
+
+2005-09-26  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* jtagmkII.c (jtagmkII_paged_write): default the page size early so the
+	buffer will be allocated correctly.
+	* usb_libusb.c: fix libusb handling; now it works with libusb-win32 as
+	well.
+
+2005-09-21  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* main.c(do_op): use mem->desc in place of upd->memtype to
+	give the full name of the respective memory area, instead of
+	the (possibly abbreviated) name the user typed in the -U option.
+
 2005-09-21  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* main.c: Add the forgotten -B option to the option string in
