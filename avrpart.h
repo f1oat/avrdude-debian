@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2003-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avrpart.h,v 1.18 2005/05/11 20:06:23 joerg_wunsch Exp $ */
+/* $Id: avrpart.h,v 1.23 2006/07/21 21:53:49 joerg_wunsch Exp $ */
 
 #ifndef __avrpart_h__
 #define __avrpart_h__
@@ -41,6 +42,7 @@ enum {
   AVR_OP_WRITE_HI,
   AVR_OP_LOADPAGE_LO,
   AVR_OP_LOADPAGE_HI,
+  AVR_OP_LOAD_EXT_ADDR,
   AVR_OP_WRITEPAGE,
   AVR_OP_CHIP_ERASE,
   AVR_OP_PGM_ENABLE,
@@ -59,6 +61,12 @@ enum {
 enum { /* these are assigned to reset_disposition of AVRPART */
   RESET_DEDICATED,    /* reset pin is dedicated */
   RESET_IO            /* reset pin might be configured as an I/O pin */
+};
+
+enum ctl_stack_t {
+  CTL_STACK_NONE,     /* no control stack defined */
+  CTL_STACK_PP,	      /* parallel programming control stack */
+  CTL_STACK_HVSP      /* high voltage serial programming control stack */
 };
 
 /*
@@ -84,6 +92,7 @@ typedef struct opcode {
 
 #define AVR_DESCLEN 64
 #define AVR_IDLEN   32
+#define CTL_STACK_SIZE 32
 typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
@@ -92,6 +101,7 @@ typedef struct avrpart {
   int           chip_erase_delay;   /* microseconds */
   unsigned char pagel;              /* for parallel programming */
   unsigned char bs2;                /* for parallel programming */
+  unsigned char signature[3];       /* expected value of signature bytes */
   int           reset_disposition;  /* see RESET_ enums */
   int           retry_pulse;        /* retry program enable by pulsing
                                        this pin (PIN_AVR_*) */
@@ -107,6 +117,28 @@ typedef struct avrpart {
   int           predelay;           /* stk500 v2 xml file parameter */
   int           postdelay;          /* stk500 v2 xml file parameter */
   int           pollmethod;         /* stk500 v2 xml file parameter */
+
+  enum ctl_stack_t ctl_stack_type;  /* what to use the ctl stack for */
+  unsigned char controlstack[CTL_STACK_SIZE]; /* stk500v2 PP/HVSP ctl stack */
+
+  int           hventerstabdelay;   /* stk500 v2 hv mode parameter */
+  int           progmodedelay;      /* stk500 v2 hv mode parameter */
+  int           latchcycles;        /* stk500 v2 hv mode parameter */
+  int           togglevtg;          /* stk500 v2 hv mode parameter */
+  int           poweroffdelay;      /* stk500 v2 hv mode parameter */
+  int           resetdelayms;       /* stk500 v2 hv mode parameter */
+  int           resetdelayus;       /* stk500 v2 hv mode parameter */
+  int           hvleavestabdelay;   /* stk500 v2 hv mode parameter */
+  int           resetdelay;         /* stk500 v2 hv mode parameter */
+  int           chiperasepulsewidth; /* stk500 v2 hv mode parameter */
+  int           chiperasepolltimeout; /* stk500 v2 hv mode parameter */
+  int           chiperasetime;      /* stk500 v2 hv mode parameter */
+  int           programfusepulsewidth; /* stk500 v2 hv mode parameter */
+  int           programfusepolltimeout; /* stk500 v2 hv mode parameter */
+  int           programlockpulsewidth; /* stk500 v2 hv mode parameter */
+  int           programlockpolltimeout; /* stk500 v2 hv mode parameter */
+  int           synchcycles;        /* stk500 v2 hv mode parameter */
+  int           hvspcmdexedelay;    /* stk500 v2 xml file parameter */
 
   unsigned char idr;                /* JTAG ICE mkII XML file parameter */
   unsigned char rampz;              /* JTAG ICE mkII XML file parameter */

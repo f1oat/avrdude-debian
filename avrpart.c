@@ -2,6 +2,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avrpart.c,v 1.6 2005/05/11 20:06:23 joerg_wunsch Exp $ */
+/* $Id: avrpart.c,v 1.10 2006/07/21 21:51:13 joerg_wunsch Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -174,6 +175,7 @@ char * avr_op_str(int op)
     case AVR_OP_WRITE_HI    : return "WRITE_HI"; break;
     case AVR_OP_LOADPAGE_LO : return "LOADPAGE_LO"; break;
     case AVR_OP_LOADPAGE_HI : return "LOADPAGE_HI"; break;
+    case AVR_OP_LOAD_EXT_ADDR : return "LOAD_EXT_ADDR"; break;
     case AVR_OP_WRITEPAGE   : return "WRITEPAGE"; break;
     case AVR_OP_CHIP_ERASE  : return "CHIP_ERASE"; break;
     case AVR_OP_PGM_ENABLE  : return "PGM_ENABLE"; break;
@@ -317,7 +319,7 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
             m->max_write_delay,
             m->readback[0],
             m->readback[1]);
-    if (verbose > 2) {
+    if (verbose > 4) {
       fprintf(stderr,
               "%s  Memory Ops:\n"
               "%s    Oeration     Inst Bit  Bit Type  Bitno  Value\n"
@@ -369,6 +371,8 @@ AVRPART * avr_new_part(void)
   p->flags = AVRPART_SERIALOK | AVRPART_PARALLELOK | AVRPART_ENABLEPAGEPROGRAMMING;
   p->config_file[0] = 0;
   p->lineno = 0;
+  memset(p->signature, 0xFF, 3);
+  p->ctl_stack_type = CTL_STACK_NONE;
 
   p->mem = lcreat(NULL, 0);
 

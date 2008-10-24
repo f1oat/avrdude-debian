@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config_gram.y,v 1.43 2005/11/25 06:14:06 joerg_wunsch Exp $ */
+/* $Id: config_gram.y,v 1.52 2006/09/19 22:27:30 joerg_wunsch Exp $ */
 %{
 
 #include "ac_cfg.h"
@@ -35,8 +36,10 @@
 #include "pgm.h"
 #include "stk500.h"
 #include "stk500v2.h"
+#include "stk500generic.h"
 #include "avr910.h"
 #include "butterfly.h"
+#include "usbasp.h"
 #include "avr.h"
 #include "jtagmkI.h"
 #include "jtagmkII.h"
@@ -65,6 +68,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_WRITE_HI
 %token K_LOADPAGE_LO
 %token K_LOADPAGE_HI
+%token K_LOAD_EXT_ADDR
 %token K_WRITEPAGE
 %token K_CHIP_ERASE
 %token K_PGM_ENABLE
@@ -93,6 +97,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_IO
 %token K_JTAG_MKI
 %token K_JTAG_MKII
+%token K_JTAG_MKII_ISP
 %token K_LOADPAGE
 %token K_MAX_WRITE_DELAY
 %token K_MIN_WRITE_DELAY
@@ -116,10 +121,15 @@ static int parse_cmdbits(OPCODE * op);
 %token K_SERBB
 %token K_SERIAL
 %token K_SCK
+%token K_SIGNATURE
 %token K_SIZE
 %token K_STK500
+%token K_STK500HVSP
+%token K_STK500PP
 %token K_STK500V2
+%token K_STK500GENERIC
 %token K_AVR910
+%token K_USBASP
 %token K_BUTTERFLY
 %token K_TYPE
 %token K_VCC
@@ -130,9 +140,11 @@ static int parse_cmdbits(OPCODE * op);
 %token K_YES
 
 /* stk500 v2 xml file parameters */
+/* ISP */
 %token K_TIMEOUT
 %token K_STABDELAY
 %token K_CMDEXEDELAY
+%token K_HVSPCMDEXEDELAY
 %token K_SYNCHLOOPS
 %token K_BYTEDELAY
 %token K_POLLVALUE
@@ -144,6 +156,29 @@ static int parse_cmdbits(OPCODE * op);
 %token K_DELAY
 %token K_BLOCKSIZE
 %token K_READSIZE
+/* HV mode */
+%token K_HVENTERSTABDELAY
+%token K_PROGMODEDELAY
+%token K_LATCHCYCLES
+%token K_TOGGLEVTG
+%token K_POWEROFFDELAY
+%token K_RESETDELAYMS
+%token K_RESETDELAYUS
+%token K_HVLEAVESTABDELAY
+%token K_RESETDELAY
+%token K_SYNCHCYCLES
+%token K_HVCMDEXEDELAY
+
+%token K_CHIPERASEPULSEWIDTH
+%token K_CHIPERASEPOLLTIMEOUT
+%token K_CHIPERASETIME
+%token K_PROGRAMFUSEPULSEWIDTH
+%token K_PROGRAMFUSEPOLLTIMEOUT
+%token K_PROGRAMLOCKPULSEWIDTH
+%token K_PROGRAMLOCKPOLLTIMEOUT
+
+%token K_PP_CONTROLSTACK
+%token K_HVSP_CONTROLSTACK
 
 /* JTAG ICE mkII specific parameters */
 %token K_ALLOWFULLPAGEBITSTREAM	/*
@@ -348,9 +383,33 @@ prog_parm :
     }
   } |
 
+  K_TYPE TKN_EQUAL K_STK500HVSP {
+    {
+      stk500hvsp_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_STK500PP {
+    {
+      stk500pp_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_STK500GENERIC {
+    {
+      stk500generic_initpgm(current_prog);
+    }
+  } |
+
   K_TYPE TKN_EQUAL K_AVR910 {
     { 
       avr910_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_USBASP {
+    {
+      usbasp_initpgm(current_prog);
     }
   } |
 
@@ -372,6 +431,12 @@ prog_parm :
     }
   } |
 
+  K_TYPE TKN_EQUAL K_JTAG_MKII_ISP {
+    {
+      stk500v2_jtagmkII_initpgm(current_prog);
+    }
+  } |
+
   K_DESC TKN_EQUAL TKN_STRING {
     strncpy(current_prog->desc, $3->value.string, PGM_DESCLEN);
     current_prog->desc[PGM_DESCLEN-1] = 0;
@@ -388,15 +453,7 @@ prog_parm :
       while (lsize(number_list)) {
         t = lrmv_n(number_list, 1);
         pin = t->value.number;
-        if ((pin < 2) || (pin > 9)) {
-          fprintf(stderr, 
-                  "%s: error at line %d of %s: VCC must be one or more "
-                  "pins from the range 2-9\n",
-                  progname, lineno, infile);
-          exit(1);
-        }
-
-        current_prog->pinno[PPI_AVR_VCC] |= (1 << (pin-2));
+        current_prog->pinno[PPI_AVR_VCC] |= (1 << pin);
 
         free_token(t);
       }
@@ -413,15 +470,7 @@ prog_parm :
       while (lsize(number_list)) {
         t = lrmv_n(number_list, 1);
         pin = t->value.number;
-        if ((pin < 2) || (pin > 9)) {
-          fprintf(stderr, 
-                  "%s: error at line %d of %s: BUFF must be one or more "
-                  "pins from the range 2-9\n",
-                  progname, lineno, infile);
-          exit(1);
-        }
-
-        current_prog->pinno[PPI_AVR_BUFF] |= (1 << (pin-2));
+        current_prog->pinno[PPI_AVR_BUFF] |= (1 << pin);
 
         free_token(t);
       }
@@ -467,6 +516,7 @@ opcode :
   K_WRITE_HI     |
   K_LOADPAGE_LO  |
   K_LOADPAGE_HI  |
+  K_LOAD_EXT_ADDR |
   K_WRITEPAGE    |
   K_CHIP_ERASE   |
   K_PGM_ENABLE
@@ -530,6 +580,101 @@ part_parm :
     }
   } |
 
+  K_SIGNATURE TKN_EQUAL TKN_NUMBER TKN_NUMBER TKN_NUMBER {
+    {
+      current_part->signature[0] = $3->value.number;
+      current_part->signature[1] = $4->value.number;
+      current_part->signature[2] = $5->value.number;
+      free_token($3);
+      free_token($4);
+      free_token($5);
+    }
+  } |
+
+  K_PP_CONTROLSTACK TKN_EQUAL num_list {
+    {
+      TOKEN * t;
+      unsigned nbytes;
+      int ok;
+
+      if (current_part->ctl_stack_type != CTL_STACK_NONE)
+	{
+	  fprintf(stderr,
+		  "%s: error at line %d of %s: "
+		  "control stack already defined\n",
+		  progname, lineno, infile);
+	  exit(1);
+	}
+
+      current_part->ctl_stack_type = CTL_STACK_PP;
+      nbytes = 0;
+      ok = 1;
+
+      while (lsize(number_list)) {
+        t = lrmv_n(number_list, 1);
+	if (nbytes < CTL_STACK_SIZE)
+	  {
+	    current_part->controlstack[nbytes] = t->value.number;
+	    nbytes++;
+	  }
+	else
+	  {
+	    ok = 0;
+	  }
+        free_token(t);
+      }
+      if (!ok)
+	{
+	  fprintf(stderr,
+                  "%s: Warning: line %d of %s: "
+		  "too many bytes in control stack\n",
+                  progname, lineno, infile);
+        }
+    }
+  } |
+
+  K_HVSP_CONTROLSTACK TKN_EQUAL num_list {
+    {
+      TOKEN * t;
+      unsigned nbytes;
+      int ok;
+
+      if (current_part->ctl_stack_type != CTL_STACK_NONE)
+	{
+	  fprintf(stderr,
+		  "%s: error at line %d of %s: "
+		  "control stack already defined\n",
+		  progname, lineno, infile);
+	  exit(1);
+	}
+
+      current_part->ctl_stack_type = CTL_STACK_HVSP;
+      nbytes = 0;
+      ok = 1;
+
+      while (lsize(number_list)) {
+        t = lrmv_n(number_list, 1);
+	if (nbytes < CTL_STACK_SIZE)
+	  {
+	    current_part->controlstack[nbytes] = t->value.number;
+	    nbytes++;
+	  }
+	else
+	  {
+	    ok = 0;
+	  }
+        free_token(t);
+      }
+      if (!ok)
+	{
+	  fprintf(stderr,
+                  "%s: Warning: line %d of %s: "
+		  "too many bytes in control stack\n",
+                  progname, lineno, infile);
+        }
+    }
+  } |
+
   K_CHIP_ERASE_DELAY TKN_EQUAL TKN_NUMBER
     {
       current_part->chip_erase_delay = $3->value.number;
@@ -576,6 +721,12 @@ part_parm :
       free_token($3);
     } |
 
+  K_HVSPCMDEXEDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->hvspcmdexedelay = $3->value.number;
+      free_token($3);
+    } |
+
   K_SYNCHLOOPS TKN_EQUAL TKN_NUMBER
     {
       current_part->synchloops = $3->value.number;
@@ -615,6 +766,108 @@ part_parm :
   K_POLLMETHOD TKN_EQUAL TKN_NUMBER
     {
       current_part->pollmethod = $3->value.number;
+      free_token($3);
+    } |
+
+  K_HVENTERSTABDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->hventerstabdelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PROGMODEDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->progmodedelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_LATCHCYCLES TKN_EQUAL TKN_NUMBER
+    {
+      current_part->latchcycles = $3->value.number;
+      free_token($3);
+    } |
+
+  K_TOGGLEVTG TKN_EQUAL TKN_NUMBER
+    {
+      current_part->togglevtg = $3->value.number;
+      free_token($3);
+    } |
+
+  K_POWEROFFDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->poweroffdelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_RESETDELAYMS TKN_EQUAL TKN_NUMBER
+    {
+      current_part->resetdelayms = $3->value.number;
+      free_token($3);
+    } |
+
+  K_RESETDELAYUS TKN_EQUAL TKN_NUMBER
+    {
+      current_part->resetdelayus = $3->value.number;
+      free_token($3);
+    } |
+
+  K_HVLEAVESTABDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->hvleavestabdelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_RESETDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->resetdelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_CHIPERASEPULSEWIDTH TKN_EQUAL TKN_NUMBER
+    {
+      current_part->chiperasepulsewidth = $3->value.number;
+      free_token($3);
+    } |
+
+  K_CHIPERASEPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
+    {
+      current_part->chiperasepolltimeout = $3->value.number;
+      free_token($3);
+    } |
+
+  K_CHIPERASETIME TKN_EQUAL TKN_NUMBER
+    {
+      current_part->chiperasetime = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PROGRAMFUSEPULSEWIDTH TKN_EQUAL TKN_NUMBER
+    {
+      current_part->programfusepulsewidth = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PROGRAMFUSEPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
+    {
+      current_part->programfusepolltimeout = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PROGRAMLOCKPULSEWIDTH TKN_EQUAL TKN_NUMBER
+    {
+      current_part->programlockpulsewidth = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PROGRAMLOCKPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
+    {
+      current_part->programlockpolltimeout = $3->value.number;
+      free_token($3);
+    } |
+
+  K_SYNCHCYCLES TKN_EQUAL TKN_NUMBER
+    {
+      current_part->synchcycles = $3->value.number;
       free_token($3);
     } |
 
@@ -915,6 +1168,7 @@ static int which_opcode(TOKEN * opcode)
     case K_WRITE_HI    : return AVR_OP_WRITE_HI; break;
     case K_LOADPAGE_LO : return AVR_OP_LOADPAGE_LO; break;
     case K_LOADPAGE_HI : return AVR_OP_LOADPAGE_HI; break;
+    case K_LOAD_EXT_ADDR : return AVR_OP_LOAD_EXT_ADDR; break;
     case K_WRITEPAGE   : return AVR_OP_WRITEPAGE; break;
     case K_CHIP_ERASE  : return AVR_OP_CHIP_ERASE; break;
     case K_PGM_ENABLE  : return AVR_OP_PGM_ENABLE; break;

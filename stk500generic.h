@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2002-2004, 2006  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,19 +17,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkII.h,v 1.3 2006/09/06 22:30:00 joerg_wunsch Exp $ */
+/* $Id: stk500generic.h,v 1.1 2006/09/19 22:27:30 joerg_wunsch Exp $ */
 
-#ifndef jtagmkII_h
-#define jtagmkII_h
+#ifndef stk500generic_h__
+#define stk500generic_h__
 
-int  jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len);
-int  jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg);
-void jtagmkII_close(PROGRAMMER * pgm);
-int  jtagmkII_getsync(PROGRAMMER * pgm, int mode);
-int  jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
-		      unsigned char * value);
-
-void jtagmkII_initpgm (PROGRAMMER * pgm);
+void stk500generic_initpgm (PROGRAMMER * pgm);
 
 #endif
+
 

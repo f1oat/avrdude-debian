@@ -18,13 +18,13 @@
 #
 
 #
-# $Id: configure.ac,v 1.32 2006/01/23 20:53:59 joerg_wunsch Exp $
+# $Id: configure.ac,v 1.38 2006/10/09 14:47:29 joerg_wunsch Exp $
 #
 
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(avrdude, 5.1, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 5.2, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -44,9 +44,21 @@ AM_PROG_LEX
 AC_CHECK_LIB([termcap], [tputs])
 AC_CHECK_LIB([ncurses], [tputs])
 AC_CHECK_LIB([readline], [readline])
-# usb_get_string_simple is only available in recent enough
-# versions of libusb, so use that as a decision base.
-AC_CHECK_LIB([usb], [usb_get_string_simple])
+AH_TEMPLATE([HAVE_LIBUSB],
+            [Define if USB support is enabled via libusb])
+AC_CHECK_LIB([usb], [usb_get_string_simple], [have_libusb=yes])
+if test x$have_libusb = xyes; then
+   case $target in
+       *-*-darwin*)
+               LIBUSB="-lusb -framework CoreFoundation -framework IOKit"
+               ;;
+       *)
+               LIBUSB="-lusb"
+               ;;
+   esac
+   AC_DEFINE([HAVE_LIBUSB])
+fi
+AC_SUBST(LIBUSB, $LIBUSB)
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -59,7 +71,7 @@ AC_HEADER_TIME
 # Checks for library functions.
 AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul])
+AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday])
 
 # Checks for misc stuff.
 

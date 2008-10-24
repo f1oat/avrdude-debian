@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: main.c,v 1.113 2006/01/17 21:11:39 c_oflynn Exp $ */
+/* $Id: main.c,v 1.123 2006/10/09 14:34:24 joerg_wunsch Exp $ */
 
 /*
  * Code to program an Atmel AVR device through one of the supported
@@ -76,6 +76,7 @@ char * version      = VERSION;
 
 int    verbose;     /* verbose output */
 int    quell_progress; /* un-verebose output */
+int    ovsigck;     /* 1=override sig check, 0=don't */
 char * progname;
 char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
@@ -105,9 +106,11 @@ void usage(void)
  "  -C <config-file>           Specify location of configuration file.\n"
  "  -c <programmer>            Specify programmer type.\n"
  "  -D                         Disable auto erase for flash memory\n"
+ "  -i <delay>                 ISP Clock Delay [in microseconds]\n"
  "  -P <port>                  Specify connection port.\n"
  "  -F                         Override invalid signature check.\n"
  "  -e                         Perform a chip erase.\n"
+ "  -O                         Perform RC oscillator calibration (see AVR053). \n"
  "  -U <memtype>:r|w|v:<filename>[:format]\n"
  "                             Memory operation specification.\n"
  "                             Multiple -U options are allowed, each request\n"
@@ -160,17 +163,6 @@ void programmer_display(char * p)
   fprintf(stderr, "%sDescription     : %s\n", p, pgm->desc);
 
   pgm->display(pgm, p);
-}
-
-
-
-void verify_pin_assigned(int pin, char * desc)
-{
-  if (pgm->pinno[pin] == 0) {
-    fprintf(stderr, "%s: error: no pin has been assigned for %s\n",
-            progname, desc);
-    exit(1);
-  }
 }
 
 
@@ -348,9 +340,20 @@ UPDATE * parse_op(char * s)
     buf[i++] = *p++;
   
   if (*p != ':') {
-    fprintf(stderr, "%s: invalid update specification\n", progname);
-    free(upd);
-    return NULL;
+    upd->memtype = (char *)malloc(strlen("flash")+1);
+    if (upd->memtype == NULL) {
+      outofmem:
+      fprintf(stderr, "%s: out of memory\n", progname);
+      exit(1);
+    }
+    strcpy(upd->memtype, "flash");
+    upd->op = DEVICE_WRITE;
+    upd->filename = (char *)malloc(strlen(buf) + 1);
+    if (upd->filename == NULL)
+      goto outofmem;
+    strcpy(upd->filename, buf);
+    upd->format = FMT_AUTO;
+    return upd;
   }
 
   buf[i] = 0;
@@ -424,6 +427,10 @@ UPDATE * parse_op(char * s)
       case 'i': upd->format = FMT_IHEX; break;
       case 'r': upd->format = FMT_RBIN; break;
       case 'm': upd->format = FMT_IMM; break;
+      case 'b': upd->format = FMT_BIN; break;
+      case 'd': upd->format = FMT_DEC; break;
+      case 'h': upd->format = FMT_HEX; break;
+      case 'o': upd->format = FMT_OCT; break;
       default:
         fprintf(stderr, "%s: invalid file format '%s' in update specifier\n",
                 progname, p);
@@ -556,7 +563,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
      */
     if (quell_progress < 2) {
       fprintf(stderr, "%s: writing %s (%d bytes):\n", 
-            progname, upd->memtype, size);
+            progname, mem->desc, size);
 	  }
 
     if (!nowrite) {
@@ -582,7 +589,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
 
     if (quell_progress < 2) {
       fprintf(stderr, "%s: %d bytes of %s written\n", progname, 
-            vsize, upd->memtype);
+            vsize, mem->desc);
     }
 
   }
@@ -614,7 +621,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
       fprintf(stderr, "%s: input file %s contains %d bytes\n", 
             progname, upd->filename, size);
       fprintf(stderr, "%s: reading on-chip %s data:\n", 
-            progname, upd->memtype);
+            progname, mem->desc);
     }
 
     report_progress (0,1,"Reading");
@@ -676,15 +683,13 @@ int main(int argc, char * argv [])
 
   /* options / operating mode variables */
   int     erase;       /* 1=erase chip, 0=don't */
+  int     calibrate;   /* 1=calibrate RC oscillator, 0=don't */
   int     auto_erase;  /* 0=never erase unless explicity told to do
                           so, 1=erase if we are going to program flash */
-  int     ovsigck;     /* 1=override sig check, 0=don't */
   char  * port;        /* device port (/dev/xxx) */
   int     terminal;    /* 1=enter terminal mode, 0=don't */
   int     nowrite;     /* don't actually write anything to the chip */
   int     verify;      /* perform a verify operation */
-  int     ppisetbits;  /* bits to set in ppi data register at exit */
-  int     ppiclrbits;  /* bits to clear in ppi data register at exit */
   char  * exitspecs;   /* exit specs string from command line */
   char  * programmer;  /* programmer id */
   char  * partdesc;    /* part id */
@@ -695,6 +700,7 @@ int main(int argc, char * argv [])
   char  * e;           /* for strtol() error checking */
   int     baudrate;    /* override default programmer baud rate */
   double  bitclock;    /* Specify programmer bit clock (JTAG ICE) */
+  int     ispdelay;    /* Specify the delay for ISP clock */
   int     safemode;    /* Enable safemode, 1=safemode on, 0=normal */
   int     silentsafe;  /* Don't ask about fuses, 1=silent, 0=normal */
   unsigned char safemode_lfuse = 0xff;
@@ -735,6 +741,7 @@ int main(int argc, char * argv [])
   partdesc      = NULL;
   port          = default_parallel;
   erase         = 0;
+  calibrate     = 0;
   auto_erase    = 1;
   p             = NULL;
   ovsigck       = 0;
@@ -742,8 +749,6 @@ int main(int argc, char * argv [])
   nowrite       = 0;
   verify        = 1;        /* on by default */
   quell_progress = 0;
-  ppisetbits    = 0;
-  ppiclrbits    = 0;
   exitspecs     = NULL;
   pgm           = NULL;
   programmer    = default_programmer;
@@ -752,6 +757,7 @@ int main(int argc, char * argv [])
   set_cycles    = -1;
   baudrate      = 0;
   bitclock      = 0.0;
+  ispdelay      = 0;
   safemode      = 1;       /* Safemode on by default */
   silentsafe    = 0;       /* Ask by default */
   
@@ -802,7 +808,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fnp:P:qstU:uvVyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fi:np:OP:qstU:uvVyY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -818,6 +824,15 @@ int main(int argc, char * argv [])
 	bitclock = strtod(optarg, &e);
 	if ((e == optarg) || (*e != 0) || bitclock == 0.0) {
 	  fprintf(stderr, "%s: invalid bit clock period specified '%s'\n",
+                  progname, optarg);
+          exit(1);
+        }
+        break;
+
+      case 'i':	/* specify isp clock delay */
+	ispdelay = strtol(optarg, &e,10);
+	if ((e == optarg) || (*e != 0) || ispdelay == 0) {
+	  fprintf(stderr, "%s: invalid isp clock delay specified '%s'\n",
                   progname, optarg);
           exit(1);
         }
@@ -851,6 +866,10 @@ int main(int argc, char * argv [])
       case 'n':
         nowrite = 1;
         break;
+
+      case 'O': /* perform RC oscillator calibration */
+	calibrate = 1;
+	break;
 
       case 'p' : /* specify AVR part */
         partdesc = optarg;
@@ -949,9 +968,9 @@ int main(int argc, char * argv [])
      * they are running
      */
     fprintf(stderr,
-            "\n%s: Version %s\n"
+            "\n%s: Version %s, compiled on %s at %s\n"
             "%sCopyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/\n\n",
-            progname, version, progbuf);
+            progname, version, __DATE__, __TIME__, progbuf);
   }
 
   if (verbose) {
@@ -1073,18 +1092,17 @@ int main(int argc, char * argv [])
 
 
   if (exitspecs != NULL) {
-    if (pgm->getexitspecs == NULL) {
+    if (pgm->parseexitspecs == NULL) {
       fprintf(stderr,
               "%s: WARNING: -E option not supported by this programmer type\n",
               progname);
       exitspecs = NULL;
     }
-    else if (pgm->getexitspecs(pgm, exitspecs, &ppisetbits, &ppiclrbits) < 0) {
+    else if (pgm->parseexitspecs(pgm, exitspecs) < 0) {
       usage();
       exit(1);
     }
   }
-
 
   /*
    * set up seperate instances of the avr part, one for use in
@@ -1093,13 +1111,6 @@ int main(int argc, char * argv [])
    */
   p = avr_dup_part(p);
   v = avr_dup_part(p);
-
-  if (strcmp(pgm->type, "PPI") == 0) {
-    verify_pin_assigned(PIN_AVR_RESET, "AVR RESET");
-    verify_pin_assigned(PIN_AVR_SCK,   "AVR SCK");
-    verify_pin_assigned(PIN_AVR_MISO,  "AVR MISO");
-    verify_pin_assigned(PIN_AVR_MOSI,  "AVR MOSI");
-  }
 
   /*
    * open the programmer
@@ -1133,10 +1144,32 @@ int main(int argc, char * argv [])
     pgm->bitclock = bitclock * 1e-6;
   }
 
+  if (ispdelay != 0) {
+    if (verbose) {
+      fprintf(stderr, "%sSetting isp clock delay: %3i\n", progbuf, ispdelay);
+    }
+    pgm->ispdelay = ispdelay;
+  }
+
   rc = pgm->open(pgm, port);
   if (rc < 0) {
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
+    goto main_exit;
+  }
+
+  if (calibrate) {
+    /*
+     * perform an RC oscillator calibration
+     * as outlined in appnote AVR053
+     */
+    fprintf(stderr, "%s: performing RC oscillator calibration\n", progname);
+    exitrc = pgm->perform_osccal(pgm);
+    if (exitrc == 0 && quell_progress < 2) {
+      fprintf(stderr,
+              "%s: calibration value is now stored in EEPROM at address 0\n",
+              progname);
+    }
     goto main_exit;
   }
 
@@ -1151,14 +1184,6 @@ int main(int argc, char * argv [])
   }
 
   exitrc = 0;
-
-  /*
-   * handle exit specs. FIXME: this should be moved to "par.c"
-   */
-  if (strcmp(pgm->type, "PPI") == 0) {
-    pgm->ppidata &= ~ppiclrbits;
-    pgm->ppidata |= ppisetbits;
-  }
 
   /*
    * enable the programmer
@@ -1201,8 +1226,8 @@ int main(int argc, char * argv [])
   /*
    * Let's read the signature bytes to make sure there is at least a
    * chip on the other end that is responding correctly.  A check
-   * against 0xffffffff should ensure that the signature bytes are
-   * valid.
+   * against 0xffffff / 0x000000 should ensure that the signature bytes
+   * are valid.
    */
   rc = avr_signature(pgm, p);
   if (rc != 0) {
@@ -1220,24 +1245,26 @@ int main(int argc, char * argv [])
   }
 
   if (sig != NULL) {
-    int ff;
+    int ff, zz;
 
     if (quell_progress < 2) {
       fprintf(stderr, "%s: Device signature = 0x", progname);
     }
-    ff = 1;
+    ff = zz = 1;
     for (i=0; i<sig->size; i++) {
       if (quell_progress < 2) {
         fprintf(stderr, "%02x", sig->buf[i]);
       }
       if (sig->buf[i] != 0xff)
         ff = 0;
+      if (sig->buf[i] != 0x00)
+        zz = 0;
     }
     if (quell_progress < 2) {
       fprintf(stderr, "\n");
     }
 
-    if (ff) {
+    if (ff || zz) {
       fprintf(stderr,
               "%s: Yikes!  Invalid device signature.\n", progname);
       if (!ovsigck) {
@@ -1245,6 +1272,23 @@ int main(int argc, char * argv [])
                 "or use -F to override\n"
                 "%sthis check.\n\n",
                 progbuf, progbuf);
+        exitrc = 1;
+        goto main_exit;
+      }
+    }
+
+    if (sig->size != 3 ||
+	sig->buf[0] != p->signature[0] ||
+	sig->buf[1] != p->signature[1] ||
+	sig->buf[2] != p->signature[2]) {
+      fprintf(stderr,
+	      "%s: Expected signature for %s is %02X %02X %02X\n",
+	      progname, p->desc,
+	      p->signature[0], p->signature[1], p->signature[2]);
+      if (!ovsigck) {
+        fprintf(stderr, "%sDouble check chip, "
+		"or use -F to override this check.\n",
+                progbuf);
         exitrc = 1;
         goto main_exit;
       }

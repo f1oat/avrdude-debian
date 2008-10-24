@@ -34,7 +34,7 @@
 #
 
 #
-# $Id: Makefile.am,v 1.29 2006/01/12 23:13:50 joerg_wunsch Exp $
+# $Id: Makefile.am,v 1.33 2006/09/19 22:27:30 joerg_wunsch Exp $
 #
 
 
@@ -69,7 +69,7 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/avrdude.conf.in $(srcdir)/avrdude.spec.in \
 	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
 	compile config.guess config.sub config_gram.c config_gram.h \
-	depcomp install-sh lexer.c missing
+	depcomp install-sh lexer.c missing mkinstalldirs
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -77,7 +77,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno configure.status.lineno
-mkinstalldirs = $(install_sh) -d
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ac_cfg.h
 CONFIG_CLEAN_FILES = avrdude.spec avrdude.conf.tmp
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" \
@@ -97,10 +97,11 @@ am_avrdude_OBJECTS = avrdude-config_gram.$(OBJEXT) \
 	avrdude-safemode.$(OBJEXT) avrdude-serbb_posix.$(OBJEXT) \
 	avrdude-serbb_win32.$(OBJEXT) avrdude-ser_posix.$(OBJEXT) \
 	avrdude-ser_win32.$(OBJEXT) avrdude-stk500.$(OBJEXT) \
-	avrdude-stk500v2.$(OBJEXT) avrdude-term.$(OBJEXT) \
+	avrdude-stk500v2.$(OBJEXT) avrdude-stk500generic.$(OBJEXT) \
+	avrdude-term.$(OBJEXT) avrdude-usbasp.$(OBJEXT) \
 	avrdude-usb_libusb.$(OBJEXT)
 avrdude_OBJECTS = $(am_avrdude_OBJECTS)
-avrdude_LDADD = $(LDADD)
+avrdude_DEPENDENCIES =
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I.
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -178,6 +179,7 @@ LEXLIB = @LEXLIB@
 LEX_OUTPUT_ROOT = @LEX_OUTPUT_ROOT@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LIBUSB = @LIBUSB@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 OBJEXT = @OBJEXT@
@@ -258,6 +260,7 @@ DIST_SUBDIRS = @DIST_SUBDIRS_AC@
 AM_YFLAGS = -d
 avrdude_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
 avrdude_CFLAGS = @ENABLE_WARNINGS@  
+avrdude_LDADD = @LIBUSB@
 avrdude_SOURCES = \
 	config_gram.y \
 	lexer.l \
@@ -313,8 +316,12 @@ avrdude_SOURCES = \
 	stk500v2.c \
 	stk500v2.h \
 	stk500v2_private.h \
+	stk500generic.c \
+	stk500generic.h \
 	term.c \
 	term.h \
+	usbasp.c \
+	usbasp.h \
 	usbdevs.h \
 	usb_libusb.c
 
@@ -442,9 +449,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avrdude-serbb_posix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avrdude-serbb_win32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avrdude-stk500.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avrdude-stk500generic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avrdude-stk500v2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avrdude-term.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avrdude-usb_libusb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avrdude-usbasp.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -824,6 +833,20 @@ avrdude-stk500v2.obj: stk500v2.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(avrdude_CPPFLAGS) $(CPPFLAGS) $(avrdude_CFLAGS) $(CFLAGS) -c -o avrdude-stk500v2.obj `if test -f 'stk500v2.c'; then $(CYGPATH_W) 'stk500v2.c'; else $(CYGPATH_W) '$(srcdir)/stk500v2.c'; fi`
 
+avrdude-stk500generic.o: stk500generic.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(avrdude_CPPFLAGS) $(CPPFLAGS) $(avrdude_CFLAGS) $(CFLAGS) -MT avrdude-stk500generic.o -MD -MP -MF "$(DEPDIR)/avrdude-stk500generic.Tpo" -c -o avrdude-stk500generic.o `test -f 'stk500generic.c' || echo '$(srcdir)/'`stk500generic.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/avrdude-stk500generic.Tpo" "$(DEPDIR)/avrdude-stk500generic.Po"; else rm -f "$(DEPDIR)/avrdude-stk500generic.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='stk500generic.c' object='avrdude-stk500generic.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(avrdude_CPPFLAGS) $(CPPFLAGS) $(avrdude_CFLAGS) $(CFLAGS) -c -o avrdude-stk500generic.o `test -f 'stk500generic.c' || echo '$(srcdir)/'`stk500generic.c
+
+avrdude-stk500generic.obj: stk500generic.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(avrdude_CPPFLAGS) $(CPPFLAGS) $(avrdude_CFLAGS) $(CFLAGS) -MT avrdude-stk500generic.obj -MD -MP -MF "$(DEPDIR)/avrdude-stk500generic.Tpo" -c -o avrdude-stk500generic.obj `if test -f 'stk500generic.c'; then $(CYGPATH_W) 'stk500generic.c'; else $(CYGPATH_W) '$(srcdir)/stk500generic.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/avrdude-stk500generic.Tpo" "$(DEPDIR)/avrdude-stk500generic.Po"; else rm -f "$(DEPDIR)/avrdude-stk500generic.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='stk500generic.c' object='avrdude-stk500generic.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(avrdude_CPPFLAGS) $(CPPFLAGS) $(avrdude_CFLAGS) $(CFLAGS) -c -o avrdude-stk500generic.obj `if test -f 'stk500generic.c'; then $(CYGPATH_W) 'stk500generic.c'; else $(CYGPATH_W) '$(srcdir)/stk500generic.c'; fi`
+
 avrdude-term.o: term.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(avrdude_CPPFLAGS) $(CPPFLAGS) $(avrdude_CFLAGS) $(CFLAGS) -MT avrdude-term.o -MD -MP -MF "$(DEPDIR)/avrdude-term.Tpo" -c -o avrdude-term.o `test -f 'term.c' || echo '$(srcdir)/'`term.c; \
 @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/avrdude-term.Tpo" "$(DEPDIR)/avrdude-term.Po"; else rm -f "$(DEPDIR)/avrdude-term.Tpo"; exit 1; fi
@@ -837,6 +860,20 @@ avrdude-term.obj: term.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='term.c' object='avrdude-term.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(avrdude_CPPFLAGS) $(CPPFLAGS) $(avrdude_CFLAGS) $(CFLAGS) -c -o avrdude-term.obj `if test -f 'term.c'; then $(CYGPATH_W) 'term.c'; else $(CYGPATH_W) '$(srcdir)/term.c'; fi`
+
+avrdude-usbasp.o: usbasp.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(avrdude_CPPFLAGS) $(CPPFLAGS) $(avrdude_CFLAGS) $(CFLAGS) -MT avrdude-usbasp.o -MD -MP -MF "$(DEPDIR)/avrdude-usbasp.Tpo" -c -o avrdude-usbasp.o `test -f 'usbasp.c' || echo '$(srcdir)/'`usbasp.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/avrdude-usbasp.Tpo" "$(DEPDIR)/avrdude-usbasp.Po"; else rm -f "$(DEPDIR)/avrdude-usbasp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='usbasp.c' object='avrdude-usbasp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(avrdude_CPPFLAGS) $(CPPFLAGS) $(avrdude_CFLAGS) $(CFLAGS) -c -o avrdude-usbasp.o `test -f 'usbasp.c' || echo '$(srcdir)/'`usbasp.c
+
+avrdude-usbasp.obj: usbasp.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(avrdude_CPPFLAGS) $(CPPFLAGS) $(avrdude_CFLAGS) $(CFLAGS) -MT avrdude-usbasp.obj -MD -MP -MF "$(DEPDIR)/avrdude-usbasp.Tpo" -c -o avrdude-usbasp.obj `if test -f 'usbasp.c'; then $(CYGPATH_W) 'usbasp.c'; else $(CYGPATH_W) '$(srcdir)/usbasp.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/avrdude-usbasp.Tpo" "$(DEPDIR)/avrdude-usbasp.Po"; else rm -f "$(DEPDIR)/avrdude-usbasp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='usbasp.c' object='avrdude-usbasp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(avrdude_CPPFLAGS) $(CPPFLAGS) $(avrdude_CFLAGS) $(CFLAGS) -c -o avrdude-usbasp.obj `if test -f 'usbasp.c'; then $(CYGPATH_W) 'usbasp.c'; else $(CYGPATH_W) '$(srcdir)/usbasp.c'; fi`
 
 avrdude-usb_libusb.o: usb_libusb.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(avrdude_CPPFLAGS) $(CPPFLAGS) $(avrdude_CFLAGS) $(CFLAGS) -MT avrdude-usb_libusb.o -MD -MP -MF "$(DEPDIR)/avrdude-usb_libusb.Tpo" -c -o avrdude-usb_libusb.o `test -f 'usb_libusb.c' || echo '$(srcdir)/'`usb_libusb.c; \
@@ -1106,6 +1143,9 @@ distdir: $(DISTFILES)
 	      || exit 1; \
 	  fi; \
 	done
+	$(MAKE) $(AM_MAKEFLAGS) \
+	  top_distdir="$(top_distdir)" distdir="$(distdir)" \
+	  dist-hook
 	-find $(distdir) -type d ! -perm -777 -exec chmod a+rwx {} \; -o \
 	  ! -type d ! -perm -444 -links 1 -exec chmod a+r {} \; -o \
 	  ! -type d ! -perm -400 -exec chmod a+r {} \; -o \
@@ -1300,7 +1340,7 @@ uninstall-man: uninstall-man1
 .PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am am--refresh check \
 	check-am clean clean-binPROGRAMS clean-generic clean-recursive \
 	ctags ctags-recursive dist dist-all dist-bzip2 dist-gzip \
-	dist-shar dist-tarZ dist-zip distcheck distclean \
+	dist-hook dist-shar dist-tarZ dist-zip distcheck distclean \
 	distclean-compile distclean-generic distclean-hdr \
 	distclean-local distclean-recursive distclean-tags \
 	distcleancheck distdir distuninstallcheck dvi dvi-am html \
@@ -1315,6 +1355,21 @@ uninstall-man: uninstall-man1
 	uninstall uninstall-am uninstall-binPROGRAMS uninstall-info-am \
 	uninstall-man uninstall-man1 uninstall-sysconfDATA
 
+
+# automake thinks these generated files should be in the distribution,
+# but this might cause trouble for some users, so we rather don't want
+# to have them there.
+#
+# See
+#
+# https://savannah.nongnu.org/bugs/index.php?func=detailitem&item_id=15536
+#
+# for why we don't want to have them.
+dist-hook:
+	rm -f \
+	$(distdir)/lexer.c \
+	$(distdir)/config_gram.c \
+	$(distdir)/config_gram.h
 
 install-exec-local: backup-avrdude-conf
 

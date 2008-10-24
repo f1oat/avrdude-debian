@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: pgm.h,v 1.24 2005/11/03 22:37:37 joerg_wunsch Exp $ */
+/* $Id: pgm.h,v 1.30 2006/10/09 14:34:24 joerg_wunsch Exp $ */
 
 #ifndef __pgm_h__
 #define __pgm_h__
@@ -38,16 +38,31 @@
 
 extern LISTID       programmers;
 
+typedef enum {
+  EXIT_VCC_UNSPEC,
+  EXIT_VCC_ENABLED,
+  EXIT_VCC_DISABLED
+} exit_vcc_t;
+
+typedef enum {
+  EXIT_RESET_UNSPEC,
+  EXIT_RESET_ENABLED,
+  EXIT_RESET_DISABLED
+} exit_reset_t;
+
 typedef struct programmer_t {
   LISTID id;
   char desc[PGM_DESCLEN];
   char type[PGM_TYPELEN];
   char port[PGM_PORTLEN];
   unsigned int pinno[N_PINS];
+  exit_vcc_t exit_vcc;
+  exit_reset_t exit_reset;
   int ppidata;
   int ppictrl;
   int baudrate;
   double bitclock;    /* JTAG ICE clock period in microseconds */
+  int ispdelay;    /* ISP clock delay */
   int fd;
   int  page_size;  /* page size if the programmer supports paged write/load */
   int  (*rdy_led)        (struct programmer_t * pgm, int value);
@@ -84,7 +99,8 @@ typedef struct programmer_t {
   int  (*setpin)         (struct programmer_t * pgm, int pin, int value);
   int  (*getpin)         (struct programmer_t * pgm, int pin);
   int  (*highpulsepin)   (struct programmer_t * pgm, int pin);
-  int  (*getexitspecs)   (struct programmer_t * pgm, char *s, int *set, int *clr);
+  int  (*parseexitspecs) (struct programmer_t * pgm, char *s);
+  int  (*perform_osccal) (struct programmer_t * pgm);
   char config_file[PATH_MAX]; /* config file where defined */
   int  lineno;                /* config file line number */
   char flag;		      /* for private use of the programmer */
@@ -95,6 +111,7 @@ PROGRAMMER * pgm_new(void);
 
 #if defined(WIN32NATIVE)
 
+#include "ac_cfg.h"
 #include <windows.h>
 
 /* usleep replacements */
@@ -106,7 +123,9 @@ PROGRAMMER * pgm_new(void);
 */
 void usleep(unsigned long us);
 
-void gettimeofday(struct timeval*, void*z);
+#if !defined(HAVE_GETTIMEOFDAY)
+int gettimeofday(struct timeval *tv, struct timezone *tz);
+#endif /* HAVE_GETTIMEOFDAY */
 
 #endif /* __win32native_h */
 

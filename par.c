@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2006  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: par.c,v 1.14 2005/11/29 20:20:22 joerg_wunsch Exp $ */
+/* $Id: par.c,v 1.19 2006/08/29 23:12:15 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -48,8 +48,6 @@ extern int verbose;
 
 #if HAVE_PARPORT
 
-#define SLOW_TOGGLE 0
-
 struct ppipins_t {
   int pin;
   int reg;
@@ -57,7 +55,7 @@ struct ppipins_t {
   int inverted;
 };
 
-struct ppipins_t ppipins[] = {
+static struct ppipins_t ppipins[] = {
   {  1, PPICTRL,   0x01, 1 },
   {  2, PPIDATA,   0x01, 0 },
   {  3, PPIDATA,   0x02, 0 },
@@ -81,7 +79,9 @@ struct ppipins_t ppipins[] = {
 
 static int par_setpin(PROGRAMMER * pgm, int pin, int value)
 {
+  int inverted;
 
+  inverted = pin & PIN_INVERSE;
   pin &= PIN_MASK;
 
   if (pin < 1 || pin > 17)
@@ -90,6 +90,9 @@ static int par_setpin(PROGRAMMER * pgm, int pin, int value)
   pin--;
 
   if (ppipins[pin].inverted)
+    inverted = !inverted;
+
+  if (inverted)
     value = !value;
 
   if (value)
@@ -97,18 +100,28 @@ static int par_setpin(PROGRAMMER * pgm, int pin, int value)
   else
     ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
 
-#if SLOW_TOGGLE
-  usleep(1000);
-#endif
+  if (pgm->ispdelay > 1)
+    bitbang_delay(pgm->ispdelay);
 
   return 0;
 }
 
+static void par_setmany(PROGRAMMER * pgm, unsigned int pinset, int value)
+{
+  int pin;
+
+  for (pin = 1; pin <= 17; pin++) {
+    if (pinset & (1 << pin))
+      par_setpin(pgm, pin, value);
+  }
+}
 
 static int par_getpin(PROGRAMMER * pgm, int pin)
 {
   int value;
+  int inverted;
 
+  inverted = pin & PIN_INVERSE;
   pin &= PIN_MASK;
 
   if (pin < 1 || pin > 17)
@@ -122,6 +135,9 @@ static int par_getpin(PROGRAMMER * pgm, int pin)
     value = 1;
     
   if (ppipins[pin].inverted)
+    inverted = !inverted;
+
+  if (inverted)
     value = !value;
 
   return value;
@@ -130,57 +146,57 @@ static int par_getpin(PROGRAMMER * pgm, int pin)
 
 static int par_highpulsepin(PROGRAMMER * pgm, int pin)
 {
+  int inverted;
+
+  inverted = pin & PIN_INVERSE;
+  pin &= PIN_MASK;
 
   if (pin < 1 || pin > 17)
     return -1;
 
   pin--;
 
-  ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
-#if SLOW_TOGGLE
-  usleep(1000);
-#endif
-  ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+  if (ppipins[pin].inverted)
+    inverted = !inverted;
 
-#if SLOW_TOGGLE
-  usleep(1000);
-#endif
+  if (inverted) {
+    ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    if (pgm->ispdelay > 1)
+      bitbang_delay(pgm->ispdelay);
+
+    ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    if (pgm->ispdelay > 1)
+      bitbang_delay(pgm->ispdelay);
+  } else {
+    ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    if (pgm->ispdelay > 1)
+      bitbang_delay(pgm->ispdelay);
+
+    ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    if (pgm->ispdelay > 1)
+      bitbang_delay(pgm->ispdelay);
+  }
 
   return 0;
 }
 
-int par_getpinmask(int pin)
+static char * pins_to_str(unsigned int pmask)
 {
-  pin &= PIN_MASK;
-
-  if (pin < 1 || pin > 17)
-    return -1;
-
-  return ppipins[pin-1].bit;
-}
-
-
-char vccpins_buf[64];
-static char * vccpins_str(unsigned int pmask)
-{
-  unsigned int mask;
+  static char buf[64];
   int pin;
   char b2[8];
-  char * b;
 
-  b = vccpins_buf;
-
-  b[0] = 0;
-  for (pin = 2, mask = 1; mask < 0x80; mask = mask << 1, pin++) {
-    if (pmask & mask) {
+  buf[0] = 0;
+  for (pin = 1; pin <= 17; pin++) {
+    if (pmask & (1 << pin)) {
       sprintf(b2, "%d", pin);
-      if (b[0] != 0)
-        strcat(b, ",");
-      strcat(b, b2);
+      if (buf[0] != 0)
+        strcat(buf, ",");
+      strcat(buf, b2);
     }
   }
 
-  return b;
+  return buf;
 }
 
 /*
@@ -188,7 +204,7 @@ static char * vccpins_str(unsigned int pmask)
  */
 static void par_powerup(PROGRAMMER * pgm)
 {
-  ppi_set(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_VCC]);    /* power up */
+  par_setmany(pgm, pgm->pinno[PPI_AVR_VCC], 1);	/* power up */
   usleep(100000);
 }
 
@@ -198,12 +214,12 @@ static void par_powerup(PROGRAMMER * pgm)
  */
 static void par_powerdown(PROGRAMMER * pgm)
 {
-  ppi_clr(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_VCC]);    /* power down */
+  par_setmany(pgm, pgm->pinno[PPI_AVR_VCC], 0);	/* power down */
 }
 
 static void par_disable(PROGRAMMER * pgm)
 {
-  ppi_set(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
+  par_setmany(pgm, pgm->pinno[PPI_AVR_BUFF], 1); /* turn off */
 }
 
 static void par_enable(PROGRAMMER * pgm)
@@ -225,12 +241,14 @@ static void par_enable(PROGRAMMER * pgm)
   /*
    * enable the 74367 buffer, if connected; this signal is active low
    */
-  ppi_clr(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
+  par_setmany(pgm, pgm->pinno[PPI_AVR_BUFF], 0);
 }
 
 static int par_open(PROGRAMMER * pgm, char * port)
 {
   int rc;
+
+  bitbang_check_prerequisites(pgm);
 
   pgm->fd = ppi_open(port);
   if (pgm->fd < 0) {
@@ -262,13 +280,45 @@ static int par_open(PROGRAMMER * pgm, char * port)
 
 static void par_close(PROGRAMMER * pgm)
 {
+
   /*
    * Restore pin values before closing,
    * but ensure that buffers are turned off.
    */
-  pgm->ppidata |= pgm->pinno[PPI_AVR_BUFF];
   ppi_setall(pgm->fd, PPIDATA, pgm->ppidata);
   ppi_setall(pgm->fd, PPICTRL, pgm->ppictrl);
+
+  par_setpin(pgm, pgm->pinno[PPI_AVR_BUFF], 1);
+
+  /*
+   * Handle exit specs.
+   */
+  switch (pgm->exit_reset) {
+  case EXIT_RESET_ENABLED:
+    par_setpin(pgm, pgm->pinno[PIN_AVR_RESET], 0);
+    break;
+
+  case EXIT_RESET_DISABLED:
+    par_setpin(pgm, pgm->pinno[PIN_AVR_RESET], 1);
+    break;
+
+  case EXIT_RESET_UNSPEC:
+    /* Leave it alone. */
+    break;
+  }
+  switch (pgm->exit_vcc) {
+  case EXIT_VCC_ENABLED:
+    par_setmany(pgm, pgm->pinno[PPI_AVR_VCC], 1);
+    break;
+
+  case EXIT_VCC_DISABLED:
+    par_setmany(pgm, pgm->pinno[PPI_AVR_VCC], 0);
+    break;
+
+  case EXIT_VCC_UNSPEC:
+    /* Leave it alone. */
+    break;
+  }
 
   ppi_close(pgm->fd);
   pgm->fd = -1;
@@ -280,24 +330,24 @@ static void par_display(PROGRAMMER * pgm, char * p)
   char buffpins[64];
 
   if (pgm->pinno[PPI_AVR_VCC]) {
-    snprintf(vccpins, sizeof(vccpins), " = pins %s",
-             vccpins_str(pgm->pinno[PPI_AVR_VCC]));
+    snprintf(vccpins, sizeof(vccpins), "%s",
+             pins_to_str(pgm->pinno[PPI_AVR_VCC]));
   }
   else {
     strcpy(vccpins, " (not used)");
   }
 
   if (pgm->pinno[PPI_AVR_BUFF]) {
-    snprintf(buffpins, sizeof(buffpins), " = pins %s", 
-             vccpins_str(pgm->pinno[PPI_AVR_BUFF]));
+    snprintf(buffpins, sizeof(buffpins), "%s",
+             pins_to_str(pgm->pinno[PPI_AVR_BUFF]));
   }
   else {
     strcpy(buffpins, " (not used)");
   }
 
   fprintf(stderr, 
-          "%s  VCC     = 0x%02x%s\n"
-          "%s  BUFF    = 0x%02x%s\n"
+          "%s  VCC     = %s\n"
+          "%s  BUFF    = %s\n"
           "%s  RESET   = %d\n"
           "%s  SCK     = %d\n"
           "%s  MOSI    = %d\n"
@@ -307,8 +357,8 @@ static void par_display(PROGRAMMER * pgm, char * p)
           "%s  PGM LED = %d\n"
           "%s  VFY LED = %d\n",
 
-          p, pgm->pinno[PPI_AVR_VCC], vccpins,
-          p, pgm->pinno[PPI_AVR_BUFF], buffpins,
+          p, vccpins,
+          p, buffpins,
           p, pgm->pinno[PIN_AVR_RESET],
           p, pgm->pinno[PIN_AVR_SCK],
           p, pgm->pinno[PIN_AVR_MOSI],
@@ -319,27 +369,26 @@ static void par_display(PROGRAMMER * pgm, char * p)
           p, pgm->pinno[PIN_LED_VFY]);
 }
 
+
 /*
  * parse the -E string
  */
-static int par_getexitspecs(PROGRAMMER * pgm, char *s, int *set, int *clr)
+static int par_parseexitspecs(PROGRAMMER * pgm, char *s)
 {
   char *cp;
 
   while ((cp = strtok(s, ","))) {
     if (strcmp(cp, "reset") == 0) {
-      *clr |= par_getpinmask(pgm->pinno[PIN_AVR_RESET]);
+      pgm->exit_reset = EXIT_RESET_ENABLED;
     }
     else if (strcmp(cp, "noreset") == 0) {
-      *set |= par_getpinmask(pgm->pinno[PIN_AVR_RESET]);
+      pgm->exit_reset = EXIT_RESET_DISABLED;
     }
     else if (strcmp(cp, "vcc") == 0) {
-      if (pgm->pinno[PPI_AVR_VCC])
-        *set |= pgm->pinno[PPI_AVR_VCC];
+      pgm->exit_vcc = EXIT_VCC_ENABLED;
     }
     else if (strcmp(cp, "novcc") == 0) {
-      if (pgm->pinno[PPI_AVR_VCC])
-        *clr |= pgm->pinno[PPI_AVR_VCC];
+      pgm->exit_vcc = EXIT_VCC_DISABLED;
     }
     else {
       return -1;
@@ -350,11 +399,12 @@ static int par_getexitspecs(PROGRAMMER * pgm, char *s, int *set, int *clr)
   return 0;
 }
 
-
-
 void par_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "PPI");
+
+  pgm->exit_vcc = EXIT_VCC_UNSPEC;
+  pgm->exit_reset = EXIT_RESET_UNSPEC;
 
   pgm->rdy_led        = bitbang_rdy_led;
   pgm->err_led        = bitbang_err_led;
@@ -374,7 +424,7 @@ void par_initpgm(PROGRAMMER * pgm)
   pgm->setpin         = par_setpin;
   pgm->getpin         = par_getpin;
   pgm->highpulsepin   = par_highpulsepin;
-  pgm->getexitspecs   = par_getexitspecs;
+  pgm->parseexitspecs = par_parseexitspecs;
 }
 
 #else  /* !HAVE_PARPORT */

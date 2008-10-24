@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2003, 2004  Martin J. Thomas  <mthomas@rhrk.uni-kl.de>
+ * Copyright (C) 2006  Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_win32.c,v 1.8 2005/11/24 15:00:49 c_oflynn Exp $ */
+/* $Id: ser_win32.c,v 1.9 2006/08/31 20:52:47 joerg_wunsch Exp $ */
 
 /*
  * Native Win32 serial interface for avrdude.
@@ -109,6 +110,20 @@ static int ser_open(char * port, long baud)
 {
 	LPVOID lpMsgBuf;
 	HANDLE hComPort=INVALID_HANDLE_VALUE;
+
+	/*
+	 * If the port is of the form "net:<host>:<port>", then
+	 * handle it as a TCP connection to a terminal server.
+	 *
+	 * This is curently not implemented for Win32.
+	 */
+	if (strncmp(port, "net:", strlen("net:")) == 0) {
+		fprintf(stderr,
+			"%s: ser_open(): network connects are currently not"
+			"implemented for Win32 environments\n",
+			progname);
+		exit(1);
+	}
 
 	/* if (hComPort!=INVALID_HANDLE_VALUE) 
 		fprintf(stderr, "%s: ser_open(): \"%s\" is already open\n",
