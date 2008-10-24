@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: serbb_win32.c,v 1.8 2006/12/11 12:47:35 joerg_wunsch Exp $ */
+/* $Id: serbb_win32.c,v 1.10 2007/01/30 13:41:53 joerg_wunsch Exp $ */
 
 /*
  * Win32 serial bitbanging interface for avrdude.
@@ -32,13 +32,11 @@
 #include <windows.h>
 #include <stdio.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"
 #include "bitbang.h"
-
-extern char *progname;
-extern int verbose;
 
 /* cached status lines */
 static int dtr, rts, txd;
@@ -239,7 +237,7 @@ static int serbb_highpulsepin(PROGRAMMER * pgm, int pin)
 }
 
 
-static void serbb_display(PROGRAMMER *pgm, char *p)
+static void serbb_display(PROGRAMMER *pgm, const char *p)
 {
   /* MAYBE */
 }

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: serial.h,v 1.12 2006/12/20 23:43:34 joerg_wunsch Exp $ */
+/* $Id: serial.h,v 1.13 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
 /* This is the API for the generic serial interface. The implementations are
    actually provided by the target dependant files:
@@ -27,8 +27,8 @@
 
    The target file will be selected at configure time. */
 
-#ifndef __serial_h__
-#define __serial_h__
+#ifndef serial_h
+#define serial_h
 
 extern long serial_recv_timeout;
 union filedescriptor
@@ -65,4 +65,4 @@ extern struct serial_device avrdoper_serdev;
 #define serial_recv (serdev->recv)
 #define serial_drain (serdev->drain)
 
-#endif /* __serial_h__ */
+#endif /* serial_h */

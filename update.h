@@ -1,7 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
- * Copyright (C) 2005 Michael Holzt <kju-avr@fqdn.org>
+ * Copyright (C) 2000-2005  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2007 Joerg Wunsch
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,21 +17,39 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: serbb.h,v 1.2 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
-#ifndef serbb_h
-#define serbb_h
+/* $Id: update.h,v 1.1 2007/01/24 22:43:46 joerg_wunsch Exp $ */
+
+#ifndef update_h
+#define update_h
+
+enum {
+  DEVICE_READ,
+  DEVICE_WRITE,
+  DEVICE_VERIFY
+};
+
+
+typedef struct update_t {
+  char * memtype;
+  int    op;
+  char * filename;
+  int    format;
+} UPDATE;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void serbb_initpgm        (PROGRAMMER * pgm);
+extern UPDATE * parse_op(char * s);
+extern UPDATE * dup_update(UPDATE * upd);
+extern UPDATE * new_update(int op, char * memtype, int filefmt,
+			   char * filename);
+extern int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd,
+		 int nowrite, int verify);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-
-

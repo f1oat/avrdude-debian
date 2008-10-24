@@ -17,15 +17,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config.c,v 1.14 2004/12/22 01:52:45 bdean Exp $ */
+/* $Id: config.c,v 1.17 2007/01/30 13:41:53 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "config.h"
 #include "config_gram.h"
@@ -45,8 +47,10 @@ AVRMEM     * current_mem;
 LISTID       part_list;
 LISTID       programmers;
 
-int    lineno = 0;
-char * infile = NULL;
+int    lineno;
+const char * infile;
+
+extern char * yytext;
 
 #define DEBUG 0
 
@@ -261,14 +265,12 @@ void print_token(TOKEN * tkn)
 void pyytext(void)
 {
 #if DEBUG
-  extern char * yytext;
-
   fprintf(stderr, "TOKEN: \"%s\"\n", yytext);
 #endif
 }
 
 
-char * dup_string(char * str)
+char * dup_string(const char * str)
 {
   char * s;
 
@@ -281,3 +283,24 @@ char * dup_string(char * str)
   return s;
 }
 
+int read_config(const char * file)
+{
+  FILE * f;
+
+  f = fopen(file, "r");
+  if (f == NULL) {
+    fprintf(stderr, "%s: can't open config file \"%s\": %s\n",
+            progname, file, strerror(errno));
+    return -1;
+  }
+
+  lineno = 1;
+  infile = file;
+  yyin   = f;
+
+  yyparse();
+
+  fclose(f);
+
+  return 0;
+}

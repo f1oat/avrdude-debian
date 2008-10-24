@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr910.c,v 1.25 2006/12/11 12:47:35 joerg_wunsch Exp $ */
+/* $Id: avr910.c,v 1.29 2007/05/15 22:00:29 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for Atmel Low Cost Serial programmers which adher to the
@@ -33,14 +33,12 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "avrdude.h"
 #include "avr.h"
+#include "config.h"
 #include "pgm.h"
 #include "avr910.h"
 #include "serial.h"
-
-extern char * progname;
-extern int do_cycles;
-extern int ovsigck;
 
 static char has_auto_incr_addr;
 
@@ -290,7 +288,7 @@ static void avr910_close(PROGRAMMER * pgm)
 }
 
 
-static void avr910_display(PROGRAMMER * pgm, char * p)
+static void avr910_display(PROGRAMMER * pgm, const char * p)
 {
   return;
 }
@@ -328,7 +326,7 @@ static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[0] = 'D';
   }
   else {
-    return -1;
+    return avr_write_byte_default(pgm, p, m, addr, value);
   }
 
   cmd[1] = value;
@@ -400,7 +398,7 @@ static int avr910_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     return avr910_read_byte_eeprom(pgm, p, m, addr, value);
   }
 
-  return -1;
+  return avr_read_byte_default(pgm, p, m, addr, value);
 }
 
 

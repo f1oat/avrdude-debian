@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: butterfly.c,v 1.16 2006/12/11 12:47:35 joerg_wunsch Exp $ */
+/* $Id: butterfly.c,v 1.20 2007/01/30 15:47:53 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for the serial programming mode of the Atmel butterfly
@@ -44,13 +44,11 @@
 #include <errno.h>
 #include <ctype.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
 #include "butterfly.h"
 #include "serial.h"
-
-extern char * progname;
-extern int do_cycles;
 
 static char has_auto_incr_addr;
 static unsigned buffersize = 0;
@@ -226,7 +224,7 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   char hw[2];
   char buf[10];
   char type;
-  char c;
+  char c, devtype_1st;
 
   no_show_func_info();
 
@@ -307,18 +305,28 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   butterfly_send(pgm, "t", 1);
   fprintf(stderr, "\nProgrammer supports the following devices:\n");
+  devtype_1st = 0;
   while (1) {
     butterfly_recv(pgm, &c, 1);
+    if (devtype_1st == 0)
+      devtype_1st = c;
+
     if (c == 0)
       break;
     fprintf(stderr, "    Device code: 0x%02x\n", (unsigned int)(unsigned char)c);
   };
   fprintf(stderr,"\n");
 
-  /* Tell the programmer which part we selected. */
+  /* Tell the programmer which part we selected.
+     According to the AVR109 code, this is ignored by the bootloader.  As
+     some early versions might not properly ignore it, rather pick up the
+     first device type as reported above than anything out of avrdude.conf,
+     so to avoid a potential conflict.  There appears to be no general
+     agreement on AVR910 device IDs beyond the ones from the original
+     appnote 910. */
 
   buf[0] = 'T';
-  buf[1] = p->avr910_devcode;
+  buf[1] = devtype_1st;
 
   butterfly_send(pgm, buf, 2);
   butterfly_vfy_cmd_sent(pgm, "select device");
@@ -383,7 +391,7 @@ static void butterfly_close(PROGRAMMER * pgm)
 }
 
 
-static void butterfly_display(PROGRAMMER * pgm, char * p)
+static void butterfly_display(PROGRAMMER * pgm, const char * p)
 {
   no_show_func_info();
 
@@ -404,12 +412,27 @@ static void butterfly_set_addr(PROGRAMMER * pgm, unsigned long addr)
 }
 
 
+static void butterfly_set_extaddr(PROGRAMMER * pgm, unsigned long addr)
+{
+  char cmd[4];
+
+  cmd[0] = 'H';
+  cmd[1] = (addr >> 16) & 0xff;
+  cmd[2] = (addr >> 8) & 0xff;
+  cmd[3] = addr & 0xff;
+
+  butterfly_send(pgm, cmd, sizeof(cmd));
+  butterfly_vfy_cmd_sent(pgm, "set extaddr");
+}
+
+
 
 static int butterfly_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                              unsigned long addr, unsigned char value)
 {
   char cmd[6];
   int size;
+  int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 
   no_show_func_info();
 
@@ -427,7 +450,11 @@ static int butterfly_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       size = 6;
       return -1;
     }
-    butterfly_set_addr(pgm, addr);
+    if (use_ext_addr) {
+      butterfly_set_extaddr(pgm, addr);
+    } else {
+      butterfly_set_addr(pgm, addr);
+    }
   }
   else if (strcmp(m->desc, "lock") == 0)
   {
@@ -451,6 +478,7 @@ static int butterfly_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   static int cached = 0;
   static unsigned char cvalue;
   static unsigned long caddr;
+  int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 
   if (cached && ((caddr + 1) == addr)) {
     *value = cvalue;
@@ -459,7 +487,11 @@ static int butterfly_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   else {
     char buf[2];
 
-    butterfly_set_addr(pgm, addr >> 1);
+    if (use_ext_addr) {
+      butterfly_set_extaddr(pgm, addr >> 1);
+    } else {
+      butterfly_set_addr(pgm, addr >> 1);
+    }
 
     butterfly_send(pgm, "g\000\002F", 4);
 
@@ -536,6 +568,7 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned int max_addr = n_bytes;
   char *cmd;
   unsigned int blocksize = buffersize;
+  int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 
   if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom")) 
     return -2;
@@ -543,7 +576,11 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   if (m->desc[0] == 'e')
     blocksize = 1;		/* Write to eeprom single bytes only */
 
-  butterfly_set_addr(pgm, addr);
+  if (use_ext_addr) {
+    butterfly_set_extaddr(pgm, addr);
+  } else {
+    butterfly_set_addr(pgm, addr);
+  }
 
 #if 0
   usleep(1000000);
@@ -584,6 +621,7 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned int addr = 0;
   unsigned int max_addr = n_bytes;
   int rd_size = 1;
+  int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 
   /* check parameter syntax: only "flash" or "eeprom" is allowed */
   if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom")) 
@@ -596,7 +634,11 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[0] = 'g';
     cmd[3] = toupper(m->desc[0]);
 
-    butterfly_set_addr(pgm, addr);
+    if (use_ext_addr) {
+      butterfly_set_extaddr(pgm, addr);
+    } else {
+      butterfly_set_addr(pgm, addr);
+    }
     while (addr < max_addr) {
       if ((max_addr - addr) < blocksize) {
         blocksize = max_addr - addr;

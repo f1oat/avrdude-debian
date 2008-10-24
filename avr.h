@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr.h,v 1.32 2006/11/20 15:04:09 joerg_wunsch Exp $ */
+/* $Id: avr.h,v 1.33 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
 #ifndef __avr_h__
 #define __avr_h__
@@ -27,10 +27,15 @@
 #include "avrpart.h"
 #include "pgm.h"
 
-
+typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr);
 
 extern struct avrpart parts[];
 
+extern FP_UpdateProgress update_progress;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			  unsigned long addr, unsigned char * value);
@@ -62,6 +67,10 @@ int avr_mem_hiaddr(AVRMEM * mem);
 
 int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p);
 
-extern void report_progress (int completed, int total, char *hdr);
+void report_progress (int completed, int total, char *hdr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

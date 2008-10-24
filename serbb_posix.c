@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: serbb_posix.c,v 1.10 2006/12/11 12:47:35 joerg_wunsch Exp $ */
+/* $Id: serbb_posix.c,v 1.12 2007/01/30 13:41:53 joerg_wunsch Exp $ */
 
 /*
  * Posix serial bitbanging interface for avrdude.
@@ -37,6 +37,7 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"
@@ -44,8 +45,7 @@
 
 #undef DEBUG
 
-extern char *progname;
-struct termios oldmode;
+static struct termios oldmode;
 
 /*
   serial port/pin mapping
@@ -190,7 +190,7 @@ static int serbb_highpulsepin(PROGRAMMER * pgm, int pin)
 
 
 
-static void serbb_display(PROGRAMMER *pgm, char *p)
+static void serbb_display(PROGRAMMER *pgm, const char *p)
 {
   /* MAYBE */
 }

@@ -17,12 +17,20 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkI.h,v 1.1 2005/11/25 06:14:06 joerg_wunsch Exp $ */
+/* $Id: jtagmkI.h,v 1.2 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
 #ifndef jtagmkI_h
 #define jtagmkI_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void jtagmkI_initpgm (PROGRAMMER * pgm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

@@ -17,13 +17,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: par.h,v 1.5 2005/11/01 23:02:06 joerg_wunsch Exp $ */
+/* $Id: par.h,v 1.6 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
-#ifndef __par_h__
-#define __par_h__
+#ifndef par_h
+#define par_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void par_initpgm        (PROGRAMMER * pgm);
 
+#ifdef __cplusplus
+}
 #endif
 
-
+#endif

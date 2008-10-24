@@ -8,7 +8,7 @@ END-INFO-DIR-ENTRY
 
    This file documents the avrdude program.
 
-   For avrdude version 5.3.1, 21 December 2006.
+   For avrdude version 5.4, 21 December 2006.
 
    Copyright (C) 2003, 2005 Brian Dean
 
@@ -34,7 +34,7 @@ File: avrdude.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
    This file documents the avrdude program for downloading/uploading
 programs to Atmel AVR microcontrollers.
 
-   For avrdude version 5.3.1, 21 December 2006.
+   For avrdude version 5.4, 21 December 2006.
 
    Send comments on AVRDUDE to <avrdude-dev@nongnu.org>.
 
@@ -1205,8 +1205,8 @@ A.1.1 Unix Installation
 
 To build and install from the source tarball on Unix like systems:
 
-     $ gunzip -c avrdude-5.3.1.tar.gz | tar xf -
-     $ cd avrdude-5.3.1
+     $ gunzip -c avrdude-5.4.tar.gz | tar xf -
+     $ cd avrdude-5.4
      $ ./configure
      $ make
      $ su root -c 'make install'
@@ -1218,8 +1218,8 @@ variable.
    If you do not have root access to your system, you can do the the
 following instead:
 
-     $ gunzip -c avrdude-5.3.1.tar.gz | tar xf -
-     $ cd avrdude-5.3.1
+     $ gunzip -c avrdude-5.4.tar.gz | tar xf -
+     $ cd avrdude-5.4
      $ ./configure --prefix=$HOME/local
      $ make
      $ make install
@@ -1261,8 +1261,8 @@ On rpm based linux systems (such as RedHat, SUSE, Mandrake, etc), you
 can build and install the rpm binaries directly from the tarball:
 
      $ su - root
-     # rpmbuild -tb avrdude-5.3.1.tar.gz
-     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.3.1-1.i386.rpm
+     # rpmbuild -tb avrdude-5.4.tar.gz
+     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.4-1.i386.rpm
 
    Note that the path to the resulting rpm package, differs from system
 to system. The above example is specific to RedHat.
@@ -1376,8 +1376,8 @@ Cygwin):
 
      $ set PREFIX=<your install directory path>
      $ export PREFIX
-     $ gunzip -c avrdude-5.3.1.tar.gz | tar xf -
-     $ cd avrdude-5.3.1
+     $ gunzip -c avrdude-5.4.tar.gz | tar xf -
+     $ cd avrdude-5.4
      $ ./configure LDFLAGS="-static" --prefix=$PREFIX --datadir=$PREFIX
      --sysconfdir=$PREFIX/bin --enable-versioned-doc=no
      $ make
@@ -1697,44 +1697,44 @@ In general, please report any bugs encountered via
 
 
 Tag Table:
-Node: Top1084
-Node: Introduction1691
-Node: History6008
-Node: Command Line Options7241
-Node: Option Descriptions7473
-Node: Example Command Line Invocations26508
-Node: Terminal Mode Operation31191
-Node: Terminal Mode Commands31928
-Node: Terminal Mode Examples34544
-Node: Configuration File37728
-Node: AVRDUDE Defaults39146
-Node: Programmer Definitions39730
-Node: Part Definitions40891
-Node: Instruction Format42811
-Node: Other Notes44198
-Node: Platform Dependent Information46376
-Node: Unix46614
-Node: Unix Installation46864
-Node: FreeBSD Installation47668
-Node: Linux Installation48300
-Node: Unix Configuration Files48845
-Node: FreeBSD Configuration Files49479
-Node: Linux Configuration Files49838
-Node: Unix Port Names50153
-Node: Unix Documentation51144
-Node: Windows51671
-Node: Windows Installation51933
-Node: Windows Configuration Files52784
-Node: Configuration file names53051
-Node: How AVRDUDE finds the configuration files.53441
-Node: Windows Port Names54231
-Node: Serial Ports54443
-Node: Parallel Ports54730
-Node: Using the parallel port55308
-Node: Windows NT/2K/XP55535
-Node: Windows 95/9857041
-Node: Documentation57244
-Node: Credits.57800
-Node: Troubleshooting58133
+Node: Top1082
+Node: Introduction1687
+Node: History6004
+Node: Command Line Options7237
+Node: Option Descriptions7469
+Node: Example Command Line Invocations26504
+Node: Terminal Mode Operation31187
+Node: Terminal Mode Commands31924
+Node: Terminal Mode Examples34540
+Node: Configuration File37724
+Node: AVRDUDE Defaults39142
+Node: Programmer Definitions39726
+Node: Part Definitions40887
+Node: Instruction Format42807
+Node: Other Notes44194
+Node: Platform Dependent Information46372
+Node: Unix46610
+Node: Unix Installation46860
+Node: FreeBSD Installation47656
+Node: Linux Installation48288
+Node: Unix Configuration Files48829
+Node: FreeBSD Configuration Files49463
+Node: Linux Configuration Files49822
+Node: Unix Port Names50137
+Node: Unix Documentation51128
+Node: Windows51655
+Node: Windows Installation51917
+Node: Windows Configuration Files52764
+Node: Configuration file names53031
+Node: How AVRDUDE finds the configuration files.53421
+Node: Windows Port Names54211
+Node: Serial Ports54423
+Node: Parallel Ports54710
+Node: Using the parallel port55288
+Node: Windows NT/2K/XP55515
+Node: Windows 95/9857021
+Node: Documentation57224
+Node: Credits.57780
+Node: Troubleshooting58113
 
 End Tag Table

@@ -17,10 +17,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: fileio.h,v 1.15 2006/09/08 21:28:24 joerg_wunsch Exp $ */
+/* $Id: fileio.h,v 1.16 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
-#ifndef __fileio_h__
-#define __fileio_h__
+#ifndef fileio_h
+#define fileio_h
 
 typedef enum {
   FMT_AUTO,
@@ -47,11 +47,19 @@ enum {
   FIO_WRITE
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 char * fmtstr(FILEFMT format);
 
 int fileio_setparms(int op, struct fioparms * fp);
 
-int fileio(int op, char * filename, FILEFMT format, 
+int fileio(int op, char * filename, FILEFMT format,
            struct avrpart * p, char * memtype, int size);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

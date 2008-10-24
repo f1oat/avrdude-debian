@@ -17,10 +17,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: bitbang.h,v 1.3 2006/08/23 21:06:28 joerg_wunsch Exp $ */
+/* $Id: bitbang.h,v 1.4 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
 #ifndef bitbang_h
 #define bitbang_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int bitbang_setpin(int fd, int pin, int value);
 int bitbang_getpin(int fd, int pin);
@@ -42,5 +46,9 @@ void bitbang_powerdown      (PROGRAMMER * pgm);
 int  bitbang_initialize     (PROGRAMMER * pgm, AVRPART * p);
 void bitbang_disable        (PROGRAMMER * pgm);
 void bitbang_enable         (PROGRAMMER * pgm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkI.c,v 1.10 2006/12/15 15:42:44 joerg_wunsch Exp $ */
+/* $Id: jtagmkI.c,v 1.12 2007/01/30 13:41:53 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for Atmel JTAG ICE (mkI) programmer
@@ -33,14 +33,12 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "crc16.h"
 #include "pgm.h"
 #include "jtagmkI_private.h"
 #include "serial.h"
-extern int    verbose;
-extern char * progname;
-extern int do_cycles;
 
 /*
  * XXX There should really be a programmer-specific private data
@@ -102,7 +100,7 @@ static int jtagmkI_getparm(PROGRAMMER * pgm, unsigned char parm,
 			    unsigned char * value);
 static int jtagmkI_setparm(PROGRAMMER * pgm, unsigned char parm,
 			    unsigned char value);
-static void jtagmkI_print_parms1(PROGRAMMER * pgm, char * p);
+static void jtagmkI_print_parms1(PROGRAMMER * pgm, const char * p);
 
 static int jtagmkI_resync(PROGRAMMER *pgm, int maxtries, int signon);
 
@@ -1282,7 +1280,7 @@ static int jtagmkI_setparm(PROGRAMMER * pgm, unsigned char parm,
 }
 
 
-static void jtagmkI_display(PROGRAMMER * pgm, char * p)
+static void jtagmkI_display(PROGRAMMER * pgm, const char * p)
 {
 
   unsigned char hw, fw;
@@ -1300,7 +1298,7 @@ static void jtagmkI_display(PROGRAMMER * pgm, char * p)
 }
 
 
-static void jtagmkI_print_parms1(PROGRAMMER * pgm, char * p)
+static void jtagmkI_print_parms1(PROGRAMMER * pgm, const char * p)
 {
   unsigned char vtarget, jtag_clock;
   const char *clkstr;

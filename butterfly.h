@@ -17,11 +17,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: butterfly.h,v 1.3 2004/12/22 01:52:45 bdean Exp $ */
+/* $Id: butterfly.h,v 1.4 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
-#ifndef __butterfly_h__
-#define __butterfly_h__
+#ifndef butterfly_h
+#define butterfly_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void butterfly_initpgm (PROGRAMMER * pgm);
 
-#endif /* __butterfly_h__ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* butterfly_h */

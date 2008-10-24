@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500.c,v 1.53 2006/12/11 12:47:35 joerg_wunsch Exp $ */
+/* $Id: stk500.c,v 1.55 2007/01/30 13:41:53 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for Atmel STK500 programmer
@@ -36,6 +36,7 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
 #include "stk500_private.h"
@@ -43,14 +44,9 @@
 
 #define STK500_XTAL 7372800U
 
-extern int    verbose;
-extern char * progname;
-extern int do_cycles;
-
-
 static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value);
 static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value);
-static void stk500_print_parms1(PROGRAMMER * pgm, char * p);
+static void stk500_print_parms1(PROGRAMMER * pgm, const char * p);
 static int stk500_is_page_empty(unsigned int address, int page_size, 
     const unsigned char *buf);
 
@@ -1141,7 +1137,7 @@ static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value)
 }
 
   
-static void stk500_display(PROGRAMMER * pgm, char * p)
+static void stk500_display(PROGRAMMER * pgm, const char * p)
 {
   unsigned maj, min, hdw, topcard;
 
@@ -1172,7 +1168,7 @@ static void stk500_display(PROGRAMMER * pgm, char * p)
 }
 
 
-static void stk500_print_parms1(PROGRAMMER * pgm, char * p)
+static void stk500_print_parms1(PROGRAMMER * pgm, const char * p)
 {
   unsigned vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration;
 

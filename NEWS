@@ -1,10 +1,24 @@
-$Id: NEWS,v 1.42 2006/12/22 22:52:34 joerg_wunsch Exp $
+$Id: NEWS,v 1.48 2007/05/16 21:46:30 joerg_wunsch Exp $
 
 Approximate change log for AVRDUDE by version.
 
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
+Version 5.4:
+
+  * New devices supported:
+
+      - AT90PWM2B/AT90PWM3B
+
+  * Bugfixes.
+
+  * Source code rearranged so that the functionality is now built
+    into a libavrdude.a library where main.c is currently the only
+    existing frontend.
+
+  * Implement ATmega256x support for butterfly/avr109.
+
 Version 5.3.1:
 
   * Add support for the AVR Dragon (all modes: ISP, JTAG, HVSP, PP,

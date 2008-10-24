@@ -19,16 +19,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avrpart.c,v 1.10 2006/07/21 21:51:13 joerg_wunsch Exp $ */
+/* $Id: avrpart.c,v 1.14 2007/01/30 13:41:53 joerg_wunsch Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
 
+#include "avrdude.h"
 #include "avrpart.h"
 #include "pindefs.h"
-
-extern char * progname;
-
 
 /***
  *** Elementary functions dealing with OPCODE structures
@@ -164,7 +162,7 @@ int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data)
 }
 
 
-char * avr_op_str(int op)
+static char * avr_op_str(int op)
 {
   switch (op) {
     case AVR_OP_READ        : return "READ"; break;
@@ -184,7 +182,7 @@ char * avr_op_str(int op)
 }
 
 
-char * bittype(int type)
+static char * bittype(int type)
 {
   switch (type) {
     case AVR_CMDBIT_IGNORE  : return "IGNORE"; break;
@@ -287,7 +285,7 @@ AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
 }
 
 
-void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
+void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
                      int verbose)
 {
   int i, j;
@@ -436,22 +434,30 @@ AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode)
   return NULL;
 }
 
-void list_parts(FILE * f, char * prefix, LISTID parts)
+/*
+ * Iterate over the list of avrparts given as "avrparts", and
+ * call the callback function cb for each entry found.  cb is being
+ * passed the following arguments:
+ * . the name of the avrpart (for -p)
+ * . the descriptive text given in the config file
+ * . the name of the config file this avrpart has been defined in
+ * . the line number of the config file this avrpart has been defined at
+ * . the "cookie" passed into walk_avrparts() (opaque client data)
+ */
+void walk_avrparts(LISTID avrparts, walk_avrparts_cb cb, void *cookie)
 {
   LNODEID ln1;
   AVRPART * p;
 
-  for (ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
+  for (ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
     p = ldata(ln1);
-    fprintf(f, "%s%-4s = %-15s [%s:%d]\n",
-            prefix, p->id, p->desc, p->config_file, p->lineno);
+    cb(p->id, p->desc, p->config_file, p->lineno, cookie);
   }
-
-  return;
 }
 
 
-char * reset_disp_str(int r)
+
+static char * reset_disp_str(int r)
 {
   switch (r) {
     case RESET_DEDICATED : return "dedicated";
@@ -461,7 +467,7 @@ char * reset_disp_str(int r)
 }
 
 
-char * pin_name(int pinno)
+static char * pin_name(int pinno)
 {
   switch (pinno) {
     case PIN_AVR_RESET : return "RESET";
@@ -473,11 +479,11 @@ char * pin_name(int pinno)
 }
 
 
-void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose)
+void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
 {
   int i;
   char * buf;
-  char * px;
+  const char * px;
   LNODEID ln;
   AVRMEM * m;
 

@@ -18,7 +18,7 @@
 #
 
 #
-# $Id: Makefile.am,v 1.34 2006/12/20 23:43:34 joerg_wunsch Exp $
+# $Id: Makefile.am,v 1.38 2007/01/25 20:51:11 joerg_wunsch Exp $
 #
 
 EXTRA_DIST   = \
@@ -45,11 +45,17 @@ AM_YFLAGS    = -d
 
 avrdude_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
 
-avrdude_CFLAGS   = @ENABLE_WARNINGS@  
+libavrdude_a_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
 
-avrdude_LDADD  = @LIBUSB@
+avrdude_CFLAGS   = @ENABLE_WARNINGS@
+
+libavrdude_a_CFLAGS   = @ENABLE_WARNINGS@
+
+avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB@ @LIBHID@
 
 bin_PROGRAMS = avrdude
+
+noinst_LIBRARIES = libavrdude.a
 
 # automake thinks these generated files should be in the distribution,
 # but this might cause trouble for some users, so we rather don't want
@@ -66,13 +72,14 @@ dist-hook:
 	$(distdir)/config_gram.c \
 	$(distdir)/config_gram.h
 
-avrdude_SOURCES = \
+libavrdude_a_SOURCES = \
 	config_gram.y \
 	lexer.l \
 	avr.c \
 	avr.h \
 	avr910.c \
 	avr910.h \
+	avrdude.h \
 	avrpart.c \
 	avrpart.h \
 	bitbang.c \
@@ -97,7 +104,6 @@ avrdude_SOURCES = \
 	linux_ppdev.h \
 	lists.c \
 	lists.h \
-	main.c \
 	my_ddk_hidsdi.h \
 	par.c \
 	par.h \
@@ -130,7 +136,12 @@ avrdude_SOURCES = \
 	usbasp.c \
 	usbasp.h \
 	usbdevs.h \
-	usb_libusb.c
+	usb_libusb.c \
+	update.h \
+	update.c
+
+avrdude_SOURCES = \
+	main.c
 
 man_MANS = avrdude.1
 

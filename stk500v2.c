@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500v2.c,v 1.34 2006/12/20 23:43:34 joerg_wunsch Exp $ */
+/* $Id: stk500v2.c,v 1.37 2007/01/30 13:41:53 joerg_wunsch Exp $ */
 /* Based on Id: stk500.c,v 1.46 2004/12/22 01:52:45 bdean Exp */
 
 /*
@@ -47,6 +47,7 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
 #include "stk500_private.h"	// temp until all code converted
@@ -84,10 +85,6 @@ enum hvmode
   PPMODE, HVSPMODE
 };
 
-
-extern int    verbose;
-extern char * progname;
-extern int do_cycles;
 
 /*
  * See stk500pp_read_byte() for an explanation of the flash and
@@ -185,7 +182,7 @@ static struct jtagispentry jtagispcmds[] = {
 
 static int stk500v2_getparm(PROGRAMMER * pgm, unsigned char parm, unsigned char * value);
 static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char value);
-static void stk500v2_print_parms1(PROGRAMMER * pgm, char * p);
+static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p);
 static int stk500v2_is_page_empty(unsigned int address, int page_size,
                                   const unsigned char *buf);
 
@@ -1889,7 +1886,7 @@ static int stk500v2_set_fosc(PROGRAMMER * pgm, double v)
 
 /* The list of SCK frequencies supported by the AVRISP mkII, as listed
  * in AVR069 */
-double avrispmkIIfreqs[] = {
+static double avrispmkIIfreqs[] = {
 	8000000, 4000000, 2000000, 1000000, 500000, 250000, 125000,
 	96386, 89888, 84211, 79208, 74767, 70797, 67227, 64000,
 	61069, 58395, 55945, 51613, 49690, 47905, 46243, 43244,
@@ -2035,7 +2032,7 @@ static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char 
   return stk500v2_setparm_real(pgm, parm, value);
 }
 
-static void stk500v2_display(PROGRAMMER * pgm, char * p)
+static void stk500v2_display(PROGRAMMER * pgm, const char * p)
 {
   unsigned char maj, min, hdw, topcard;
   const char *topcard_name, *pgmname;
@@ -2075,7 +2072,7 @@ static void stk500v2_display(PROGRAMMER * pgm, char * p)
 }
 
 
-static void stk500v2_print_parms1(PROGRAMMER * pgm, char * p)
+static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
 {
   unsigned char vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration;
   unsigned char vtarget_jtag[4];

@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config_gram.y,v 1.56 2006/11/23 07:07:06 joerg_wunsch Exp $ */
+/* $Id: config_gram.y,v 1.58 2007/02/01 22:07:39 joerg_wunsch Exp $ */
 %{
 
 #include "ac_cfg.h"
@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
+#include "avrdude.h"
 
 #include "config.h"
 #include "lists.h"
@@ -48,8 +50,6 @@
 #define strtok_r( _s, _sep, _lasts ) \
     ( *(_lasts) = strtok( (_s), (_sep) ) )
 #endif
-
-extern char * progname;
 
 int yylex(void);
 int yyerror(char * errmsg);
@@ -140,7 +140,6 @@ static int parse_cmdbits(OPCODE * op);
 %token K_TYPE
 %token K_VCC
 %token K_VFYLED
-%token K_WRITEPAGE
 
 %token K_NO
 %token K_YES

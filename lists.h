@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: lists.h,v 1.10 2004/12/22 01:52:45 bdean Exp $ */
+/* $Id: lists.h,v 1.11 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
 /*----------------------------------------------------------------------
   Id: lists.h,v 1.2 2001/08/19 23:13:17 bsd Exp $
@@ -28,8 +28,8 @@
   Author : Brian Dean
   Date   : 10 January, 1990
   ----------------------------------------------------------------------*/
-#ifndef __lists_h__
-#define __lists_h__
+#ifndef lists_h
+#define lists_h
 
 #include <stdio.h>
 
@@ -67,6 +67,10 @@ typedef void * LNODEID;
 #define LISTRMV(l,d) lrmv_d(l,d)     /* remove from end of the list */
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* .................... Function Prototypes .................... */
 
 LISTID     lcreat      ( void * liststruct, int poolsize );
@@ -103,5 +107,9 @@ LISTID     lcat    ( LISTID lid1, LISTID lid2 );
 void     * lsrch   ( LISTID lid, void * p, int (*compare)(void *p1,void *p2));
 
 int        lprint  ( FILE * f, LISTID lid );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
