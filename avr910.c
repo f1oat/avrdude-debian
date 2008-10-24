@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr910.c,v 1.22 2005/09/18 00:28:19 bdean Exp $ */
+/* $Id: avr910.c,v 1.24 2006/09/20 21:32:18 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for Atmel Low Cost Serial programmers which adher to the
@@ -40,6 +40,7 @@
 
 extern char * progname;
 extern int do_cycles;
+extern int ovsigck;
 
 static char has_auto_incr_addr;
 
@@ -134,7 +135,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   char hw[2];
   char buf[10];
   char type;
-  char c;
+  char c, devtype_1st;
   int dev_supported = 0;
   AVRPART * part;
 
@@ -173,8 +174,11 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   avr910_send(pgm, "t", 1);
   fprintf(stderr, "\nProgrammer supports the following devices:\n");
+  devtype_1st = 0;
   while (1) {
     avr910_recv(pgm, &c, 1);
+    if (devtype_1st == 0)
+      devtype_1st = c;
     if (c == 0)
       break;
     part = locate_part_by_avr910_devcode(part_list, c);
@@ -190,15 +194,18 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   if (!dev_supported) {
     fprintf(stderr,
-            "%s: error: selected device is not supported by programmer: %s\n",
-            progname, p->id);
-    exit(1);
+            "%s: %s: selected device is not supported by programmer: %s\n",
+            progname, ovsigck? "warning": "error", p->id);
+    if (!ovsigck)
+      exit(1);
   }
 
-  /* Tell the programmer which part we selected. */
+  /* Tell the programmer which part we selected.
+     If the user forced the selection, use the first device
+     type that is supported by the programmer. */
 
   buf[0] = 'T';
-  buf[1] = p->avr910_devcode;
+  buf[1] = ovsigck? devtype_1st: p->avr910_devcode;
 
   avr910_send(pgm, buf, 2);
   avr910_vfy_cmd_sent(pgm, "select device");
@@ -557,6 +564,8 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 static int avr910_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 {
+  unsigned char tmp;
+
   if (m->size < 3) {
     fprintf(stderr, "%s: memsize too small for sig byte read", progname);
     return -1;
@@ -564,6 +573,10 @@ static int avr910_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 
   avr910_send(pgm, "s", 1);
   avr910_recv(pgm, (char *)m->buf, 3);
+  /* Returned signature has wrong order. */
+  tmp = m->buf[2];
+  m->buf[2] = m->buf[0];
+  m->buf[0] = tmp;
 
   return 3;
 }

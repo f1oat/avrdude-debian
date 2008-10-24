@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: bitbang.h,v 1.1 2005/09/18 20:12:23 joerg_wunsch Exp $ */
+/* $Id: bitbang.h,v 1.3 2006/08/23 21:06:28 joerg_wunsch Exp $ */
 
 #ifndef bitbang_h
 #define bitbang_h
@@ -25,6 +25,9 @@
 int bitbang_setpin(int fd, int pin, int value);
 int bitbang_getpin(int fd, int pin);
 int bitbang_highpulsepin(int fd, int pin);
+void bitbang_delay(unsigned int us);
+
+void bitbang_check_prerequisites(PROGRAMMER *pgm);
 
 int  bitbang_rdy_led        (PROGRAMMER * pgm, int value);
 int  bitbang_err_led        (PROGRAMMER * pgm, int value);

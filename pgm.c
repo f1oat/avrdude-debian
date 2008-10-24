@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: pgm.c,v 1.18 2004/12/22 01:52:45 bdean Exp $ */
+/* $Id: pgm.c,v 1.19 2006/10/09 14:34:24 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -123,6 +123,7 @@ PROGRAMMER * pgm_new(void)
   pgm->set_vtarget    = NULL;
   pgm->set_varef      = NULL;
   pgm->set_fosc       = NULL;
+  pgm->perform_osccal = NULL;
 
   return pgm;
 }

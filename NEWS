@@ -1,10 +1,42 @@
-$Id: NEWS,v 1.25 2006/01/23 20:53:59 joerg_wunsch Exp $
+$Id: NEWS,v 1.34 2006/09/19 22:33:53 joerg_wunsch Exp $
 
 Approximate change log for AVRDUDE by version.
 
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
+Current:
+
+  * New devices supported:
+
+      - AT90USB646/647/1286/1287
+      - ATmega2560/2561
+      - ATmega325/3250/645/6450
+      - ATtiny11 (HVSP only device)
+      - ATtiny261/461/861
+
+  * Fixed paged flash write operations for AT90PWMx devices
+    (error in datasheet).
+
+  * Add signature verification.
+
+  * Add high-voltage mode programming for the STK500 (both,
+    parallel, and high-voltage serial programming).
+
+  * Add support for using the JTAG ICE mkII as a generic ISP
+    programmer.
+
+  * Allow for specifying the ISP clock delay as an option for
+    bit-bang programming adapters.
+
+  * Add support for Thomas Fischl's USBasp low-cost USB-attached
+    programmer.
+
+  * The "stk500" programmer type is now implemented as a stub
+    that tries to probe for either "stk500v1" or "stk500v2".
+
+  * Many bugfixes.
+
 Version 5.1:
 
   * New devices supported:

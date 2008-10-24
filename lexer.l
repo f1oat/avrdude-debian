@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: lexer.l,v 1.36 2005/11/25 06:14:06 joerg_wunsch Exp $ */
+/* $Id: lexer.l,v 1.44 2006/09/19 22:27:30 joerg_wunsch Exp $ */
 
 %{
 /* need this for the call to atof() below */
@@ -121,6 +122,7 @@ SIGN     [+-]
 allowfullpagebitstream { yylval=NULL; return K_ALLOWFULLPAGEBITSTREAM; }
 avr910           { yylval=NULL; return K_AVR910; }
 avr910_devcode   { yylval=NULL; return K_AVR910_DEVCODE; }
+usbasp           { yylval=NULL; return K_USBASP; }
 bank_size        { yylval=NULL; return K_PAGE_SIZE; }
 banked           { yylval=NULL; return K_PAGED; }
 baudrate         { yylval=NULL; return K_BAUDRATE; }
@@ -143,6 +145,7 @@ id               { yylval=NULL; return K_ID; }
 idr              { yylval=NULL; return K_IDR; }
 jtagmki          { yylval=NULL; return K_JTAG_MKI; }
 jtagmkii         { yylval=NULL; return K_JTAG_MKII; }
+jtagmkii_isp     { yylval=NULL; return K_JTAG_MKII_ISP; }
 max_write_delay  { yylval=NULL; return K_MAX_WRITE_DELAY; }
 memory           { yylval=NULL; return K_MEMORY; }
 min_write_delay  { yylval=NULL; return K_MIN_WRITE_DELAY; }
@@ -166,10 +169,14 @@ readback_p2      { yylval=NULL; return K_READBACK_P2; }
 retry_pulse      { yylval=NULL; return K_RETRY_PULSE; }
 serbb            { yylval=NULL; return K_SERBB; }
 serial           { yylval=NULL; return K_SERIAL; }
+signature        { yylval=NULL; return K_SIGNATURE; }
 size             { yylval=NULL; return K_SIZE; }
 spmcr            { yylval=NULL; return K_SPMCR; }
 stk500           { yylval=NULL; return K_STK500; }
+stk500hvsp       { yylval=NULL; return K_STK500HVSP; }
+stk500pp         { yylval=NULL; return K_STK500PP; }
 stk500v2         { yylval=NULL; return K_STK500V2; }
+stk500generic    { yylval=NULL; return K_STK500GENERIC; }
 stk500_devcode   { yylval=NULL; return K_STK500_DEVCODE; }
 type             { yylval=NULL; return K_TYPE; }
 vcc              { yylval=NULL; return K_VCC; }
@@ -178,6 +185,7 @@ vfyled           { yylval=NULL; return K_VFYLED; }
 timeout          { yylval=NULL; return K_TIMEOUT; }
 stabdelay        { yylval=NULL; return K_STABDELAY; }
 cmdexedelay      { yylval=NULL; return K_CMDEXEDELAY; }
+hvspcmdexedelay  { yylval=NULL; return K_HVSPCMDEXEDELAY; }
 synchloops       { yylval=NULL; return K_SYNCHLOOPS; }
 bytedelay        { yylval=NULL; return K_BYTEDELAY; }
 pollvalue        { yylval=NULL; return K_POLLVALUE; }
@@ -189,7 +197,25 @@ mode             { yylval=NULL; return K_MODE; }
 delay            { yylval=NULL; return K_DELAY; }
 blocksize        { yylval=NULL; return K_BLOCKSIZE; }
 readsize        { yylval=NULL; return K_READSIZE; }
-
+pp_controlstack  { yylval=NULL; return K_PP_CONTROLSTACK; }
+hvsp_controlstack  { yylval=NULL; return K_HVSP_CONTROLSTACK; }
+hventerstabdelay { yylval=NULL; return K_HVENTERSTABDELAY; }
+progmodedelay    { yylval=NULL; return K_PROGMODEDELAY; }
+latchcycles      { yylval=NULL; return K_LATCHCYCLES; }
+togglevtg        { yylval=NULL; return K_TOGGLEVTG; }
+poweroffdelay    { yylval=NULL; return K_POWEROFFDELAY; }
+resetdelayms     { yylval=NULL; return K_RESETDELAYMS; }
+resetdelayus     { yylval=NULL; return K_RESETDELAYUS; }
+hvleavestabdelay { yylval=NULL; return K_HVLEAVESTABDELAY; }
+resetdelay       { yylval=NULL; return K_RESETDELAY; }
+synchcycles      { yylval=NULL; return K_SYNCHCYCLES; }
+chiperasepulsewidth { yylval=NULL; return K_CHIPERASEPULSEWIDTH; }
+chiperasepolltimeout { yylval=NULL; return K_CHIPERASEPOLLTIMEOUT; }
+chiperasetime    { yylval=NULL; return K_CHIPERASETIME; }
+programfusepulsewidth { yylval=NULL; return K_PROGRAMFUSEPULSEWIDTH; }
+programfusepolltimeout { yylval=NULL; return K_PROGRAMFUSEPOLLTIMEOUT; }
+programlockpulsewidth { yylval=NULL; return K_PROGRAMLOCKPULSEWIDTH; }
+programlockpolltimeout { yylval=NULL; return K_PROGRAMLOCKPOLLTIMEOUT; }
 
 
 dedicated        { yylval=new_token(K_DEDICATED); return K_DEDICATED; }
@@ -207,6 +233,7 @@ write_lo         { yylval=new_token(K_WRITE_LO); return K_WRITE_LO; }
 write_hi         { yylval=new_token(K_WRITE_HI); return K_WRITE_HI; }
 loadpage_lo      { yylval=new_token(K_LOADPAGE_LO); return K_LOADPAGE_LO; }
 loadpage_hi      { yylval=new_token(K_LOADPAGE_HI); return K_LOADPAGE_HI; }
+load_ext_addr    { yylval=new_token(K_LOAD_EXT_ADDR); return K_LOAD_EXT_ADDR; }
 writepage        { yylval=new_token(K_WRITEPAGE); return K_WRITEPAGE; }
 chip_erase       { yylval=new_token(K_CHIP_ERASE); return K_CHIP_ERASE; }
 pgm_enable       { yylval=new_token(K_PGM_ENABLE); return K_PGM_ENABLE; }

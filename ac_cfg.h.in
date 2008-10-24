@@ -3,6 +3,9 @@
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
+/* Define to 1 if you have the `gettimeofday' function. */
+#undef HAVE_GETTIMEOFDAY
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -15,7 +18,7 @@
 /* Define to 1 if you have the `termcap' library (-ltermcap). */
 #undef HAVE_LIBTERMCAP
 
-/* Define to 1 if you have the `usb' library (-lusb). */
+/* Define if USB support is enabled via libusb */
 #undef HAVE_LIBUSB
 
 /* Define to 1 if you have the <limits.h> header file. */

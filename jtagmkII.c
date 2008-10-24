@@ -22,7 +22,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkII.c,v 1.11 2006/01/12 23:13:50 joerg_wunsch Exp $ */
+/* $Id: jtagmkII.c,v 1.15 2006/09/07 19:57:59 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for Atmel JTAG ICE mkII programmer
@@ -41,6 +41,7 @@
 #include "avr.h"
 #include "crc16.h"
 #include "pgm.h"
+#include "jtagmkII.h"
 #include "jtagmkII_private.h"
 #include "serial.h"
 #include "usbdevs.h"
@@ -81,6 +82,28 @@ static unsigned char serno[6];	/* JTAG ICE serial number. */
  */
 #define OCDEN (1 << 7)
 
+#define RC(x) { x, #x },
+static struct {
+  unsigned int code;
+  const char *descr;
+} jtagresults[] = {
+  RC(RSP_DEBUGWIRE_SYNC_FAILED)
+  RC(RSP_FAILED)
+  RC(RSP_ILLEGAL_BREAKPOINT)
+  RC(RSP_ILLEGAL_COMMAND)
+  RC(RSP_ILLEGAL_EMULATOR_MODE)
+  RC(RSP_ILLEGAL_JTAG_ID)
+  RC(RSP_ILLEGAL_MCU_STATE)
+  RC(RSP_ILLEGAL_MEMORY_TYPE)
+  RC(RSP_ILLEGAL_MEMORY_RANGE)
+  RC(RSP_ILLEGAL_PARAMETER)
+  RC(RSP_ILLEGAL_POWER_STATE)
+  RC(RSP_ILLEGAL_VALUE)
+  RC(RSP_NO_TARGET_POWER)
+  RC(RSP_SET_N_PARAMETERS)
+};
+
+
 /* The length of the device descriptor is firmware-dependent. */
 static size_t device_descriptor_length;
 
@@ -88,9 +111,8 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			      unsigned long addr, unsigned char * value);
 static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			       unsigned long addr, unsigned char data);
+static int jtagmkII_reset(PROGRAMMER * pgm, unsigned char flags);
 static int jtagmkII_set_sck_period(PROGRAMMER * pgm, double v);
-static int jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
-			    unsigned char * value);
 static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
 			    unsigned char * value);
 static void jtagmkII_print_parms1(PROGRAMMER * pgm, char * p);
@@ -132,6 +154,21 @@ u16_to_b2(unsigned char *b, unsigned short l)
   b[0] = l & 0xff;
   b[1] = (l >> 8) & 0xff;
 }
+
+static const char *
+jtagmkII_get_rc(unsigned int rc)
+{
+  int i;
+  static char msg[50];
+
+  for (i = 0; i < sizeof jtagresults / sizeof jtagresults[0]; i++)
+    if (jtagresults[i].code == rc)
+      return jtagresults[i].descr;
+
+  sprintf(msg, "Unknown JTAG ICE mkII result code 0x%02x", rc);
+  return msg;
+}
+
 
 static void jtagmkII_print_memory(unsigned char *b, size_t s)
 {
@@ -291,7 +328,7 @@ static void jtagmkII_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
 }
 
 
-static int jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
+int jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
   unsigned char *buf;
 
@@ -485,7 +522,7 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
 
   }
   if (verbose >= 3)
-fprintf(stderr, "\n");
+    fprintf(stderr, "\n");
 
   *seqno = r_seqno;
   *msg = buf;
@@ -493,7 +530,7 @@ fprintf(stderr, "\n");
   return msglen;
 }
 
-static int jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg) {
+int jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg) {
   unsigned short r_seqno;
   int rv;
 
@@ -531,7 +568,7 @@ static int jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg) {
 }
 
 
-static int jtagmkII_getsync(PROGRAMMER * pgm) {
+int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
   int tries;
 #define MAXTRIES 33
   unsigned char buf[3], *resp, c = 0xff;
@@ -604,8 +641,8 @@ static int jtagmkII_getsync(PROGRAMMER * pgm) {
     else
       fprintf(stderr,
 	      "%s: jtagmkII_getsync(): "
-	      "bad response to sign-on command: 0x%02x\n",
-	      progname, c);
+	      "bad response to sign-on command: %s\n",
+	      progname, jtagmkII_get_rc(c));
     return -1;
   }
 
@@ -625,16 +662,57 @@ static int jtagmkII_getsync(PROGRAMMER * pgm) {
   } else if (fwver < FWVER(4, 0)) {
     device_descriptor_length -= 2;
   }
-#undef FWVER
-  if (verbose >= 2)
+  if (verbose >= 2 && mode != EMULATOR_MODE_SPI)
     fprintf(stderr,
 	    "%s: jtagmkII_getsync(): Using a %zu-byte device descriptor\n",
 	    progname, device_descriptor_length);
+  if (mode == EMULATOR_MODE_SPI) {
+    device_descriptor_length = 0;
+    if (fwver < FWVER(4, 14)) {
+      fprintf(stderr,
+	      "%s: jtagmkII_getsync(): ISP functionality requires firmware "
+	      "version >= 4.14\n",
+	      progname);
+      return -1;
+    }
+  }
+#undef FWVER
 
-  /* Turn the ICE into JTAG mode */
-  buf[0] = EMULATOR_MODE_JTAG;
-  if (jtagmkII_setparm(pgm, PAR_EMULATOR_MODE, buf) < 0)
-    return -1;
+  /* Turn the ICE into JTAG or ISP mode as requested. */
+  buf[0] = mode;
+  if (jtagmkII_setparm(pgm, PAR_EMULATOR_MODE, buf) < 0) {
+    if (mode == EMULATOR_MODE_SPI) {
+      fprintf(stderr,
+	      "%s: jtagmkII_getsync(): "
+	      "ISP activation failed, trying debugWire\n",
+	      progname);
+      buf[0] = EMULATOR_MODE_DEBUGWIRE;
+      if (jtagmkII_setparm(pgm, PAR_EMULATOR_MODE, buf) < 0)
+	return -1;
+      else {
+	/*
+	 * We are supposed to send a CMND_RESET with the
+	 * MONCOM_DISABLE flag set right now, and then
+	 * restart from scratch.
+	 *
+	 * As this will make the ICE sign off from USB, so
+	 * we risk losing our USB connection, it's easier
+	 * to instruct the user to restart AVRDUDE rather
+	 * than trying to cope with all this inside the
+	 * program.
+	 */
+	(void)jtagmkII_reset(pgm, 0x04);
+	jtagmkII_close(pgm);
+	fprintf(stderr,
+		"%s: Target prepared for ISP, signed off.\n"
+		"%s: Please restart %s without power-cycling the target.\n",
+		progname, progname, progname);
+	exit(0);
+      }
+    } else {
+      return -1;
+    }
+  }
 
   /* GET SYNC forces the target into STOPPED mode */
   buf[0] = CMND_GET_SYNC;
@@ -663,8 +741,8 @@ static int jtagmkII_getsync(PROGRAMMER * pgm) {
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_getsync(): "
-	    "bad response to set parameter command: 0x%02x\n",
-	    progname, c);
+	    "bad response to set parameter command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     return -1;
   }
 
@@ -715,8 +793,8 @@ static int jtagmkII_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_chip_erase(): "
-	    "bad response to chip erase command: 0x%02x\n",
-	    progname, c);
+	    "bad response to chip erase command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     return -1;
   }
 
@@ -785,24 +863,25 @@ static void jtagmkII_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_set_devdescr(): "
-	    "bad response to set device descriptor command: 0x%02x\n",
-	    progname, c);
+	    "bad response to set device descriptor command: %s\n",
+	    progname, jtagmkII_get_rc(c));
   }
 }
 
 /*
  * Reset the target.
  */
-static int jtagmkII_reset(PROGRAMMER * pgm)
+static int jtagmkII_reset(PROGRAMMER * pgm, unsigned char flags)
 {
   int status;
-  unsigned char buf[1], *resp, c;
+  unsigned char buf[2], *resp, c;
 
   buf[0] = CMND_RESET;
+  buf[1] = flags;
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_reset(): Sending reset command: ",
 	    progname);
-  jtagmkII_send(pgm, buf, 1);
+  jtagmkII_send(pgm, buf, 2);
 
   status = jtagmkII_recv(pgm, &resp);
   if (status <= 0) {
@@ -824,8 +903,8 @@ static int jtagmkII_reset(PROGRAMMER * pgm)
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_reset(): "
-	    "bad response to reset command: 0x%02x\n",
-	    progname, c);
+	    "bad response to reset command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     return -1;
   }
 
@@ -873,8 +952,8 @@ static int jtagmkII_program_enable(PROGRAMMER * pgm)
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_program_enable(): "
-	    "bad response to enter progmode command: 0x%02x\n",
-	    progname, c);
+	    "bad response to enter progmode command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     if (c == RSP_ILLEGAL_JTAG_ID)
       fprintf(stderr, "%s: JTAGEN fuse disabled?\n", progname);
     return -1;
@@ -919,13 +998,13 @@ static int jtagmkII_program_disable(PROGRAMMER * pgm)
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_program_disable(): "
-	    "bad response to leave progmode command: 0x%02x\n",
-	    progname, c);
+	    "bad response to leave progmode command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     return -1;
   }
 
   prog_enabled = 0;
-  (void)jtagmkII_reset(pgm);
+  (void)jtagmkII_reset(pgm, 0x01);
 
   return 0;
 }
@@ -1010,7 +1089,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
   flash_pageaddr = eeprom_pageaddr = (unsigned long)-1L;
 
-  if (jtagmkII_reset(pgm) < 0)
+  if (jtagmkII_reset(pgm, 0x01) < 0)
     return -1;
 
   strcpy(hfuse.desc, "hfuse");
@@ -1058,7 +1137,6 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
    */
   baud = 19200;
 
-#if defined(HAVE_LIBUSB)
   /*
    * If the port name starts with "usb", divert the serial routines
    * to the USB ones.  The serial_open() function for USB overrides
@@ -1066,10 +1144,14 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
    * search for.
    */
   if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     baud = USB_DEVICE_JTAGICEMKII;
-  }
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
 #endif
+  }
 
   strcpy(pgm->port, port);
   pgm->fd = serial_open(port, baud);
@@ -1079,13 +1161,13 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  jtagmkII_getsync(pgm);
+  jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG);
 
   return 0;
 }
 
 
-static void jtagmkII_close(PROGRAMMER * pgm)
+void jtagmkII_close(PROGRAMMER * pgm)
 {
   int status;
   unsigned char buf[1], *resp, c;
@@ -1093,33 +1175,36 @@ static void jtagmkII_close(PROGRAMMER * pgm)
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_close()\n", progname);
 
-  buf[0] = CMND_GO;
-  if (verbose >= 2)
-    fprintf(stderr, "%s: jtagmkII_close(): Sending GO command: ",
-	    progname);
-  jtagmkII_send(pgm, buf, 1);
-
-  status = jtagmkII_recv(pgm, &resp);
-  if (status <= 0) {
+  if (device_descriptor_length) {
+    /* When in JTAG mode, restart target. */
+    buf[0] = CMND_GO;
     if (verbose >= 2)
-      putc('\n', stderr);
-    fprintf(stderr,
-	    "%s: jtagmkII_close(): "
-	    "timeout/error communicating with programmer (status %d)\n",
-	    progname, status);
-  } else {
-    if (verbose >= 3) {
-      putc('\n', stderr);
-      jtagmkII_prmsg(pgm, resp, status);
-    } else if (verbose == 2)
-      fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
-    c = resp[0];
-    free(resp);
-    if (c != RSP_OK) {
+      fprintf(stderr, "%s: jtagmkII_close(): Sending GO command: ",
+	      progname);
+    jtagmkII_send(pgm, buf, 1);
+
+    status = jtagmkII_recv(pgm, &resp);
+    if (status <= 0) {
+      if (verbose >= 2)
+	putc('\n', stderr);
       fprintf(stderr,
 	      "%s: jtagmkII_close(): "
-	      "bad response to GO command: 0x%02x\n",
-	      progname, c);
+	      "timeout/error communicating with programmer (status %d)\n",
+	      progname, status);
+    } else {
+      if (verbose >= 3) {
+	putc('\n', stderr);
+	jtagmkII_prmsg(pgm, resp, status);
+      } else if (verbose == 2)
+	fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
+      c = resp[0];
+      free(resp);
+      if (c != RSP_OK) {
+	fprintf(stderr,
+		"%s: jtagmkII_close(): "
+		"bad response to GO command: %s\n",
+		progname, jtagmkII_get_rc(c));
+      }
     }
   }
 
@@ -1149,8 +1234,8 @@ static void jtagmkII_close(PROGRAMMER * pgm)
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_close(): "
-	    "bad response to sign-off command: 0x%02x\n",
-	    progname, c);
+	    "bad response to sign-off command: %s\n",
+	    progname, jtagmkII_get_rc(c));
   }
 
   serial_close(pgm->fd);
@@ -1257,8 +1342,8 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     if (resp[0] != RSP_OK) {
       fprintf(stderr,
 	      "%s: jtagmkII_paged_write(): "
-	      "bad response to write memory command: 0x%02x\n",
-	      progname, resp[0]);
+	      "bad response to write memory command: %s\n",
+	      progname, jtagmkII_get_rc(resp[0]));
       free(resp);
       free(cmd);
       serial_recv_timeout = otimeout;
@@ -1350,8 +1435,8 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     if (resp[0] != RSP_MEMORY) {
       fprintf(stderr,
 	      "%s: jtagmkII_paged_load(): "
-	      "bad response to read memory command: 0x%02x\n",
-	      progname, resp[0]);
+	      "bad response to read memory command: %s\n",
+	      progname, jtagmkII_get_rc(resp[0]));
       free(resp);
       serial_recv_timeout = otimeout;
       return -1;
@@ -1465,8 +1550,8 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   if (resp[0] != RSP_MEMORY) {
     fprintf(stderr,
 	    "%s: jtagmkII_read_byte(): "
-	    "bad response to read memory command: 0x%02x\n",
-	    progname, resp[0]);
+	    "bad response to read memory command: %s\n",
+	    progname, jtagmkII_get_rc(resp[0]));
     goto fail;
   }
 
@@ -1573,8 +1658,8 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   if (resp[0] != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_write_byte(): "
-	    "bad response to write memory command: 0x%02x\n",
-	    progname, resp[0]);
+	    "bad response to write memory command: %s\n",
+	    progname, jtagmkII_get_rc(resp[0]));
     goto fail;
   }
 
@@ -1624,8 +1709,8 @@ static int jtagmkII_set_sck_period(PROGRAMMER * pgm, double v)
  * bytes by now, we always copy out 4 bytes to *value, so the caller
  * must have allocated sufficient space.
  */
-static int jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
-			    unsigned char * value)
+int jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
+		     unsigned char * value)
 {
   int status;
   unsigned char buf[2], *resp, c;
@@ -1660,8 +1745,8 @@ static int jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
   if (c != RSP_PARAMETER) {
     fprintf(stderr,
 	    "%s: jtagmkII_getparm(): "
-	    "bad response to get parameter command: 0x%02x\n",
-	    progname, c);
+	    "bad response to get parameter command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     free(resp);
     return -1;
   }
@@ -1731,8 +1816,8 @@ static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_setparm(): "
-	    "bad response to set parameter command: 0x%02x\n",
-	    progname, c);
+	    "bad response to set parameter command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     return -1;
   }
 

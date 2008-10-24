@@ -18,7 +18,7 @@
 #
 
 #
-# $Id: Makefile.am,v 1.29 2006/01/12 23:13:50 joerg_wunsch Exp $
+# $Id: Makefile.am,v 1.33 2006/09/19 22:27:30 joerg_wunsch Exp $
 #
 
 EXTRA_DIST   = \
@@ -47,7 +47,24 @@ avrdude_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
 
 avrdude_CFLAGS   = @ENABLE_WARNINGS@  
 
+avrdude_LDADD  = @LIBUSB@
+
 bin_PROGRAMS = avrdude
+
+# automake thinks these generated files should be in the distribution,
+# but this might cause trouble for some users, so we rather don't want
+# to have them there.
+#
+# See
+#
+# https://savannah.nongnu.org/bugs/index.php?func=detailitem&item_id=15536
+#
+# for why we don't want to have them.
+dist-hook:
+	rm -f \
+	$(distdir)/lexer.c \
+	$(distdir)/config_gram.c \
+	$(distdir)/config_gram.h
 
 avrdude_SOURCES = \
 	config_gram.y \
@@ -104,8 +121,12 @@ avrdude_SOURCES = \
 	stk500v2.c \
 	stk500v2.h \
 	stk500v2_private.h \
+	stk500generic.c \
+	stk500generic.h \
 	term.c \
 	term.h \
+	usbasp.c \
+	usbasp.h \
 	usbdevs.h \
 	usb_libusb.c
 

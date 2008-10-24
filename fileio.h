@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: fileio.h,v 1.14 2004/12/22 01:52:45 bdean Exp $ */
+/* $Id: fileio.h,v 1.15 2006/09/08 21:28:24 joerg_wunsch Exp $ */
 
 #ifndef __fileio_h__
 #define __fileio_h__
@@ -27,7 +27,11 @@ typedef enum {
   FMT_SREC,
   FMT_IHEX,
   FMT_RBIN,
-  FMT_IMM
+  FMT_IMM,
+  FMT_HEX,
+  FMT_DEC,
+  FMT_OCT,
+  FMT_BIN
 } FILEFMT;
 
 struct fioparms {

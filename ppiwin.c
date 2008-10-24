@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003, 2004  Eric B. Weddington <ericw@evcohs.com>
+ * Copyright (C) 2003, 2004, 2006
+ *    Eric B. Weddington <eweddington@cso.atmel.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ppiwin.c,v 1.9 2004/07/15 17:29:35 troth Exp $ */
+/* $Id: ppiwin.c,v 1.10 2006/08/20 06:49:11 joerg_wunsch Exp $ */
 
 /*
 This is the parallel port interface for Windows built using Cygwin.
@@ -29,7 +30,7 @@ reg = register as defined in an enum in ppi.h. This must be converted
 */
 
 
-
+#include "ac_cfg.h"
 
 #if defined (WIN32NATIVE)
 
@@ -316,7 +317,8 @@ static void outb(unsigned char value, unsigned short port)
     return;
 }
 
-void gettimeofday(struct timeval*tv, void*z){
+#if !defined(HAVE_GETTIMEOFDAY)
+int gettimeofday(struct timeval *tv, struct timezone *unused){
 // i've found only ms resolution, avrdude expects us
 
 	SYSTEMTIME st;
@@ -324,7 +326,10 @@ void gettimeofday(struct timeval*tv, void*z){
   
 	tv->tv_sec=(long)(st.wSecond+st.wMinute*60+st.wHour*3600);
 	tv->tv_usec=(long)(st.wMilliseconds*1000);
+
+	return 0;
 }
+#endif /* HAVE_GETTIMEOFDAY */
 
 // #define W32USLEEPDBG
 
