@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: term.h,v 1.9 2003/02/09 13:36:48 bdean Exp $ */
+/* $Id: term.h,v 1.11 2005/09/21 00:20:32 bdean Exp $ */
 
 #ifndef __term_h__
 #define __term_h__
@@ -26,5 +26,6 @@
 #include "pgm.h"
 
 int terminal_mode(PROGRAMMER * pgm, struct avrpart * p);
+char * terminal_get_input(const char *prompt);
 
 #endif

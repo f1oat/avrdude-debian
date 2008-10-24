@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: par.h,v 1.2 2004/07/05 15:04:19 hinni Exp $ */
+/* $Id: par.h,v 1.4 2005/09/18 20:12:23 joerg_wunsch Exp $ */
 
 #ifndef __par_h__
 #define __par_h__
@@ -25,6 +25,9 @@
 void par_initpgm        (PROGRAMMER * pgm);
 
 int par_getpinmask(int pin);
+int par_setpin(int fd, int pin, int value);
+int par_getpin(int fd, int pin);
+int par_highpulsepin(int fd, int pin);
 
 #endif
 

@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: serial.h,v 1.3 2004/07/05 15:04:19 hinni Exp $ */
+/* $Id: serial.h,v 1.8 2005/08/30 01:30:05 bdean Exp $ */
 
 /* This is the API for the generic serial interface. The implementations are
    actually provided by the target dependant files:
@@ -30,11 +30,27 @@
 #ifndef __serial_h__
 #define __serial_h__
 
-extern int serial_open(char * port, long baud);
-extern void serial_close(int fd);
+extern long serial_recv_timeout;
 
-extern int serial_send(int fd, char * buf, size_t buflen);
-extern int serial_recv(int fd, char * buf, size_t buflen);
-extern int serial_drain(int fd, int display);
+struct serial_device
+{
+  int (*open)(char * port, long baud);
+  int (*setspeed)(int fd, long baud);
+  void (*close)(int fd);
+
+  int (*send)(int fd, unsigned char * buf, size_t buflen);
+  int (*recv)(int fd, unsigned char * buf, size_t buflen);
+  int (*drain)(int fd, int display);
+};
+
+extern struct serial_device *serdev;
+extern struct serial_device serial_serdev, usb_serdev;
+
+#define serial_open (serdev->open)
+#define serial_setspeed (serdev->setspeed)
+#define serial_close (serdev->close)
+#define serial_send (serdev->send)
+#define serial_recv (serdev->recv)
+#define serial_drain (serdev->drain)
 
 #endif /* __serial_h__ */

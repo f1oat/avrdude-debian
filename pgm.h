@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2002-2004  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: pgm.h,v 1.19 2004/07/07 08:59:07 hinni Exp $ */
+/* $Id: pgm.h,v 1.22 2005/09/18 20:12:23 joerg_wunsch Exp $ */
 
 #ifndef __pgm_h__
 #define __pgm_h__
@@ -47,6 +47,7 @@ typedef struct programmer_t {
   int ppidata;
   int ppictrl;
   int baudrate;
+  double bitclock;    /* JTAG ICE clock period in microseconds */
   int fd;
   int  page_size;  /* page size if the programmer supports paged write/load */
   int  (*rdy_led)        (struct programmer_t * pgm, int value);
@@ -82,6 +83,7 @@ typedef struct programmer_t {
   int  (*set_sck_period) (struct programmer_t * pgm, double v);
   char config_file[PATH_MAX]; /* config file where defined */
   int  lineno;                /* config file line number */
+  char flag;		      /* for private use of the programmer */
 } PROGRAMMER;
 
 

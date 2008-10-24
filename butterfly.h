@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: butterfly.h,v 1.2 2004/07/05 15:04:19 hinni Exp $ */
+/* $Id: butterfly.h,v 1.3 2004/12/22 01:52:45 bdean Exp $ */
 
 #ifndef __butterfly_h__
 #define __butterfly_h__

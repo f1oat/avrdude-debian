@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr.h,v 1.30 2004/07/05 14:10:15 hinni Exp $ */
+/* $Id: avr.h,v 1.31 2004/12/22 01:52:45 bdean Exp $ */
 
 #ifndef __avr_h__
 #define __avr_h__

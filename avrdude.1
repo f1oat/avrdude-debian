@@ -1,6 +1,6 @@
 .\"
 .\" avrdude - A Downloader/Uploader for AVR device programmers
-.\" Copyright (C) 2001, 2002, 2003  Joerg Wunsch
+.\" Copyright (C) 2001, 2002, 2003, 2005  Joerg Wunsch
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -17,9 +17,9 @@
 .\" Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 .\"
 .\"
-.\" $Id: avrdude.1,v 1.38 2004/07/17 15:41:36 hinni Exp $
+.\" $Id: avrdude.1,v 1.50 2005/09/21 02:00:58 bdean Exp $
 .\"
-.Dd DATE November 26, 2003
+.Dd DATE September 18, 2005
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -28,6 +28,8 @@
 .Sh SYNOPSIS
 .Nm
 .Fl p Ar partno
+.Op Fl b Ar baudrate
+.Op Fl B Ar bitclock
 .Op Fl c Ar programmer-id
 .Op Fl C Ar config-file
 .Op Fl D
@@ -39,7 +41,9 @@
 .Op Fl n
 .Op Fl P Ar port
 .Op Fl q
+.Op Fl s
 .Op Fl t
+.Op Fl u
 .Op Fl U Ar memtype:op:filename:filefmt
 .Op Fl v
 .Op Fl V
@@ -50,10 +54,16 @@
 is a program for downloading code and data to Atmel AVR
 microcontrollers.
 .Nm Avrdude
-supports Atmel's STK500 programmer as well as a simple hard-wired
+supports Atmel's STK500 programmer,
+Atmel's JTAG ICE mkII,
+programmers complying to AppNote AVR910 and AVR109 (including the Butterfly),
+as well as a simple hard-wired
 programmer connected directly to a
 .Xr ppi 4
-parallel port.  In the simplest case, the hardware consists just of a
+or
+.Xr parport 4
+parallel port, or to a standard serial port.
+In the simplest case, the hardware consists just of a
 cable connecting the respective AVR signal lines to the parallel port.
 .Pp
 The MCU is programmed in
@@ -75,14 +85,27 @@ signal is available to control a buffer/driver IC 74LS367 (or
 74HCT367).  The latter can be useful to decouple the parallel port
 from the MCU when in-system programming is used.
 .Pp
-See the file
-.Pa /usr/share/doc/avrdude-doc/avrdude.pdf
-for a schematic of the
-.Xr ppi 4
-based programming hardware.
+A number of equally simple bit-bang programming adapters that connect
+to a serial port are supported as well, among them the popular
+Ponyprog serial adapter, and the DASA and DASA3 adapters that used to
+be supported by uisp(1).
+Note that these adapters are meant to be attached to a physical serial
+port.
+Connecting to a serial port emulated on top of USB is likely to not
+work at all, or to work abysmally slow.
 .Pp
 Atmel's STK500 programmer is also supported and connects to a serial
 port.
+Both, firmware versions 1.x and 2.x can be handled, but require a
+different programmer type specification (by now).
+.Pp
+The simple serial programmer described in Atmel's application note
+AVR910, and the bootloader described in Atmel's application note
+AVR109 (which is also used by the AVR Butterfly evaluation board), are
+supported on a serial port.
+.Pp
+Atmel's JTAG ICE mkII is supported as well to up- or download memory
+areas from/to an AVR target (no support for on-chip debugging).
 .Pp
 Input files can be provided, and output files can be written in
 different file formats, such as raw binary files containing the data
@@ -132,7 +155,9 @@ the format.  Currently, the following MCU types are understood:
 .TS
 ll.
 \fBOption tag\fP	\fBOfficial part name\fP
-t15	ATtiny15
+c128	AT90CAN128
+pwm2	AT90PWM2
+pwm3	AT90PWM3
 1200	AT90S1200
 2313	AT90S2313
 2333	AT90S2333
@@ -142,19 +167,53 @@ t15	ATtiny15
 4434	AT90S4434
 8515	AT90S8515
 8535	AT90S8535
-m163	ATMEGA163
-m169	ATMEGA169
-m128	ATMEGA128
-m103	ATMEGA103
-m16	ATMEGA16
-m48	ATMEGA48
-m8	ATMEGA8
-m88	ATMEGA88
+m103	ATmega103
+m128	ATmega128
+m16	ATmega16
+m161	ATmega161
+m162	ATmega162
+m163	ATmega163
+m164	ATmega164
+m169	ATmega169
+m32	ATmega32
+m324	ATmega324
+m329	ATmega329
+m3290	ATmega3290
+m48	ATmega48
+m64	ATmega64
+m644	ATmega644
+m649	ATmega649
+m6490	ATmega6490
+m8	ATmega8
+m8515	ATmega8515
+m8535	ATmega8535
+m88	ATmega88
+t12	ATtiny12
+t13	ATtiny13
+t15	ATtiny15
+t2313	ATtiny2313
+t25	ATtiny25
+t26	ATtiny26
+t45	ATtiny45
+t85	ATtiny85
 .TE
 .Bl -tag -width "(*) "
 .It "(*)"
-The AT90S2323 uses the same algorithm.
+The AT90S2323 and ATtiny22 use the same algorithm.
 .El
+.It Fl b Ar baudrate
+Override the RS-232 connection baud rate specified in the respective
+programmer's entry of the configuration file.
+.It Fl B Ar bitclock
+Specify the bit clock period for the JTAG interface (JTAG ICE only).
+The value is a floating-point number in microseconds.
+The default value of the JTAG ICE results in about 1 microsecond bit
+clock period, suitable for target MCUs running at 4 MHz clock and
+above.
+Unlike certain parameters in the STK500, the JTAG ICE resets all its
+parameters to default values when the programming software signs
+off from the ICE, so for MCUs running at lower clock speeds, this
+parameter must be specified on the command-line.
 .It Fl c Ar programmer-id
 Use the pin configuration specified by the argument.  Pin
 configurations are read from the config file (see the
@@ -273,14 +332,49 @@ serial port, the
 .Pa /dev/cuaa0
 port is the default.  If you need to use a different parallel or
 serial port, use this option to specify the alternate port name.
+.Pp
+For the JTAG ICE mkII, if
+.Nm
+has been configured with libusb support,
+.Ar port
+can alternatively be specified as
+.Ar usb Ns Op \&: Ns Ar serialno .
+This will cause
+.Nm
+to search a JTAG ICE mkII on USB.
+If
+.Ar serialno
+is also specified, it will be matched against the serial number read
+from any JTAG ICE mkII found on USB.
+The match is done after stripping any existing colons from the given
+serial number, and right-to-left, so only the least significant bytes
+from the serial number need to be given.
 .It Fl q
 Disable (or quell) output of the progress bar while reading or writing
-to the device.
+to the device.  Specify it a second time for even quieter operation.
+.It Fl s
+Disable safemode prompting.  When safemode discovers that one or more
+fuse bits have unintentionally changed, it will prompt for
+confirmation regarding whether or not it should attempt to recover the
+fuse bit(s).  Specifying this flag disables the prompt and assumes
+that the fuse bit(s) should be recovered without asking for
+confirmation first.
 .It Fl t
 Tells
 .Nm
 to enter the interactive ``terminal'' mode instead of up- or downloading
 files.  See below for a detailed description of the terminal mode.
+.It Fl u
+Disable the safemode fuse bit checks.  Safemode is enabled by default
+and is intended to prevent unintentional fuse bit changes.  When
+enabled, safemode will issue a warning if the any fuse bits are found
+to be different at program exit than they were when
+.Nm
+was invoked.  Safemode won't alter fuse bits itself, but rather will
+prompt for instructions, unless the terminal is non-interactive, in
+which case safemode is disabled.  See the
+.Fl s
+option to disable safemode prompting.
 .It Xo Fl U Ar memtype Ns
 .Ar \&: Ns Ar op Ns
 .Ar \&: Ns Ar filename Ns
@@ -288,7 +382,39 @@ files.  See below for a detailed description of the terminal mode.
 .Xc
 Perform a memory operation as indicated.  The
 .Ar memtype
-field specifies the memory type to operate on.  The
+field specifies the memory type to operate on.
+The available memory types are device-dependant, the actual
+configuration can be viewed with the
+.Cm part
+command in terminal mode.
+Typically, a device's memory configuration at least contains
+the memory types
+.Ar flash
+and
+.Ar eeprom .
+All memory types currently known are:
+.Bl -tag -width "calibration" -compact
+.It calibration
+One or more bytes of RC oscillator calibration data.
+.It eeprom
+The EEPROM of the device.
+.It efuse
+The extended fuse byte.
+.It flash
+The flash ROM of the device.
+.It fuse
+The fuse byte in devices that have only a single fuse byte.
+.It hfuse
+The high fuse byte.
+.It lfuse
+The low fuse byte.
+.It lock
+The lock byte.
+.It signature
+The three device signature bytes (device ID).
+.El
+.Pp
+The
 .Ar op
 field specifies what operation to perform:
 .Bl -tag -width noreset
@@ -407,7 +533,9 @@ does not implement the command.
 .It Ar sig
 Display the device signature bytes.
 .It Ar part
-Display the current part settings.
+Display the current part settings and parameters.  Includes chip
+specific information including all memory types supported by the
+device, read/write timing, etc.
 .It Ar vtarg voltage
 Set the target's supply voltage to
 .Ar voltage
@@ -435,13 +563,24 @@ by 1E3.
 Turn the master oscillator off.
 .Em Only supported on the STK500 programmer.
 .It Ar sck period
+.Em STK500 programmer only:
 Set the SCK clock period to
 .Ar period
 microseconds.
-.Em Only supported on the STK500 programmer.
+.Pp
+.Em JTAG ICE only:
+Set the JTAG ICE bit clock period to
+.Ar period
+microseconds.
+Note that unlike STK500 settings, this setting will be reverted to
+its default value (approximately 1 microsecond) when the programming
+software signs off from the JTAG ICE.
 .It Ar parms
+.Em STK500 programmer only:
 Display the current voltage and master oscillator parameters.
-.Em Only supported on the STK500 programmer.
+.Pp
+.Em JTAG ICE only:
+Display the current target supply voltage and JTAG bit clock rate/period.
 .It Ar \&?
 .It Ar help
 Give a short on-line summary of the available commands.
@@ -498,4 +637,17 @@ This man page by
 .ie t J\(:org Wunsch.
 .el Joerg Wunsch.
 .Sh BUGS
-Please report bugs to avrdude-dev@nongnu.org.
+Please report bugs via
+.Dl "http://savannah.nongnu.org/bugs/?group=avrdude" .
+.Pp
+The JTAGICE mkII programmer currently cannot write to the flash ROM
+one byte at a time.
+For that reason, updating the flash ROM from terminal mode does not
+work.
+.Pp
+The device IDs used by AVR910 and AVR109 do not match, so the
+avr109 (aka. butterfly) programmer might report
+.Dl "selected device is not supported by programmer" .
+Use the -F option to force
+.Nm
+to contiue anway.

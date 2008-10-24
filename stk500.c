@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2002-2004 Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500.c,v 1.45 2004/07/07 08:59:07 hinni Exp $ */
+/* $Id: stk500.c,v 1.48 2005/08/30 01:30:05 bdean Exp $ */
 
 /*
  * avrdude interface for Atmel STK500 programmer
@@ -55,15 +55,24 @@ static int stk500_is_page_empty(unsigned int address, int page_size,
     const unsigned char *buf);
 
 
-static int stk500_send(PROGRAMMER * pgm, char * buf, size_t len)
+static int stk500_send(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 {
   return serial_send(pgm->fd, buf, len);
 }
 
 
-static int stk500_recv(PROGRAMMER * pgm, char * buf, size_t len)
+static int stk500_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 {
-  return serial_recv(pgm->fd, buf, len);
+  int rv;
+
+  rv = serial_recv(pgm->fd, buf, len);
+  if (rv < 0) {
+    fprintf(stderr,
+	    "%s: stk500_recv(): programmer is not responding\n",
+	    progname);
+    exit(1);
+  }
+  return 0;
 }
 
 

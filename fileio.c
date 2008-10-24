@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: fileio.c,v 1.31 2004/06/24 11:05:07 kiwi64ajs Exp $ */
+/* $Id: fileio.c,v 1.33 2005/09/16 21:52:42 bdean Exp $ */
 
 #include "ac_cfg.h"
 
@@ -48,6 +48,7 @@ struct ihexrec {
 
 extern char * progname;
 extern char   progbuf[];
+extern int    quell_progress;
 
 int b2ihex(unsigned char * inbuf, int bufsize, 
              int recsize, int startaddr,
@@ -970,8 +971,10 @@ int fileio(int op, char * filename, FILEFMT format,
       return -1;
     }
 
-    fprintf(stderr, "%s: %s file %s auto detected as %s\n", 
-            progname, fio.iodesc, fname, fmtstr(format));
+    if (quell_progress < 2) {
+      fprintf(stderr, "%s: %s file %s auto detected as %s\n", 
+              progname, fio.iodesc, fname, fmtstr(format));
+    }
   }
 
   if (format != FMT_IMM) {

@@ -1,7 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997,
- *   1998, 1999, 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 1990-2004  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
- /* $Id: lists.c,v 1.10 2004/04/23 20:36:00 joerg_wunsch Exp $ */
+ /* $Id: lists.c,v 1.11 2004/12/22 01:52:45 bdean Exp $ */
 
 
 

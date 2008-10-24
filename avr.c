@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr.c,v 1.62 2004/07/05 15:04:19 hinni Exp $ */
+/* $Id: avr.c,v 1.65 2005/09/21 01:26:54 bdean Exp $ */
 
 #include "ac_cfg.h"
 
@@ -33,6 +33,7 @@
 #include "lists.h"
 #include "pindefs.h"
 #include "ppi.h"
+#include "safemode.h"
 
 #define DEBUG 0
 
@@ -479,7 +480,30 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                    unsigned long addr, unsigned char data)
 {
+
+  unsigned char safemode_lfuse;
+  unsigned char safemode_hfuse;
+  unsigned char safemode_efuse;
+  unsigned char safemode_fuse;
   int rc;
+
+  /* If we write the fuses, then we need to tell safemode that they *should* change */
+  safemode_memfuses(0, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
+
+  if (strcmp(mem->desc, "fuse")==0) {
+      safemode_fuse = data;
+  }
+  if (strcmp(mem->desc, "lfuse")==0) {
+      safemode_lfuse = data;
+  }
+  if (strcmp(mem->desc, "hfuse")==0) {
+      safemode_hfuse = data;
+  }
+  if (strcmp(mem->desc, "efuse")==0) {
+      safemode_efuse = data;
+  }
+  
+  safemode_memfuses(1, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
 
   if (pgm->write_byte) {
     rc = pgm->write_byte(pgm, p, mem, addr, data);
@@ -592,6 +616,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
       pgm->err_led(pgm, ON);
     }
   }
+
   return i;
 }
 

@@ -1,4 +1,4 @@
-This is avrdude.info, produced by makeinfo version 4.6 from
+This is ../../doc/avrdude.info, produced by makeinfo version 4.5 from
 ../../doc/avrdude.texi.
 
 INFO-DIR-SECTION AVR Programming & development tools.
@@ -8,9 +8,9 @@ END-INFO-DIR-ENTRY
 
    This file documents the avrdude program.
 
-   For avrdude version 4.4.0, 18 July 2004.
+   For avrdude version 5.0, 18 September 2005.
 
-   Copyright (C) 2003 Brian Dean
+   Copyright (C) 2003,2005 Brian Dean
 
    Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -32,7 +32,7 @@ File: avrdude.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
    This file documents the avrdude program for downloading/uploading
 programs to Atmel AVR microcontrollers.
 
-   For avrdude version 4.4.0, 18 July 2004.
+   For avrdude version 5.0, 18 September 2005.
 
 * Menu:
 
@@ -49,7 +49,7 @@ File: avrdude.info,  Node: Introduction,  Next: Command Line Options,  Prev: Top
 Introduction
 ************
 
-AVRDUDE - AVR Downloader Uploader - is a program for downloading and
+   AVRDUDE - AVR Downloader Uploader - is a program for downloading and
 uploading the on-chip memories of Atmel's AVR microcontrollers. It can
 program the Flash and EEPROM, and where supported by the serial
 programming protocol, it can program fuse and lock bits. AVRDUDE also
@@ -65,24 +65,43 @@ from the contents of a file, while interactive mode is useful for
 exploring memory contents, modifing individual bytes of eeprom,
 programming fuse/lock bits, etc.
 
-   AVRDUDE supports three basic programmer types: Atmel's STK500,
-appnote avr910 and the PPI (parallel port interface). PPI represents a
-class of simple programmers where the programming lines are directly
-connected to the PC parallel port. Several pin configurations exist for
-several variations of the PPI programmers, and AVRDUDE can be be
-configured to work with them by either specifying the appropriate
-programmer on the command line or by creating a new entry in its
-configuration file. All that's usually required for a new entry is to
-tell AVRDUDE which pins to use for each programming function.
+   AVRDUDE supports six basic programmer types: Atmel's STK500, Atmel's
+JTAG ICE mkII, appnote avr910, appnote avr109 (including the AVR
+Butterfly), serial bit-bang adapters, and the PPI (parallel port
+interface). PPI represents a class of simple programmers where the
+programming lines are directly connected to the PC parallel port.
+Several pin configurations exist for several variations of the PPI
+programmers, and AVRDUDE can be be configured to work with them by
+either specifying the appropriate programmer on the command line or by
+creating a new entry in its configuration file. All that's usually
+required for a new entry is to tell AVRDUDE which pins to use for each
+programming function.
 
-   The STK500 and avr910 use the serial port to communicate with the PC
-and contains on-board logic to control the programming of the target
-device. The fundamental difference between the two types lies in the
-protocol used to control the programmer. The avr910 protocol is very
-simplistic and can easily be used as the basis for a simple, home made
-programer since the firmware is available online. On the other hand,
-the STK500 protocol is more robust and complicated and the firmware is
-not openly available.
+   A number of equally simple bit-bang programming adapters that connect
+to a serial port are supported as well, among them the popular Ponyprog
+serial adapter, and the DASA and DASA3 adapters that used to be
+supported by uisp(1).  Note that these adapters are meant to be
+attached to a physical serial port.  Connecting to a serial port
+emulated on top of USB is likely to not work at all, or to work
+abysmally slow.
+
+   The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial
+port to communicate with the PC.  The STK500, JTAG ICE, and avr910
+contain on-board logic to control the programming of the target device.
+The avr109 bootloader implements a protocol similar to avr910, but is
+actually implemented in the boot area of the target's flash ROM, as
+opposed to being an external device.  The fundamental difference
+between the two types lies in the protocol used to control the
+programmer. The avr910 protocol is very simplistic and can easily be
+used as the basis for a simple, home made programer since the firmware
+is available online. On the other hand, the STK500 protocol is more
+robust and complicated and the firmware is not openly available.  The
+JTAG ICE also uses a serial communication protocol which is similar to
+the STK500 firmware version 2 one.  However, as the JTAG ICE is
+intented to allow on-chip debugging as well as memory programming, the
+protocol is more sophisticated.  (This protocol can also be run on top
+of USB.)  Only the memory programming functionality of the JTAG ICE is
+supported by AVRDUDE.
 
 * Menu:
 
@@ -94,11 +113,11 @@ File: avrdude.info,  Node: History,  Prev: Introduction,  Up: Introduction
 History and Credits
 ===================
 
-AVRDUDE was written by Brian S. Dean under the name of AVRPROG to run on
-the FreeBSD Operating System.  Brian renamed the software to be called
-AVRDUDE when interest grew in a Windows port of the software so that the
-name did not conflict with AVRPROG.EXE which is the name of Atmel's
-Windows programming software.
+   AVRDUDE was written by Brian S. Dean under the name of AVRPROG to
+run on the FreeBSD Operating System.  Brian renamed the software to be
+called AVRDUDE when interest grew in a Windows port of the software so
+that the name did not conflict with AVRPROG.EXE which is the name of
+Atmel's Windows programming software.
 
    The AVRDUDE source now resides in the public CVS repository on
 savannah.gnu.org (<http://savannah.gnu.org/projects/avrdude/>), where
@@ -150,6 +169,15 @@ following options are recognized:
      programming specifications.  Currently, the following MCU types
      are understood:
 
+    `c128'
+          AT90CAN128
+
+    `pwm2'
+          AT90PWM2
+
+    `pwm3'
+          AT90PWM3
+
     `1200'
           AT90S1200
 
@@ -178,58 +206,108 @@ following options are recognized:
           AT90S8535
 
     `m103'
-          ATMEGA103
+          ATmega103
 
     `m128'
-          ATMEGA128
+          ATmega128
 
     `m16'
-          ATMEGA16
+          ATmega16
 
     `m161'
-          ATMEGA161
+          ATmega161
 
     `m162'
-          ATMEGA162
+          ATmega162
 
     `m163'
-          ATMEGA163
+          ATmega163
+
+    `m164'
+          ATmega164
 
     `m169'
-          ATMEGA169
+          ATmega169
 
     `m32'
-          ATMEGA32
+          ATmega32
+
+    `m324'
+          ATmega324
+
+    `m329'
+          ATmega329
+
+    `m3290'
+          ATmega3290
 
     `m48'
-          ATMEGA48
+          ATmega48
 
     `m64'
-          ATMEGA64
+          ATmega64
+
+    `m644'
+          ATmega644
+
+    `m649'
+          ATmega649
+
+    `m6490'
+          ATmega6490
 
     `m8'
-          ATMEGA8
+          ATmega8
 
     `m8515'
-          ATMEGA8515
+          ATmega8515
 
     `m8535'
-          ATMEGA8535
+          ATmega8535
 
     `m88'
-          ATMEGA88
+          ATmega88
 
     `t12'
           ATtiny12
 
+    `t13'
+          ATtiny13
+
     `t15'
           ATtiny15
 
+    `t2313'
+          ATtiny2313
+
+    `t25'
+          ATtiny25
+
     `t26'
-          ATTINY26
+          ATtiny26
+
+    `t45'
+          ATtiny45
+
+    `t85'
+          ATtiny85
 
 
-     (*)   The AT90S2323 uses the same algorithm.
+     (*)   The AT90S2323 and ATtiny22 use the same algorithm.
+
+`-b BAUDRATE'
+     Override the RS-232 connection baud rate specified in the
+     respective programmer's entry of the configuration file.
+
+`-B BITCLOCK'
+     Specify the bit clock period for the JTAG interface (JTAG ICE
+     only).  The value is a floating-point number in microseconds.  The
+     default value of the JTAG ICE results in about 1 microsecond bit
+     clock period, suitable for target MCUs running at 4 MHz clock and
+     above.  Unlike certain parameters in the STK500, the JTAG ICE
+     resets all its parameters to default values when the programming
+     software signs off from the ICE, so for MCUs running at lower
+     clock speeds, this parameter must be specified on the command-line.
 
 `-c PROGRAMMER-ID'
      Specify the programmer to be used.  AVRDUDE knows about several
@@ -250,8 +328,14 @@ following options are recognized:
     `alf'
           Nightshade ALF-PgmAVR, http://nightshade.homeip.net/
 
+    `avr109'
+          Atmel AppNote AVR109 Boot Loader
+
     `avr910'
           Atmel Low Cost Serial Programmer
+
+    `avr911'
+          Atmel AppNote AVR911 AVROSP (an alias for avr109)
 
     `avrisp'
           Atmel AVR ISP
@@ -267,6 +351,16 @@ following options are recognized:
 
     `dt006'
           Dontronics DT006
+
+    `jtagmkII'
+    `jtag2slow'
+          Atmel JTAG ICE mkII (default speed 19200 Bd)
+
+    `jtag2fast'
+          Atmel JTAG ICE mkII, running at 115200 Bd
+
+    `jtag2'
+          Same as before.
 
     `pavr'
           Jason Kyle's pAVR Serial Programmer
@@ -285,6 +379,9 @@ following options are recognized:
 
     `stk500'
           Atmel STK500
+
+    `stk500v2'
+          Atmel STK500, running a verrsion 2.x firmware
 
 
 `-C CONFIG-FILE'
@@ -369,9 +466,28 @@ following options are recognized:
      If you need to use a different parallel or serial port, use this
      option to specify the alternate port name.
 
+     For the JTAG ICE mkII, if AVRDUDE has been built with libusb
+     support, PORT may alternatively be specified as USB[:SERIALNO].
+     In that case, the JTAG ICE mkII will be looked up on USB.  If
+     SERIALNO is also specified, it will be matched against the serial
+     number read from any JTAG ICE mkII found on USB.  The match is
+     done after stripping any existing colons from the given serial
+     number, and right-to-left, so only the least significant bytes
+     from the serial number need to be given.
+
 `-q'
      Disable (or quell) output of the progress bar while reading or
-     writing to the device.
+     writing to the device.  Specify it a second time for even quieter
+     operation.
+
+`-u'
+     Disables the default behaviour of reading out the fuses three
+     times before programming, then verifying at the end of programming
+     that the fuses have not changed. If you want to change fuses you
+     will need to specify this option, as avrdude will see the fuses
+     have changed (even though you wanted to) and will change them back
+     for your "saftey". This option was designed to prevent cases of
+     fuse bits magically changing (usually called _safemode_).
 
 `-t'
      Tells AVRDUDE to enter the interactive "terminal" mode instead of
@@ -385,8 +501,37 @@ following options are recognized:
      command-line invocation.  The MEMTYPE field specifies the memory
      type to operate on. Use the `-v' option on the command line or the
      `part' command from terminal mode to display all the memory types
-     supported by a particular device.  The OP field specifies what
-     operation to perform:
+     supported by a particular device.  Typically, a device's memory
+     configuration at least contains the memory types `flash' and
+     `eeprom'.  All memory types currently known are:
+    `calibration'
+          One or more bytes of RC oscillator calibration data.
+
+    `eeprom'
+          The EEPROM of the device.
+
+    `efuse'
+          The extended fuse byte.
+
+    `flash'
+          The flash ROM of the device.
+
+    `fuse'
+          The fuse byte in devices that have only a single fuse byte.
+
+    `hfuse'
+          The high fuse byte.
+
+    `lfuse'
+          The low fuse byte.
+
+    `lock'
+          The lock byte.
+
+    `signature'
+          The three device signature bytes (device ID).
+
+     The OP field specifies what operation to perform:
 
     `r'
           read the specified device memory and write to the specified
@@ -503,6 +648,8 @@ programmer connected to the default serial port:
      avrdude: verifying ...
      avrdude: 19278 bytes of flash verified
      
+     avrdude: safemode: Fuses OK
+     
      avrdude done.  Thank you.
      
      %
@@ -524,6 +671,8 @@ flash.bin':
      
      avrdude: writing output file "c:/diag flash.bin"
      
+     avrdude: safemode: Fuses OK
+     
      avrdude done.  Thank you.
      
      %
@@ -533,7 +682,7 @@ Using the default programmer, download the file `diag.hex' to flash,
 to 0xff, 0x89, and 0x2e respectively:
 
 
-     % avrdude -p m128 -U flash:w:diag.hex \
+     % avrdude -p m128 -u -U flash:w:diag.hex \
      >                 -U eeprom:w:eeprom.hex \
      >                 -U efuse:w:0xff:m      \
      >                 -U hfuse:w:0x89:m      \
@@ -571,19 +720,36 @@ to 0xff, 0x89, and 0x2e respectively:
      
      %
 
+Connect to the JTAG ICE mkII which serial number ends up in 1C37 via
+USB, and enter terminal mode:
+
+
+     % avrdude -c jtag2 -p m649 -P usb:1c:37 -t
+     
+     avrdude: AVR device initialized and ready to accept instructions
+     
+     Reading | ################################################## | 100% 0.03s
+     
+     avrdude: Device signature = 0x1e9603
+     
+     [ ... terminal mode output skipped for brevity ... ]
+     
+     avrdude done.  Thank you.
+
 
 File: avrdude.info,  Node: Terminal Mode Operation,  Next: Configuration File,  Prev: Command Line Options,  Up: Top
 
 Terminal Mode Operation
 ***********************
 
-AVRDUDE has an interactive mode called TERMINAL MODE that is enabled by
-the `-t' option.  This mode allows one to enter interactive commands to
-display and modify the various device memories, perform a chip erase,
-display the device signature bytes and part parameters, and to send raw
-programming commands.  Commands and parameters may be abbreviated to
-their shortest unambiguous form.  Terminal mode also supports a command
-history so that previously entered commands can be recalled and edited.
+   AVRDUDE has an interactive mode called TERMINAL MODE that is enabled
+by the `-t' option.  This mode allows one to enter interactive commands
+to display and modify the various device memories, perform a chip
+erase, display the device signature bytes and part parameters, and to
+send raw programming commands.  Commands and parameters may be
+abbreviated to their shortest unambiguous form.  Terminal mode also
+supports a command history so that previously entered commands can be
+recalled and edited.
 
 * Menu:
 
@@ -625,7 +791,9 @@ The following commands are implemented:
      Display the device signature bytes.
 
 `part'
-     Display the current part settings.
+     Display the current part settings and parameters.  Includes chip
+     specific information including all memory types supported by the
+     device, read/write timing, etc.
 
 `?'
 `help'
@@ -653,10 +821,19 @@ programmer:
      Turn the master oscillator off.
 
 `sck PERIOD'
-     Set the SCK clock period to PERIOD microseconds.
+     _STK500 only:_ Set the SCK clock period to PERIOD microseconds.
+
+     _JTAG ICE only:_ Set the JTAG ICE bit clock period to PERIOD
+     microseconds.  Note that unlike STK500 settings, this setting will
+     be reverted to its default value (approximately 1 microsecond)
+     when the programming software signs off from the JTAG ICE.
 
 `parms'
-     Display the current voltage and master oscillator parameters.
+     _STK500 only:_ Display the current voltage and master oscillator
+     parameters.
+
+     _JTAG ICE only:_ Display the current target supply voltage and
+     JTAG bit clock rate/period.
 
 
 
@@ -719,9 +896,11 @@ Display part parameters, modify eeprom cells, perform a chip erase:
 
 Program the fuse bits of an ATmega128 (disable M103 compatibility,
 enable high speed external crystal, enable brown-out detection, slowly
-rising power).  First display the factory defaults, then reprogram:
+rising power).  Note since we are working with fuse bits the -u (unsafe)
+option is specified, which allows you to modify the fuse bits. First
+display the factory defaults, then reprogram:
 
-     % avrdude -p m128 -c stk500 -t
+     % avrdude -p m128 -u -c stk500 -t
      
      avrdude: AVR device initialized and ready to accept instructions
      avrdude: Device signature = 0x1e9702
@@ -813,7 +992,7 @@ The format of the programmer definition is as follows:
          id     = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
          desc     = <description> ;                  # quoted string
          type     = par | stk500 ;                   # programmer type
-         baudrate = <num> ;                          # baudrate for avr910
+         baudrate = <num> ;                          # baudrate for serial ports
          vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
          reset    = <num> ;                          # pin number
          sck      = <num> ;                          # pin number
@@ -946,6 +1125,24 @@ Other Notes
 
      <http://www.atmel.com/atmel/acrobat/doc1280.pdf>
 
+   * The boot loader from application note AVR109 (and thus also the AVR
+     Butterfly) does not support writing of fuse bits.  Writing lock
+     bits is supported, but is restricted to the boot lock bits
+     (BLBxx).  These are restrictions imposed by the underlying SPM
+     instruction that is used to program the device from inside the
+     boot loader.  Note that programming the boot lock bits can result
+     in a "shoot-into-your-foot" scenario as the only way to unprogram
+     these bits is a chip erase, which will also erase the boot loader
+     code.
+
+     The boot loader implements the "chip erase" function by erasing the
+     flash pages of the application section.
+
+     Reading fuse and lock bits is fully supported.
+
+     Note that due to the unability to write the fuse bits, the safemode
+     functionality does not make sense for these boot loaders.
+
 
 
 File: avrdude.info,  Node: Platform Dependent Information,  Next: Troubleshooting,  Prev: Configuration File,  Up: Top
@@ -979,8 +1176,8 @@ Unix Installation
 
 To build and install from the source tarball on Unix like systems:
 
-     $ gunzip -c avrdude-4.4.0.tar.gz | tar xf -
-     $ cd avrdude-4.4.0
+     $ gunzip -c avrdude-5.0.tar.gz | tar xf -
+     $ cd avrdude-5.0
      $ ./configure
      $ make
      $ su root -c 'make install'
@@ -992,8 +1189,8 @@ variable.
    If you do not have root access to your system, you can do the the
 following instead:
 
-     $ gunzip -c avrdude-4.4.0.tar.gz | tar xf -
-     $ cd avrdude-4.4.0
+     $ gunzip -c avrdude-5.0.tar.gz | tar xf -
+     $ cd avrdude-5.0
      $ ./configure --prefix=$HOME/local
      $ make
      $ make install
@@ -1035,8 +1232,8 @@ On rpm based linux systems (such as RedHat, SUSE, Mandrake, etc), you
 can build and install the rpm binaries directly from the tarball:
 
      $ su - root
-     # rpmbuild -tb avrdude-4.4.0.tar.gz
-     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-4.4.0-1.i386.rpm
+     # rpmbuild -tb avrdude-5.0.tar.gz
+     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.0-1.i386.rpm
 
    Note that the path to the resulting rpm package, differs from system
 to system. The above example is specific to RedHat.
@@ -1146,8 +1343,8 @@ Cygwin):
 
      $ set PREFIX=<your install directory path>
      $ export PREFIX
-     $ gunzip -c avrdude-4.4.0.tar.gz | tar xf -
-     $ cd avrdude-4.4.0
+     $ gunzip -c avrdude-5.0.tar.gz | tar xf -
+     $ cd avrdude-5.0
      $ ./configure LDFLAGS="-static" --prefix=$PREFIX --datadir=$PREFIX
      --sysconfdir=$PREFIX/bin --enable-versioned-doc=no
      $ make
@@ -1337,6 +1534,9 @@ File: avrdude.info,  Node: Troubleshooting,  Prev: Platform Dependent Informatio
 Troubleshooting
 ***************
 
+In general, please report any bugs encountered via
+<http://savannah.nongnu.org/bugs/?group=avrdude>.
+
    * Problem: I'm using a serial programmer under Windows and get the
      following error:
 
@@ -1371,48 +1571,79 @@ Troubleshooting
      Solutions: The reasons for this are the same as above.  If you
      know how to work around this on your OS, please let us know.
 
+   * Problem: I cannot modify the fuse bits on my AVR!
+
+     Solution: You probably forgot to specify the -u option, which
+     allows you to modify fuse bits.  This is done to prevent corrupt
+     data from changing the fuse bits without you knowing about it, and
+     currently also prevents the user from changing the fuse bits by
+     accident. This patch was added in response to a number of
+     occasions when an AVR had stopped responding because the fuse bits
+     got changed by an error caused by the programmer. Programmer of
+     course meaning both the physical device, and the person sitting at
+     the keyboard.
+
+   * Problem: AVRDUDE says my device is not supported when using the
+     AVR109 boot loader
+
+     Solution: Currently, AVRDUDE uses the AVR910 device codes given in
+     the `avrdude.conf' file, and matches them against the list of
+     supported devices reported by the programmer.  Unfortunately,
+     there are no device codes at all for some of the newer AVR
+     devices, and even worse, the device codes listed in
+     `preprocessor.xls' of appnote AVR109 do not match those once
+     specified in AVR910.
+
+     Use the -F option to force AVRDUDE to continue anyway.
+
+   * Problem: Updating the flash ROM from terminal mode does not work
+     with the JTAG ICE mkII.
+
+     Solution: None at this time.  Currently, the JTAG ICE mkII code
+     cannot write to the flash ROM one byte at a time.
+
 
 
 
 Tag Table:
-Node: Top1044
-Node: Introduction1438
-Node: History3608
-Node: Command Line Options4833
-Node: Option Descriptions5061
-Node: Example Command Line Invocations16016
-Node: Terminal Mode Operation19745
-Node: Terminal Mode Commands20478
-Node: Terminal Mode Examples22409
-Node: Configuration File25537
-Node: AVRDUDE Defaults26951
-Node: Programmer Definitions27527
-Node: Part Definitions28674
-Node: Instruction Format30586
-Node: Other Notes31966
-Node: Platform Dependent Information33260
-Node: Unix33476
-Node: Unix Installation33718
-Node: FreeBSD Installation34510
-Node: Linux Installation35126
-Node: Unix Configuration Files35655
-Node: FreeBSD Configuration Files36277
-Node: Linux Configuration Files36620
-Node: Unix Port Names36919
-Node: Unix Documentation37702
-Node: Windows38217
-Node: Windows Installation38471
-Node: Windows Configuration Files39310
-Node: Configuration file names39565
-Node: How AVRDUDE finds the configuration files.39939
-Node: Windows Port Names40713
-Node: Serial Ports40913
-Node: Parallel Ports41184
-Node: Using the parallel port41746
-Node: Windows NT/2K/XP41961
-Node: Windows 95/9843451
-Node: Documentation43638
-Node: Credits.44182
-Node: Troubleshooting44503
+Node: Top1062
+Node: Introduction1459
+Node: History4755
+Node: Command Line Options5983
+Node: Option Descriptions6211
+Node: Example Command Line Invocations20493
+Node: Terminal Mode Operation24763
+Node: Terminal Mode Commands25499
+Node: Terminal Mode Examples27975
+Node: Configuration File31226
+Node: AVRDUDE Defaults32640
+Node: Programmer Definitions33216
+Node: Part Definitions34369
+Node: Instruction Format36281
+Node: Other Notes37661
+Node: Platform Dependent Information39831
+Node: Unix40047
+Node: Unix Installation40289
+Node: FreeBSD Installation41073
+Node: Linux Installation41689
+Node: Unix Configuration Files42214
+Node: FreeBSD Configuration Files42836
+Node: Linux Configuration Files43179
+Node: Unix Port Names43478
+Node: Unix Documentation44261
+Node: Windows44776
+Node: Windows Installation45030
+Node: Windows Configuration Files45865
+Node: Configuration file names46120
+Node: How AVRDUDE finds the configuration files.46494
+Node: Windows Port Names47268
+Node: Serial Ports47468
+Node: Parallel Ports47739
+Node: Using the parallel port48301
+Node: Windows NT/2K/XP48516
+Node: Windows 95/9850006
+Node: Documentation50193
+Node: Credits.50737
+Node: Troubleshooting51058
 
 End Tag Table

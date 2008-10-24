@@ -1,7 +1,7 @@
 
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avrpart.c,v 1.3 2004/01/12 22:48:50 hinni Exp $ */
+/* $Id: avrpart.c,v 1.6 2005/05/11 20:06:23 joerg_wunsch Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -292,23 +292,23 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
   char * optr;
 
   if (m == NULL) {
-    fprintf(f,
-            "%s                          Page                       Polled\n"
-            "%sMemory Type Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
-            "%s----------- ------ ------ ---- ------ ----- ----- ---------\n",
+      fprintf(f,
+              "%s                       Block Poll               Page                       Polled\n"
+              "%sMemory Type Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
+              "%s----------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
             prefix, prefix, prefix);
   }
   else {
     if (verbose > 2) {
       fprintf(f,
-              "%s                          Page                       Polled\n"
-              "%sMemory Type Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
-              "%s----------- ------ ------ ---- ------ ----- ----- ---------\n",
+              "%s                       Block Poll               Page                       Polled\n"
+              "%sMemory Type Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
+              "%s----------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
               prefix, prefix, prefix);
     }
     fprintf(f,
-            "%s%-11s %-6s %6d %4d %5d %5d %5d 0x%02x 0x%02x\n",
-            prefix, m->desc,
+            "%s%-11s %4d %5d %5d %4d %-6s %6d %4d %6d %5d %5d 0x%02x 0x%02x\n",
+            prefix, m->desc, m->mode, m->delay, m->blocksize, m->pollindex,
             m->paged ? "yes" : "no",
             m->size,
             m->page_size,
@@ -366,7 +366,7 @@ AVRPART * avr_new_part(void)
   p->desc[0] = 0;
   p->reset_disposition = RESET_DEDICATED;
   p->retry_pulse = PIN_AVR_SCK;
-  p->flags = AVRPART_SERIALOK | AVRPART_PARALLELOK;
+  p->flags = AVRPART_SERIALOK | AVRPART_PARALLELOK | AVRPART_ENABLEPAGEPROGRAMMING;
   p->config_file[0] = 0;
   p->lineno = 0;
 
@@ -486,6 +486,13 @@ void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose)
           "%sRETRY pulse           : %s\n"
           "%sserial program mode   : %s\n"
           "%sparallel program mode : %s\n"
+          "%sTimeout               : %d\n"
+          "%sStabDelay             : %d\n"
+          "%sCmdexeDelay           : %d\n"
+          "%sSyncLoops             : %d\n"
+          "%sByteDelay             : %d\n"
+          "%sPollIndex             : %d\n"
+          "%sPollValue             : 0x%02x\n"
           "%sMemory Detail         :\n\n",
           prefix, p->desc,
           prefix, p->chip_erase_delay,
@@ -496,6 +503,13 @@ void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose)
           prefix, (p->flags & AVRPART_SERIALOK) ? "yes" : "no",
           prefix, (p->flags & AVRPART_PARALLELOK) ?
             ((p->flags & AVRPART_PSEUDOPARALLEL) ? "psuedo" : "yes") : "no",
+          prefix, p->timeout,
+          prefix, p->stabdelay,
+          prefix, p->cmdexedelay,
+          prefix, p->synchloops,
+          prefix, p->bytedelay,
+          prefix, p->pollindex,
+          prefix, p->pollvalue,
           prefix);
 
   px = prefix;

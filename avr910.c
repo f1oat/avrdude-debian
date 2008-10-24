@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr910.c,v 1.18 2004/06/24 11:05:07 kiwi64ajs Exp $ */
+/* $Id: avr910.c,v 1.22 2005/09/18 00:28:19 bdean Exp $ */
 
 /*
  * avrdude interface for Atmel Low Cost Serial programmers which adher to the
@@ -46,13 +46,22 @@ static char has_auto_incr_addr;
 
 static int avr910_send(PROGRAMMER * pgm, char * buf, size_t len)
 {
-  return serial_send(pgm->fd, buf, len);
+  return serial_send(pgm->fd, (unsigned char *)buf, len);
 }
 
 
 static int avr910_recv(PROGRAMMER * pgm, char * buf, size_t len)
 {
-  return serial_recv(pgm->fd, buf, len);
+  int rv;
+
+  rv = serial_recv(pgm->fd, (unsigned char *)buf, len);
+  if (rv < 0) {
+    fprintf(stderr,
+	    "%s: avr910_recv(): programmer is not responding\n",
+	    progname);
+    exit(1);
+  }
+  return 0;
 }
 
 
@@ -125,7 +134,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   char hw[2];
   char buf[10];
   char type;
-  unsigned char c;
+  char c;
   int dev_supported = 0;
   AVRPART * part;
 
@@ -223,7 +232,7 @@ static void avr910_enable(PROGRAMMER * pgm)
 static int avr910_cmd(PROGRAMMER * pgm, unsigned char cmd[4], 
                       unsigned char res[4])
 {
-  unsigned char buf[5];
+  char buf[5];
 
   /* FIXME: Insert version check here */
 
@@ -282,7 +291,7 @@ static void avr910_display(PROGRAMMER * pgm, char * p)
 
 static void avr910_set_addr(PROGRAMMER * pgm, unsigned long addr)
 {
-  unsigned char cmd[3];
+  char cmd[3];
 
   cmd[0] = 'A';
   cmd[1] = (addr >> 8) & 0xff;
@@ -296,7 +305,7 @@ static void avr910_set_addr(PROGRAMMER * pgm, unsigned long addr)
 static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                              unsigned long addr, unsigned char value)
 {
-  unsigned char cmd[2];
+  char cmd[2];
 
   if (strcmp(m->desc, "flash") == 0) {
     if (addr & 0x01) {
@@ -338,7 +347,7 @@ static int avr910_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cached = 0;
   }
   else {
-    unsigned char buf[2];
+    char buf[2];
 
     avr910_set_addr(pgm, addr >> 1);
 
@@ -349,7 +358,7 @@ static int avr910_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     if ((addr & 0x01) == 0) {
       *value = buf[1];
-      cached = 1;
+      // cached = 1;
       cvalue = buf[0];
       caddr = addr;
     }
@@ -367,7 +376,7 @@ static int avr910_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 {
   avr910_set_addr(pgm, addr);
   avr910_send(pgm, "d", 1);
-  avr910_recv(pgm, value, 1);
+  avr910_recv(pgm, (char *)value, 1);
 
   return 0;
 }
@@ -392,7 +401,7 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                     int page_size, int n_bytes)
 {
   unsigned char cmd[] = {'c', 'C'};
-  unsigned char buf[2];
+  char buf[2];
   unsigned int addr = 0;
   unsigned int max_addr = n_bytes;
   unsigned int page_addr;
@@ -412,20 +421,24 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     addr++;
     page_bytes--;
 
-    if ((has_auto_incr_addr != 'Y') && ((addr & 0x01) == 0)) {
-      avr910_set_addr(pgm, addr>>1);
-    }
-    else if (m->paged && (page_bytes == 0)) {
+    if (m->paged && (page_bytes == 0)) {
       /* Send the "Issue Page Write" if we have sent a whole page. */
 
       avr910_set_addr(pgm, page_addr>>1);
       avr910_send(pgm, "m", 1);
       avr910_vfy_cmd_sent(pgm, "flush page");
 
+      page_wr_cmd_pending = 0;
+      usleep(m->max_write_delay);
+      avr910_set_addr(pgm, addr>>1);
+
       /* Set page address for next page. */
 
       page_addr = addr;
       page_bytes = page_size;
+    }
+    else if ((has_auto_incr_addr != 'Y') && ((addr & 0x01) == 0)) {
+      avr910_set_addr(pgm, addr>>1);
     }
 
     report_progress (addr, max_addr, NULL);
@@ -438,6 +451,7 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     avr910_set_addr(pgm, page_addr>>1);
     avr910_send(pgm, "m", 1);
     avr910_vfy_cmd_sent(pgm, "flush final page");
+    usleep(m->max_write_delay);
   }
 
   return addr;
@@ -447,7 +461,7 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
                                      AVRMEM * m, int page_size, int n_bytes)
 {
-  unsigned char cmd[2];
+  char cmd[2];
   unsigned int addr = 0;
   unsigned int max_addr = n_bytes;
 
@@ -459,6 +473,7 @@ static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
     cmd[1] = m->buf[addr];
     avr910_send(pgm, cmd, sizeof(cmd));
     avr910_vfy_cmd_sent(pgm, "write byte");
+    usleep(m->max_write_delay);
 
     addr++;
 
@@ -491,11 +506,11 @@ static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
                              int page_size, int n_bytes)
 {
-  unsigned char cmd;
+  char cmd;
   int rd_size;
   unsigned int addr = 0;
   unsigned int max_addr;
-  unsigned char buf[2];
+  char buf[2];
 
   if (strcmp(m->desc, "flash") == 0) {
     cmd = 'R';
@@ -523,7 +538,7 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       m->buf[addr*2+1] = buf[0];  /* MSB */
     }
     else {
-      avr910_recv(pgm, &m->buf[addr], 1);
+      avr910_recv(pgm, (char *)&m->buf[addr], 1);
     }
 
     addr++;
@@ -548,7 +563,7 @@ static int avr910_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
   }
 
   avr910_send(pgm, "s", 1);
-  avr910_recv(pgm, m->buf, 3);
+  avr910_recv(pgm, (char *)m->buf, 3);
 
   return 3;
 }
