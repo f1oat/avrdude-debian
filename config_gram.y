@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config_gram.y,v 1.58 2007/02/01 22:07:39 joerg_wunsch Exp $ */
+/* $Id: config_gram.y,v 1.59 2007/10/29 18:03:02 joerg_wunsch Exp $ */
 %{
 
 #include "ac_cfg.h"
@@ -42,6 +42,7 @@
 #include "avr910.h"
 #include "butterfly.h"
 #include "usbasp.h"
+#include "usbtiny.h"
 #include "avr.h"
 #include "jtagmkI.h"
 #include "jtagmkII.h"
@@ -136,6 +137,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_STK500GENERIC
 %token K_AVR910
 %token K_USBASP
+%token K_USBTINY
 %token K_BUTTERFLY
 %token K_TYPE
 %token K_VCC
@@ -418,6 +420,12 @@ prog_parm :
   K_TYPE TKN_EQUAL K_USBASP {
     {
       usbasp_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_USBTINY {
+    {
+      usbtiny_initpgm(current_prog);
     }
   } |
 

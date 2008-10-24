@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: fileio.c,v 1.37 2007/01/24 22:43:46 joerg_wunsch Exp $ */
+/* $Id: fileio.c,v 1.38 2007/10/29 22:30:59 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -743,6 +743,10 @@ static int fileio_imm(struct fioparms * fio,
       p = strtok(filename, " ,");
       while (p != NULL && loc < size) {
         b = strtoul(p, &e, 0);
+	/* check for binary formated (0b10101001) strings */
+	b = (strncmp (p, "0b", 2))?
+	    strtoul (p, &e, 0):
+	    strtoul (p + 2, &e, 2);
         if (*e != 0) {
           fprintf(stderr,
                   "%s: invalid byte value (%s) specified for immediate mode\n",

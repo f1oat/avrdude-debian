@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: main.c,v 1.127 2007/05/02 23:05:21 c_oflynn Exp $ */
+/* $Id: main.c,v 1.128 2007/10/29 22:46:45 joerg_wunsch Exp $ */
 
 /*
  * Code to program an Atmel AVR device through one of the supported
@@ -271,6 +271,13 @@ int main(int argc, char * argv [])
 #if !defined(WIN32NATIVE)
   char  * homedir;
 #endif
+
+  /*
+   * Set line buffering for file descriptors so we see stdout and stderr
+   * properly interleaved.
+   */
+  setvbuf(stdout, (char*)NULL, _IOLBF, 0);
+  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
 
   progname = strrchr(argv[0],'/');
 

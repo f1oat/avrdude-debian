@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: usbasp.h,v 1.3 2007/01/24 22:43:46 joerg_wunsch Exp $ */
+/* $Id: usbasp.h,v 1.4 2007/07/24 16:43:25 fischl Exp $ */
 
 #ifndef usbasp_h
 #define usbasp_h
@@ -39,6 +39,7 @@
 #define USBASP_FUNC_WRITEFLASH 6
 #define USBASP_FUNC_READEEPROM 7
 #define USBASP_FUNC_WRITEEEPROM 8
+#define USBASP_FUNC_SETLONGADDRESS 9
 
 #define USBASP_BLOCKFLAG_FIRST    1
 #define USBASP_BLOCKFLAG_LAST     2

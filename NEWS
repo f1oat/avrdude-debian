@@ -1,10 +1,18 @@
-$Id: NEWS,v 1.48 2007/05/16 21:46:30 joerg_wunsch Exp $
+$Id: NEWS,v 1.53 2007/10/29 23:00:12 joerg_wunsch Exp $
 
 Approximate change log for AVRDUDE by version.
 
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
+Version 5.5:
+
+  * Add support for the USBtinyISP programmer (patch #6233)
+
+  * Add support for the C2N232I serial bitbang programmer (patch #6121)
+
+  * Bugfixes.
+
 Version 5.4:
 
   * New devices supported:
