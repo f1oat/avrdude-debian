@@ -18,10 +18,11 @@
 #
 
 #
-# $Id: Makefile.am,v 1.26 2005/09/18 20:12:23 joerg_wunsch Exp $
+# $Id: Makefile.am,v 1.29 2006/01/12 23:13:50 joerg_wunsch Exp $
 #
 
 EXTRA_DIST   = \
+	ChangeLog \
 	ChangeLog-2001 \
 	ChangeLog-2002 \
 	ChangeLog-2003 \
@@ -69,6 +70,10 @@ avrdude_SOURCES = \
 	crc16.h \
 	fileio.c \
 	fileio.h \
+	freebsd_ppi.h \
+	jtagmkI.c \
+	jtagmkI.h \
+	jtagmkI_private.h \
 	jtagmkII.c \
 	jtagmkII.h \
 	jtagmkII_private.h \
@@ -92,6 +97,7 @@ avrdude_SOURCES = \
 	serbb_win32.c \
 	ser_posix.c \
 	ser_win32.c \
+	solaris_ecpp.h \
 	stk500.c \
 	stk500.h \
 	stk500_private.h \
@@ -100,6 +106,7 @@ avrdude_SOURCES = \
 	stk500v2_private.h \
 	term.c \
 	term.h \
+	usbdevs.h \
 	usb_libusb.c
 
 man_MANS = avrdude.1
@@ -107,6 +114,9 @@ man_MANS = avrdude.1
 sysconf_DATA = avrdude.conf
 
 install-exec-local: backup-avrdude-conf
+
+distclean-local:
+	rm -f avrdude.conf
 
 # This will get run before the config file is installed.
 backup-avrdude-conf:

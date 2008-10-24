@@ -17,11 +17,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ppi.c,v 1.23 2004/12/22 01:52:45 bdean Exp $ */
+/* $Id: ppi.c,v 1.27 2005/11/29 20:20:22 joerg_wunsch Exp $ */
 
-#if defined(__FreeBSD__) || defined(__linux__)
+
+#if !defined(WIN32NATIVE)
 
 #include "ac_cfg.h"
+
+#if HAVE_PARPORT
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,9 +34,11 @@
 #include <errno.h>
 
 #if defined(__FreeBSD__)
-#include <dev/ppbus/ppi.h>
+# include "freebsd_ppi.h"
 #elif defined(__linux__)
-#include "linux_ppdev.h"
+# include "linux_ppdev.h"
+#elif defined(__sun__) && defined(__svr4__) /* Solaris */
+# include "solaris_ecpp.h"
 #endif
 
 #include "avr.h"
@@ -53,22 +58,15 @@ int ppi_shadow_access(int fd, int reg, unsigned char *v, unsigned char action)
 {
   static unsigned char shadow[3];
   int shadow_num;
-  unsigned long set, get;
 
   switch (reg) {
     case PPIDATA:
-      set = PPISDATA;
-      get = PPIGDATA;
       shadow_num = 0;
       break;
     case PPICTRL:
-      set = PPISCTRL;
-      get = PPIGCTRL;
       shadow_num = 1;
       break;
     case PPISTATUS:
-      set = PPISSTATUS;
-      get = PPIGSTATUS;
       shadow_num = 2;
       break;
     default:
@@ -83,12 +81,12 @@ int ppi_shadow_access(int fd, int reg, unsigned char *v, unsigned char action)
       *v = shadow[shadow_num];
       break;
     case PPI_READ:
-      ioctl(fd, get, v);
+      DO_PPI_READ(fd, reg, v);
       shadow[shadow_num]=*v;
       break;
     case PPI_WRITE:
       shadow[shadow_num]=*v;
-      ioctl(fd, set, v);
+      DO_PPI_WRITE(fd, reg, v);
       break;
   }
   return 0;
@@ -214,6 +212,8 @@ int ppi_open(char * port)
     return -1;
   }
 
+  ppi_claim (fd);
+
   /*
    * Initialize shadow registers
    */
@@ -228,79 +228,10 @@ int ppi_open(char * port)
 
 void ppi_close(int fd)
 {
+  ppi_release (fd);
   close(fd);
 }
 
+#endif /* HAVE_PARPORT */
 
-#elif defined(__POWERPC__) && defined(__APPLE__)
-
-int ppi_shadow_access(int fd, int reg, unsigned char *v, unsigned char action)
-{
-  return -1;
-}
-
-/*
- * set the indicated bit of the specified register.
- */
-int ppi_set(int fd, int reg, int bit)
-{
-  return -1;
-}
-
-
-/*
- * clear the indicated bit of the specified register.
- */
-int ppi_clr(int fd, int reg, int bit)
-{
-  return -1;
-}
-
-
-/*
- * get the indicated bit of the specified register.
- */
-int ppi_get(int fd, int reg, int bit)
-{
-  return -1;
-}
-
-/*
- * toggle the indicated bit of the specified register.
- */
-int ppi_toggle(int fd, int reg, int bit)
-{
-  return -1;
-}
-
-
-/*
- * get all bits of the specified register.
- */
-int ppi_getall(int fd, int reg)
-{
-  return -1;
-}
-
-/*
- * set all bits of the specified register to val.
- */
-int ppi_setall(int fd, int reg, int val)
-{
-  return -1;
-}
-
-
-int ppi_open(char * port)
-{
-  return -1;
-}
-
-
-void ppi_close(int fd)
-{
-}
-
-
-#endif
-
+#endif /* !WIN32NATIVE */

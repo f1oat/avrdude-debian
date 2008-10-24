@@ -1,7 +1,7 @@
 %% -*-texinfo-*-
 \input texinfo
 
-@c $Id: avrdude.texi,v 1.37 2005/09/18 20:12:23 joerg_wunsch Exp $
+@c $Id: avrdude.texi,v 1.41 2006/01/12 23:13:50 joerg_wunsch Exp $
 
 @setfilename avrdude.info
 @settitle AVRDUDE
@@ -28,7 +28,7 @@ This file documents the avrdude program.
 
 For avrdude version @value{VERSION}, @value{UPDATED}.
 
-Copyright @copyright{} 2003,2005 Brian Dean
+Copyright @copyright{} 2003, 2005 Brian Dean
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -59,9 +59,9 @@ by the Free Software Foundation.
 @author by Brian S. Dean
 
 @page
-@hfill (Send bugs and comments on AVRDUDE to @w{@email{avrdude-dev@@nongnu.org}}.)
+Send comments on AVRDUDE to @w{@email{avrdude-dev@@nongnu.org}}.
 
-@vfill
+Use @uref{http://savannah.nongnu.org/bugs/?group=avrdude} to report bugs.
 
 Copyright @copyright{} 2003,2005 Brian S. Dean
 @sp 2
@@ -94,6 +94,12 @@ This file documents the avrdude program for downloading/uploading
 programs to Atmel AVR microcontrollers.
 
 For avrdude version @value{VERSION}, @value{UPDATED}.
+
+Send comments on AVRDUDE to @w{@email{avrdude-dev@@nongnu.org}}.
+
+Use @uref{http://savannah.nongnu.org/bugs/?group=avrdude} to report bugs.
+
+Copyright @copyright{} 2003,2005 Brian S. Dean
 @end ifinfo
 
 @menu
@@ -129,8 +135,9 @@ from the contents of a file, while interactive mode is useful for
 exploring memory contents, modifing individual bytes of eeprom,
 programming fuse/lock bits, etc.
 
-AVRDUDE supports six basic programmer types: Atmel's STK500,
-Atmel's JTAG ICE mkII, appnote
+AVRDUDE supports the following basic programmer types: Atmel's STK500,
+Atmel's AVRISP and AVRISP mkII devices,
+Atmel's JTAG ICE (both mkI and mkII), appnote
 avr910, appnote avr109 (including the AVR Butterfly),
 serial bit-bang adapters,
 and the PPI (parallel port interface). PPI represents a class
@@ -166,7 +173,7 @@ The JTAG ICE also uses a serial communication protocol which is similar
 to the STK500 firmware version 2 one.  However, as the JTAG ICE is
 intented to allow on-chip debugging as well as memory programming, the
 protocol is more sophisticated.
-(This protocol can also be run on top of USB.)
+(The JTAG ICE mkII protocol can also be run on top of USB.)
 Only the memory programming functionality of the JTAG ICE is supported
 by AVRDUDE.
 
@@ -223,9 +230,9 @@ Roth.
 @noindent
 AVRDUDE is a command line tool, used as follows:
 
-@example
+@smallexample
 avrdude -p partno @var{options} @dots{}
-@end example
+@end smallexample
 
 @noindent
 Command line options are used to control AVRDUDE's behaviour.  The
@@ -285,6 +292,12 @@ ATmega103
 @itemx m128
 ATmega128
 
+@itemx m1280
+ATmega1280
+
+@itemx m1281
+ATmega1281
+
 @itemx m16
 ATmega16
 
@@ -320,6 +333,9 @@ ATmega48
 
 @itemx m64
 ATmega64
+
+@itemx m640
+ATmega640
 
 @itemx m644
 ATmega644
@@ -415,7 +431,16 @@ Atmel Low Cost Serial Programmer
 Atmel AppNote AVR911 AVROSP (an alias for avr109)
 
 @itemx avrisp
-Atmel AVR ISP
+Atmel AVR ISP (an alias for stk500)
+
+@itemx avrispv2
+Atmel AVR ISP, running a version 2.x firmware (an alias for stk500v2)
+
+@itemx avrispmkII
+Atmel AVR ISP mkII (alias for stk500v2)
+
+@itemx avrispmk2
+Atmel AVR ISP mkII (alias for stk500v2)
 
 @itemx bascom
 Bascom SAMPLE programming cable
@@ -428,6 +453,13 @@ Atmel Butterfly Development Board
 
 @itemx dt006
 Dontronics DT006
+
+@item jtagmkI
+@itemx jtag1
+Atmel JTAG ICE mkI, running at 115200 Bd
+
+@itemx jtag1slow
+Atmel JTAG ICE mkI, running at 19200 Bd
 
 @item jtagmkII
 @itemx jtag2slow
@@ -458,7 +490,7 @@ STK200
 Atmel STK500
 
 @itemx stk500v2
-Atmel STK500, running a verrsion 2.x firmware
+Atmel STK500, running a version 2.x firmware
 
 @end table
 
@@ -554,6 +586,11 @@ matched against the serial number read from any JTAG ICE mkII found on
 USB.  The match is done after stripping any existing colons from the
 given serial number, and right-to-left, so only the least significant
 bytes from the serial number need to be given.
+For a trick how to find out the serial numbers of all JTAG ICEs
+attached to USB, see @ref{Example Command Line Invocations}.
+
+As the AVRISP mkII device can only be talked to over USB, the very
+same method of specifying the port is required there.
 
 @item -q
 Disable (or quell) output of the progress bar while reading or writing
@@ -699,7 +736,7 @@ should not be used.
 Download the file @code{diag.hex} to the ATmega128 chip using the
 STK500 programmer connected to the default serial port:
 
-@example
+@smallexample
 @cartouche
 % avrdude -p m128 -c stk500 -e -U flash:w:diag.hex 
 
@@ -735,7 +772,7 @@ avrdude done.  Thank you.
 
 %
 @end cartouche
-@end example
+@end smallexample
 
 @page
 @noindent
@@ -743,7 +780,7 @@ Upload the flash memory from the ATmega128 connected to the STK500
 programmer and save it in raw binary format in the file named
 @code{c:/diag flash.bin}:
 
-@example
+@smallexample
 @cartouche
 % avrdude -p m128 -c stk500 -U flash:r:"c:/diag flash.bin":r 
 
@@ -764,7 +801,7 @@ avrdude done.  Thank you.
 
 % 
 @end cartouche
-@end example
+@end smallexample
 
 @page
 @noindent
@@ -772,7 +809,7 @@ Using the default programmer, download the file @code{diag.hex} to
 flash, @code{eeprom.hex} to EEPROM, and set the Extended, High, and Low
 fuse bytes to 0xff, 0x89, and 0x2e respectively:
 
-@example
+@smallexample
 @cartouche
 
 % avrdude -p m128 -u -U flash:w:diag.hex \
@@ -813,14 +850,14 @@ avrdude done.  Thank you.
 
 % 
 @end cartouche
-@end example
+@end smallexample
 
 @page
 @noindent
 Connect to the JTAG ICE mkII which serial number ends up in 1C37 via
 USB, and enter terminal mode:
 
-@example
+@smallexample
 @cartouche
 
 % avrdude -c jtag2 -p m649 -P usb:1c:37 -t
@@ -836,8 +873,27 @@ avrdude: Device signature = 0x1e9603
 avrdude done.  Thank you.
 
 @end cartouche
-@end example
+@end smallexample
 
+@noindent
+List the serial numbers of all JTAG ICEs attached to USB.  This is
+done by specifying an invalid serial number, and increasing the
+verbosity level.
+
+@smallexample
+@cartouche
+
+% avrdude -c jtag2 -p m128 -P usb:xx -v
+[...]
+         Using Port            : usb:xxx
+         Using Programmer      : jtag2
+avrdude: usbdev_open(): Found JTAG ICE, serno: 00A000001C6B
+avrdude: usbdev_open(): Found JTAG ICE, serno: 00A000001C3A
+avrdude: usbdev_open(): Found JTAG ICE, serno: 00A000001C30
+avrdude: usbdev_open(): did not find any (matching) USB device "usb:xxx"
+
+@end cartouche
+@end smallexample
 
 
 @c
@@ -958,7 +1014,7 @@ Display the current target supply voltage and JTAG bit clock rate/period.
 @noindent
 Display part parameters, modify eeprom cells, perform a chip erase:
 
-@example
+@smallexample
 @cartouche
 % avrdude -p m128 -c stk500 -t
 
@@ -1010,7 +1066,7 @@ avrdude> dump eeprom 0 16
 
 avrdude> 
 @end cartouche
-@end example
+@end smallexample
 
 
 @noindent
@@ -1020,7 +1076,7 @@ rising power).  Note since we are working with fuse bits the -u (unsafe)
 option is specified, which allows you to modify the fuse bits. First 
 display the factory defaults, then reprogram:
 
-@example
+@smallexample
 @cartouche
 % avrdude -p m128 -u -c stk500 -t
 
@@ -1050,7 +1106,7 @@ avrdude> w lfuse 0 0x2f
 
 avrdude> 
 @end cartouche
-@end example
+@end smallexample
 
 
 @c
@@ -1119,7 +1175,7 @@ option.
 @noindent
 The format of the programmer definition is as follows:
 
-@example
+@smallexample
 programmer
     id     = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
     desc     = <description> ;                  # quoted string
@@ -1135,7 +1191,7 @@ programmer
     pgmled   = <num> ;                          # pin number
     vfyled   = <num> ;                          # pin number
   ;
-@end example
+@end smallexample
 
 
 @c
@@ -1144,7 +1200,7 @@ programmer
 @node Part Definitions, Other Notes, Programmer Definitions, Configuration File
 @section Part Definitions
 
-@example
+@smallexample
 part
     id               = <id> ;                 # quoted string
     desc             = <description> ;        # quoted string
@@ -1177,7 +1233,7 @@ part
         writepage       = <instruction format> ;
       ;
   ;
-@end example
+@end smallexample
 
 @menu
 * Instruction Format::
@@ -1226,7 +1282,7 @@ specification closely follows the instruction data provided in Atmel's
 data sheets for their parts.  For example, the EEPROM read and write
 instruction for an AT90S2313 AVR part could be encoded as:
 
-@example
+@smallexample
 
 read  = "1  0  1  0   0  0  0  0   x x x x  x x x x",
         "x a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
@@ -1234,7 +1290,7 @@ read  = "1  0  1  0   0  0  0  0   x x x x  x x x x",
 write = "1  1  0  0   0  0  0  0   x x x x  x x x x",
         "x a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
 
-@end example
+@end smallexample
 
 
 
@@ -1750,6 +1806,7 @@ line driven and for writing the batch files.
 
 @noindent
 In general, please report any bugs encountered via
+@*
 @url{http://savannah.nongnu.org/bugs/?group=avrdude}.
 
 
@@ -1792,16 +1849,6 @@ Solutions: The reasons for this are the same as above.
 If you know how to work around this on your OS, please let us know.
 
 @item
-Problem: I cannot modify the fuse bits on my AVR!
-
-Solution: You probably forgot to specify the -u option, which allows you to modify fuse bits.
-This is done to prevent corrupt data from changing the fuse bits without you knowing about it, and
-currently also prevents the user from changing the fuse bits by accident. This patch was added in
-response to a number of occasions when an AVR had stopped responding because the fuse bits got changed
-by an error caused by the programmer. Programmer of course meaning both the physical device, and the
-person sitting at the keyboard.
-
-@item
 Problem: AVRDUDE says my device is not supported when using the AVR109 boot loader
 
 Solution: Currently, AVRDUDE uses the AVR910 device codes given in the
@@ -1815,11 +1862,21 @@ Use the -F option to force AVRDUDE to continue anyway.
 
 @item
 Problem: Updating the flash ROM from terminal mode does not work with the
-JTAG ICE mkII.
+JTAG ICEs.
 
-Solution: None at this time.  Currently, the JTAG ICE mkII code cannot
+Solution: None at this time.  Currently, the JTAG ICE code cannot
 write to the flash ROM one byte at a time.
 
+@item
+Problem: Page-mode programming the EEPROM (using the -U option) does
+not erase EEPROM cells before writing, and thus cannot overwrite any
+previous value != 0xff.
+
+Solution: None.  This is an inherent feature of the way JTAG EEPROM
+programming works, and is documented that way in the Atmel AVR
+datasheets.
+In order to successfully program the EEPROM that way, a prior chip
+erase (with the EESAVE fuse unprogrammed) is required.
 
 
 @end itemize

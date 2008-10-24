@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2002-2004  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,13 +17,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: par.h,v 1.5 2005/11/01 23:02:06 joerg_wunsch Exp $ */
+/* $Id: jtagmkI.h,v 1.1 2005/11/25 06:14:06 joerg_wunsch Exp $ */
 
-#ifndef __par_h__
-#define __par_h__
+#ifndef jtagmkI_h
+#define jtagmkI_h
 
-void par_initpgm        (PROGRAMMER * pgm);
+void jtagmkI_initpgm (PROGRAMMER * pgm);
 
 #endif
-
 

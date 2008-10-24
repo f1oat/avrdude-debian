@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config_gram.y,v 1.42 2005/09/18 20:12:23 joerg_wunsch Exp $ */
+/* $Id: config_gram.y,v 1.43 2005/11/25 06:14:06 joerg_wunsch Exp $ */
 %{
 
 #include "ac_cfg.h"
@@ -38,6 +38,7 @@
 #include "avr910.h"
 #include "butterfly.h"
 #include "avr.h"
+#include "jtagmkI.h"
 #include "jtagmkII.h"
 
 #if defined(WIN32NATIVE)
@@ -90,6 +91,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_FLASH
 %token K_ID
 %token K_IO
+%token K_JTAG_MKI
 %token K_JTAG_MKII
 %token K_LOADPAGE
 %token K_MAX_WRITE_DELAY
@@ -355,6 +357,12 @@ prog_parm :
   K_TYPE TKN_EQUAL K_BUTTERFLY {
     { 
       butterfly_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_JTAG_MKI {
+    {
+      jtagmkI_initpgm(current_prog);
     }
   } |
 

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: serial.h,v 1.8 2005/08/30 01:30:05 bdean Exp $ */
+/* $Id: serial.h,v 1.9 2006/01/12 23:13:50 joerg_wunsch Exp $ */
 
 /* This is the API for the generic serial interface. The implementations are
    actually provided by the target dependant files:
@@ -44,7 +44,7 @@ struct serial_device
 };
 
 extern struct serial_device *serdev;
-extern struct serial_device serial_serdev, usb_serdev;
+extern struct serial_device serial_serdev, usb_serdev, usb_serdev_frame;
 
 #define serial_open (serdev->open)
 #define serial_setspeed (serdev->setspeed)

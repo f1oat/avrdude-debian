@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_win32.c,v 1.7 2005/06/19 21:38:03 joerg_wunsch Exp $ */
+/* $Id: ser_win32.c,v 1.8 2005/11/24 15:00:49 c_oflynn Exp $ */
 
 /*
  * Native Win32 serial interface for avrdude.
@@ -179,6 +179,7 @@ static int ser_send(int fd, char * buf, size_t buflen)
 	size_t len = buflen;
 	unsigned char c='\0';
 	DWORD written;
+        char * b = buf;
 
 	HANDLE hComPort=(HANDLE)fd;
 
@@ -195,8 +196,8 @@ static int ser_send(int fd, char * buf, size_t buflen)
 	{
 		fprintf(stderr, "%s: Send: ", progname);
 
-		while (buflen) {
-			c = *buf;
+		while (len) {
+			c = *b;
 			if (isprint(c)) {
 				fprintf(stderr, "%c ", c);
 			}
@@ -204,8 +205,8 @@ static int ser_send(int fd, char * buf, size_t buflen)
 				fprintf(stderr, ". ");
 			}
 			fprintf(stderr, "[%02x] ", c);
-			buf++;
-			buflen--;
+			b++;
+			len--;
 		}
       fprintf(stderr, "\n");
 	}
