@@ -1,10 +1,10 @@
-avrdude (5.5-5) UNRELEASED; urgency=low
+avrdude (5.5-5) unstable; urgency=low
 
   * Misc white space cleanups.
   * debian/control
     - Add Vcs-* fields.
 
- -- Michael Biebl <biebl@debian.org>  Sat, 25 Oct 2008 01:35:52 +0200
+ -- Michael Biebl <biebl@debian.org>  Sat, 25 Oct 2008 01:42:20 +0200
 
 avrdude (5.5-4) unstable; urgency=low
 
