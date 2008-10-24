@@ -18,13 +18,13 @@
 #
 
 #
-# $Id: configure.ac,v 1.19 2004/07/19 06:10:43 troth Exp $
+# $Id: configure.ac,v 1.27 2005/09/21 01:37:02 bdean Exp $
 #
 
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(avrdude, 4.4.0, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 5.0, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -44,6 +44,9 @@ AM_PROG_LEX
 AC_CHECK_LIB([termcap], [tputs])
 AC_CHECK_LIB([ncurses], [tputs])
 AC_CHECK_LIB([readline], [readline])
+# usb_get_string_simple is only available in recent enough
+# versions of libusb, so use that as a decision base.
+AC_CHECK_LIB([usb], [usb_get_string_simple])
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -78,7 +81,32 @@ else
     DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude'
 fi
 
+AC_ARG_ENABLE(
+	[doc],
+	AC_HELP_STRING(
+		[--enable-doc],
+		[Enable building documents(default)]),
+	[case "${enableval}" in
+		yes) enabled_doc=yes ;;
+		no)  enabled_doc=no ;;
+		*)   AC_MSG_ERROR(bad value ${enableval} for disable-doc option) ;;
+		esac],
+	[enabled_doc=no])
+
+if test "$enabled_doc" = "yes"; then
+
+SUBDIRS_AC='doc @WINDOWS_DIRS@'
+DIST_SUBDIRS_AC='doc windows'
+else
+
+SUBDIRS_AC='@WINDOWS_DIRS@'
+DIST_SUBDIRS_AC='windows'
+fi
+
 AC_SUBST(DOC_INST_DIR, $DOC_INST_DIR)
+AC_SUBST(SUBDIRS_AC, $SUBDIRS_AC)	
+AC_SUBST(DIST_SUBDIRS_AC, $DIST_SUBDIRS_AC)
+
 
 # Find the parallel serial device files based on target system
 # If a system doesn't have a PC style parallel, mark it as unknown.
@@ -133,11 +161,16 @@ if test "$GCC" = yes; then
 fi
 AC_SUBST(ENABLE_WARNINGS,$ENABLE_WARNINGS)
 
+if test "$enabled_doc" = "yes"; then
+AC_CONFIG_FILES([doc/Makefile])
+fi
+
 AC_CONFIG_FILES([
-	doc/Makefile
-	windows/Makefile
-	avrdude.spec
-	avrdude.conf
-	Makefile
+       windows/Makefile
+       avrdude.spec
+       avrdude.conf
+       Makefile
 ])
+
 AC_OUTPUT
+

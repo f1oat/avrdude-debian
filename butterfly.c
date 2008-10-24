@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2005 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,13 +18,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: butterfly.c,v 1.4 2004/06/24 11:05:07 kiwi64ajs Exp $ */
+/* $Id: butterfly.c,v 1.11 2005/09/20 04:53:09 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for the serial programming mode of the Atmel butterfly
  * evaluation board. This board features a bootloader which uses a protocol
  * very similar, but not identical, to the one described in application note
  * avr910.
+ *
+ * Actually, the butterfly uses a predecessor of the avr910 protocol
+ * which is described in application notes avr109 (generic AVR
+ * bootloader) and avr911 (opensource programmer).  This file now
+ * fully handles the features present in avr109.  It should probably
+ * be renamed to avr109, but we rather stick with the old name inside
+ * the file.  We'll provide aliases for "avr109" and "avr911" in
+ * avrdude.conf so users could call it by these name as well.
  */
 
 
@@ -60,15 +69,24 @@ static int butterfly_send(PROGRAMMER * pgm, char * buf, size_t len)
 {
   no_show_func_info();
 
-  return serial_send(pgm->fd, buf, len);
+  return serial_send(pgm->fd, (unsigned char *)buf, len);
 }
 
 
 static int butterfly_recv(PROGRAMMER * pgm, char * buf, size_t len)
 {
+  int rv;
+
   no_show_func_info();
 
-  return serial_recv(pgm->fd, buf, len);
+  rv = serial_recv(pgm->fd, (unsigned char *)buf, len);
+  if (rv < 0) {
+    fprintf(stderr,
+	    "%s: butterfly_recv(): programmer is not responding\n",
+	    progname);
+    exit(1);
+  }
+  return 0;
 }
 
 
@@ -208,21 +226,34 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   char hw[2];
   char buf[10];
   char type;
-  unsigned char c;
+  char c;
   int dev_supported = 0;
 
   no_show_func_info();
 
-  /* send some ESC to activate butterfly bootloader */
-  butterfly_send(pgm, "\033\033\033\033", 4);
-  butterfly_drain(pgm, 0);
-
-  /* Get the programmer identifier. Programmer returns exactly 7 chars
-     _without_ the null.*/
-
-  butterfly_send(pgm, "S", 1);
-  memset (id, 0, sizeof(id));
-  butterfly_recv(pgm, id, sizeof(id)-1);
+  /*
+   * Send some ESC to activate butterfly bootloader.  This is not needed
+   * for plain avr109 bootloaders but does not harm there either.
+   */
+  fprintf(stderr, "Connecting to programmer: ");
+  do {
+    putc('.', stderr);
+    butterfly_send(pgm, "\033", 1);
+    butterfly_drain(pgm, 0);
+    butterfly_send(pgm, "S", 1);
+    butterfly_recv(pgm, &c, 1);
+    if (c != '?') {
+        putc('\n', stderr);
+        /*
+         * Got a useful response, continue getting the programmer
+         * identifier. Programmer returns exactly 7 chars _without_
+         * the null.
+         */
+      id[0] = c;
+      butterfly_recv(pgm, &id[1], sizeof(id)-2);
+      id[sizeof(id)-1] = '\0';
+    }
+  } while (c == '?');
 
   /* Get the HW and SW versions to see if the programmer is present. */
 
@@ -262,7 +293,7 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (c != 'Y') {
     fprintf(stderr,
             "%s: error: buffered memory access not supported. Maybe it isn't\n"\
-            "a butterfly but a AVR910 device?\n", progname);
+            "a butterfly/AVR109 but a AVR910 device?\n", progname);
     exit(1);
   };
   butterfly_recv(pgm, &c, 1);
@@ -281,20 +312,21 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
     butterfly_recv(pgm, &c, 1);
     if (c == 0)
       break;
-    fprintf(stderr, "    Device code: 0x%02x\n", c);
+    fprintf(stderr, "    Device code: 0x%02x\n", (unsigned int)(unsigned char)c);
 
     /* FIXME: Need to lookup devcode and report the device. */
 
-    if (p->avr910_devcode == c)
+    if (p->avr910_devcode == (int)(unsigned char)c)
       dev_supported = 1;
   };
   fprintf(stderr,"\n");
 
   if (!dev_supported) {
+    /* FIXME: if nothing matched, we should rather compare the device
+       signatures. */
     fprintf(stderr,
             "%s: error: selected device is not supported by programmer: %s\n",
             progname, p->id);
-    exit(1);
   }
 
   /* Tell the programmer which part we selected. */
@@ -305,9 +337,10 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   butterfly_send(pgm, buf, 2);
   butterfly_vfy_cmd_sent(pgm, "select device");
 
-  butterfly_enter_prog_mode(pgm);
+  if (dev_supported)
+      butterfly_enter_prog_mode(pgm);
 
-  return 0;
+  return dev_supported? 0: -1;
 }
 
 
@@ -316,7 +349,7 @@ static void butterfly_disable(PROGRAMMER * pgm)
 {
   no_show_func_info();
 
-  /* Do nothing. */
+  butterfly_leave_prog_mode(pgm);
 
   return;
 }
@@ -325,8 +358,6 @@ static void butterfly_disable(PROGRAMMER * pgm)
 static void butterfly_enable(PROGRAMMER * pgm)
 {
   no_show_func_info();
-
-  /* Do nothing. */
 
   return;
 }
@@ -337,7 +368,13 @@ static int butterfly_open(PROGRAMMER * pgm, char * port)
   no_show_func_info();
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, 19200);
+  /*
+   *  If baudrate was not specified use 19200 Baud
+   */
+  if(pgm->baudrate == 0) {
+    pgm->baudrate = 19200;
+  }
+  pgm->fd = serial_open(port, pgm->baudrate);
 
   /*
    * drain any extraneous input
@@ -351,8 +388,6 @@ static int butterfly_open(PROGRAMMER * pgm, char * port)
 static void butterfly_close(PROGRAMMER * pgm)
 {
   no_show_func_info();
-
-  butterfly_leave_prog_mode(pgm);
 
   /* "exit programmer" added by Martin Thomas 2/2004 */
   butterfly_send(pgm, "E", 1);
@@ -372,7 +407,7 @@ static void butterfly_display(PROGRAMMER * pgm, char * p)
 
 static void butterfly_set_addr(PROGRAMMER * pgm, unsigned long addr)
 {
-  unsigned char cmd[3];
+  char cmd[3];
 
   cmd[0] = 'A';
   cmd[1] = (addr >> 8) & 0xff;
@@ -387,28 +422,35 @@ static void butterfly_set_addr(PROGRAMMER * pgm, unsigned long addr)
 static int butterfly_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                              unsigned long addr, unsigned char value)
 {
-  unsigned char cmd[6];
+  char cmd[6];
   int size;
 
   no_show_func_info();
 
-  if ((strcmp(m->desc, "flash") != 0) && (strcmp(m->desc, "eeprom") != 0))
+  if ((strcmp(m->desc, "flash") == 0) || (strcmp(m->desc, "eeprom") == 0))
+  {
+    cmd[0] = 'B';
+    cmd[1] = 0;
+    if ((cmd[3] = toupper(m->desc[0])) == 'E') {	/* write to eeprom */
+      cmd[2] = 1;
+      cmd[4] = value;
+      size = 5;
+    } else {						/* write to flash */
+      /* @@@ not yet implemented */
+      cmd[2] = 2;
+      size = 6;
+      return -1;
+    }
+    butterfly_set_addr(pgm, addr);
+  }
+  else if (strcmp(m->desc, "lock") == 0)
+  {
+    cmd[0] = 'l';
+    cmd[1] = value;
+    size = 2;
+  }
+  else
     return -1;
-
-  cmd[0] = 'B';
-  cmd[1] = 0;
-  if ((cmd[3] = toupper(m->desc[0])) == 'E') {	/* write to eeprom */
-    cmd[2] = 1;
-    cmd[4] = value;
-    size = 5;
-  } else {						/* write to flash */
-    /* @@@ not yet implemented */
-    cmd[2] = 2;
-    size = 6;
-    return -1;
-  };
-
-  butterfly_set_addr(pgm, addr);
 
   butterfly_send(pgm, cmd, size);
   butterfly_vfy_cmd_sent(pgm, "write byte");
@@ -429,7 +471,7 @@ static int butterfly_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cached = 0;
   }
   else {
-    unsigned char buf[2];
+    char buf[2];
 
     butterfly_set_addr(pgm, addr >> 1);
 
@@ -458,7 +500,7 @@ static int butterfly_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 {
   butterfly_set_addr(pgm, addr);
   butterfly_send(pgm, "g\000\001E", 4);
-  butterfly_recv(pgm, value, 1);
+  butterfly_recv(pgm, (char *)value, 1);
   return 0;
 }
 
@@ -466,6 +508,8 @@ static int butterfly_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 static int butterfly_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                             unsigned long addr, unsigned char * value)
 {
+  char cmd;
+
   no_show_func_info();
 
   if (strcmp(m->desc, "flash") == 0) {
@@ -476,7 +520,25 @@ static int butterfly_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     return butterfly_read_byte_eeprom(pgm, p, m, addr, value);
   }
 
-  return -1;
+  if (strcmp(m->desc, "lfuse") == 0) {
+    cmd = 'F';
+  }
+  else if (strcmp(m->desc, "hfuse") == 0) {
+    cmd = 'N';
+  }
+  else if (strcmp(m->desc, "efuse") == 0) {
+    cmd = 'Q';
+  }
+  else if (strcmp(m->desc, "lock") == 0) {
+    cmd = 'r';
+  }
+  else
+    return -1;
+
+  butterfly_send(pgm, &cmd, 1);
+  butterfly_recv(pgm, (char *)value, 1);
+
+  return *value == '?'? -1: 0;
 }
 
 
@@ -486,7 +548,7 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 {
   unsigned int addr = 0;
   unsigned int max_addr = n_bytes;
-  unsigned char *cmd;
+  char *cmd;
   unsigned int blocksize = buffersize;
 
   if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom")) 
@@ -542,7 +604,7 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     return -2;
 
   {		/* use buffered mode */
-    unsigned char cmd[4];
+    char cmd[4];
     int blocksize = buffersize;
 
     cmd[0] = 'g';
@@ -557,7 +619,7 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       cmd[2] = blocksize & 0xff;
 
       butterfly_send(pgm, cmd, 4);
-      butterfly_recv(pgm, &m->buf[addr], blocksize);
+      butterfly_recv(pgm, (char *)&m->buf[addr], blocksize);
 
       addr += blocksize;
 
@@ -572,6 +634,8 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 /* Signature byte reads are always 3 bytes. */
 static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 {
+  unsigned char tmp;
+
   no_show_func_info();
 
   if (m->size < 3) {
@@ -580,7 +644,11 @@ static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
   }
 
   butterfly_send(pgm, "s", 1);
-  butterfly_recv(pgm, m->buf, 3);
+  butterfly_recv(pgm, (char *)m->buf, 3);
+  /* Returned signature has wrong order. */
+  tmp = m->buf[2];
+  m->buf[2] = m->buf[0];
+  m->buf[0] = tmp;
 
   return 3;
 }

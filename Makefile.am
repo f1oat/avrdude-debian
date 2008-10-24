@@ -18,7 +18,7 @@
 #
 
 #
-# $Id: Makefile.am,v 1.21 2004/07/19 06:10:43 troth Exp $
+# $Id: Makefile.am,v 1.26 2005/09/18 20:12:23 joerg_wunsch Exp $
 #
 
 EXTRA_DIST   = \
@@ -34,8 +34,11 @@ CLEANFILES = \
 	config_gram.h \
 	lexer.c
 
-SUBDIRS      = doc @WINDOWS_DIRS@
-DIST_SUBDIRS = doc windows
+#SUBDIRS      = doc @WINDOWS_DIRS@
+#DIST_SUBDIRS = doc windows
+
+SUBDIRS = @SUBDIRS_AC@
+DIST_SUBDIRS = @DIST_SUBDIRS_AC@
 
 AM_YFLAGS    = -d
 
@@ -54,14 +57,21 @@ avrdude_SOURCES = \
 	avr910.h \
 	avrpart.c \
 	avrpart.h \
+	bitbang.c \
+	bitbang.h \
 	butterfly.c \
 	butterfly.h \
 	config.c \
 	config.h \
 	confwin.c \
 	confwin.h \
+	crc16.c \
+	crc16.h \
 	fileio.c \
 	fileio.h \
+	jtagmkII.c \
+	jtagmkII.h \
+	jtagmkII_private.h \
 	linux_ppdev.h \
 	lists.c \
 	lists.h \
@@ -74,14 +84,23 @@ avrdude_SOURCES = \
 	ppi.c \
 	ppi.h \
 	ppiwin.c \
+	safemode.c \
+	safemode.h \
 	serial.h \
+	serbb.h \
+	serbb_posix.c \
+	serbb_win32.c \
 	ser_posix.c \
 	ser_win32.c \
 	stk500.c \
 	stk500.h \
 	stk500_private.h \
+	stk500v2.c \
+	stk500v2.h \
+	stk500v2_private.h \
 	term.c \
-	term.h
+	term.h \
+	usb_libusb.c
 
 man_MANS = avrdude.1
 

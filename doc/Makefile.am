@@ -18,7 +18,7 @@
 #
 
 #
-# $Id: Makefile.am,v 1.6 2003/03/12 02:09:57 troth Exp $
+# $Id: Makefile.am,v 1.10 2005/09/22 17:51:59 bdean Exp $
 #
 
 CLEANFILES = \
@@ -29,10 +29,16 @@ info_TEXINFOS = avrdude.texi
 
 all-local: info html ps pdf
 
-html: 
-	mkdir -p avrdude-html
+html: avrdude-html/avrdude.html
+
+avrdude-html/avrdude.html: $(srcdir)/$(info_TEXINFOS)
 	texi2html -split_node $(srcdir)/$(info_TEXINFOS)
-	mv *.html avrdude-html
+	if [ -e ./avrdude.html -o -e ./avrdude_1.html ]; then \
+	 mkdir -p avrdude-html ; \
+	 mv -f *.html avrdude-html ; \
+	else \
+	 mv -f avrdude avrdude-html; \
+	fi;
 
 clean-local:
 	rm -rf avrdude-html *.info

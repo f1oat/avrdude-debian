@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: pindefs.h,v 1.10 2003/02/09 13:36:48 bdean Exp $ */
+/* $Id: pindefs.h,v 1.12 2005/09/18 20:12:23 joerg_wunsch Exp $ */
 
 #ifndef __pindefs_h__
 #define __pindefs_h__
@@ -35,6 +35,8 @@ enum {
   PIN_LED_VFY,
   N_PINS
 };
+#define PIN_INVERSE 0x80	/* flag for inverted pin in serbb */
+#define PIN_MASK    0x7f
 
 #define LED_ON(fd,pin)  ppi_setpin(fd,pin,0)
 #define LED_OFF(fd,pin) ppi_setpin(fd,pin,1)

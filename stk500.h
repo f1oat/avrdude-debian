@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2002-2004  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500.h,v 1.8 2004/07/05 15:04:19 hinni Exp $ */
+/* $Id: stk500.h,v 1.9 2004/12/22 01:52:45 bdean Exp $ */
 
 #ifndef __stk500_h__
 #define __stk500_h__
