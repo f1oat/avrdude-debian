@@ -1,9 +1,9 @@
 Document: avrdude-doc
 Title: AVRDUDE Manual
 Author: Brian S. Dean
-Abstract: AVRDUDE is an open source utility to 
- download/upload/manipulate the ROM and EEPROM 
- contents of AVR microcontrollers using the 
+Abstract: AVRDUDE is an open source utility to
+ download/upload/manipulate the ROM and EEPROM
+ contents of AVR microcontrollers using the
  in-system programming technique (ISP).
 Section: Science/Electronics
 
