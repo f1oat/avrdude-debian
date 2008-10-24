@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ppi.h,v 1.16 2004/12/22 01:52:45 bdean Exp $ */
+/* $Id: ppi.h,v 1.17 2006/12/11 12:47:35 joerg_wunsch Exp $ */
 
 #ifndef __ppi_h__
 #define __ppi_h__
@@ -33,21 +33,21 @@ enum {
 
 
 
-int ppi_get       (int fd, int reg, int bit);
+int ppi_get       (union filedescriptor *fdp, int reg, int bit);
 
-int ppi_set       (int fd, int reg, int bit);
+int ppi_set       (union filedescriptor *fdp, int reg, int bit);
 
-int ppi_clr       (int fd, int reg, int bit);
+int ppi_clr       (union filedescriptor *fdp, int reg, int bit);
 
-int ppi_getall    (int fd, int reg);
+int ppi_getall    (union filedescriptor *fdp, int reg);
 
-int ppi_setall    (int fd, int reg, int val);
+int ppi_setall    (union filedescriptor *fdp, int reg, int val);
 
-int ppi_toggle    (int fd, int reg, int bit);
+int ppi_toggle    (union filedescriptor *fdp, int reg, int bit);
 
-int ppi_open      (char * port);
+void ppi_open     (char * port, union filedescriptor *fdp);
 
-void ppi_close    (int fd);
+void ppi_close    (union filedescriptor *fdp);
 
 #endif
 

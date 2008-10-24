@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkI.c,v 1.3 2005/11/28 21:11:18 joerg_wunsch Exp $ */
+/* $Id: jtagmkI.c,v 1.10 2006/12/15 15:42:44 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for Atmel JTAG ICE (mkI) programmer
@@ -46,7 +46,7 @@ extern int do_cycles;
  * XXX There should really be a programmer-specific private data
  * pointer in struct PROGRAMMER.
  */
-static long initial_baudrate;
+static int initial_baudrate;
 
 /*
  * See jtagmkI_read_byte() for an explanation of the flash and
@@ -194,7 +194,7 @@ static int jtagmkI_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   buf[len] = ' ';		/* "CRC" */
   buf[len + 1] = ' ';		/* EOP */
 
-  if (serial_send(pgm->fd, buf, len + 2) != 0) {
+  if (serial_send(&pgm->fd, buf, len + 2) != 0) {
     fprintf(stderr,
 	    "%s: jtagmkI_send(): failed to send command to serial port\n",
 	    progname);
@@ -208,7 +208,7 @@ static int jtagmkI_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 
 static void jtagmkI_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 {
-  if (serial_recv(pgm->fd, buf, len) != 0) {
+  if (serial_recv(&pgm->fd, buf, len) != 0) {
     fprintf(stderr,
 	    "\n%s: jtagmkI_recv(): failed to send command to serial port\n",
 	    progname);
@@ -223,7 +223,7 @@ static void jtagmkI_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 
 static int jtagmkI_drain(PROGRAMMER * pgm, int display)
 {
-  return serial_drain(pgm->fd, display);
+  return serial_drain(&pgm->fd, display);
 }
 
 
@@ -248,14 +248,14 @@ static int jtagmkI_resync(PROGRAMMER * pgm, int maxtries, int signon)
       fprintf(stderr, "%s: jtagmkI_resync(): Sending sync command: ",
 	      progname);
 
-    if (serial_send(pgm->fd, buf, 1) != 0) {
+    if (serial_send(&pgm->fd, buf, 1) != 0) {
       fprintf(stderr,
 	      "\n%s: jtagmkI_resync(): failed to send command to serial port\n",
 	      progname);
       serial_recv_timeout = otimeout;
       return -1;
     }
-    if (serial_recv(pgm->fd, resp, 1) == 0 && resp[0] == RESP_OK) {
+    if (serial_recv(&pgm->fd, resp, 1) == 0 && resp[0] == RESP_OK) {
       if (verbose >= 2)
 	fprintf(stderr, "got RESP_OK\n");
       break;
@@ -280,14 +280,14 @@ static int jtagmkI_resync(PROGRAMMER * pgm, int maxtries, int signon)
 	fprintf(stderr, "%s: jtagmkI_resync(): Sending sign-on command: ",
 		progname);
 
-      if (serial_send(pgm->fd, buf, 4) != 0) {
+      if (serial_send(&pgm->fd, buf, 4) != 0) {
 	fprintf(stderr,
 		"\n%s: jtagmkI_resync(): failed to send command to serial port\n",
 		progname);
 	serial_recv_timeout = otimeout;
 	return -1;
       }
-      if (serial_recv(pgm->fd, resp, 9) == 0 && resp[0] == RESP_OK) {
+      if (serial_recv(&pgm->fd, resp, 9) == 0 && resp[0] == RESP_OK) {
 	if (verbose >= 2)
 	  fprintf(stderr, "got RESP_OK\n");
 	break;
@@ -333,16 +333,6 @@ static int jtagmkI_getsync(PROGRAMMER * pgm)
 
   return 0;
 }
-
-static int jtagmkI_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-                        unsigned char res[4])
-{
-
-  fprintf(stderr, "%s: jtagmkI_command(): no direct SPI supported for JTAG\n",
-	  progname);
-  return -1;
-}
-
 
 /*
  * issue the 'chip erase' command to the AVR device
@@ -496,7 +486,7 @@ static int jtagmkI_program_disable(PROGRAMMER * pgm)
   if (!prog_enabled)
     return 0;
 
-  if (pgm->fd != -1) {
+  if (pgm->fd.ifd != -1) {
     buf[0] = CMD_LEAVE_PROGMODE;
     if (verbose >= 2)
       fprintf(stderr, "%s: jtagmkI_program_disable(): "
@@ -517,8 +507,6 @@ static int jtagmkI_program_disable(PROGRAMMER * pgm)
       if (verbose == 2)
         fprintf(stderr, "OK\n");
     }
-
-    (void)jtagmkI_reset(pgm);
   }
   prog_enabled = 0;
 
@@ -553,7 +541,7 @@ static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   jtagmkI_drain(pgm, 0);
 
-  if (initial_baudrate != pgm->baudrate) {
+  if ((serdev->flags & SERDEV_FL_CANSETSPEED) && initial_baudrate != pgm->baudrate) {
     if ((b = jtagmkI_get_baud(pgm->baudrate)) == 0) {
       fprintf(stderr, "%s: jtagmkI_initialize(): unsupported baudrate %d\n",
               progname, pgm->baudrate);
@@ -564,7 +552,7 @@ static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
                 progname, pgm->baudrate);
       if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
         initial_baudrate = pgm->baudrate; /* don't adjust again later */
-        serial_setspeed(pgm->fd, pgm->baudrate);
+        serial_setspeed(&pgm->fd, pgm->baudrate);
       }
     }
   }
@@ -665,7 +653,7 @@ static int jtagmkI_open(PROGRAMMER * pgm, char * port)
       fprintf(stderr,
               "%s: jtagmkI_open(): trying to sync at baud rate %ld:\n",
               progname, baudtab[i].baud);
-    pgm->fd = serial_open(port, baudtab[i].baud);
+    serial_open(port, baudtab[i].baud, &pgm->fd);
 
     /*
      * drain any extraneous input
@@ -679,13 +667,13 @@ static int jtagmkI_open(PROGRAMMER * pgm, char * port)
       return 0;
     }
 
-    serial_close(pgm->fd);
+    serial_close(&pgm->fd);
   }
 
   fprintf(stderr,
           "%s: jtagmkI_open(): failed to synchronize to ICE\n",
           progname);
-  pgm->fd = -1;
+  pgm->fd.ifd = -1;
 
   return -1;
 }
@@ -693,35 +681,36 @@ static int jtagmkI_open(PROGRAMMER * pgm, char * port)
 
 static void jtagmkI_close(PROGRAMMER * pgm)
 {
-  unsigned char buf[1], resp[2];
+  unsigned char b;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkI_close()\n", progname);
 
-  if (pgm->fd != -1) {
-    buf[0] = CMD_GO;
-    if (verbose >= 2)
-      fprintf(stderr, "%s: jtagmkI_close(): Sending GO command: ",
-              progname);
-    jtagmkI_send(pgm, buf, 1);
-    jtagmkI_recv(pgm, resp, 1);
-    if (resp[0] != RESP_OK) {
-      if (verbose >= 2)
-        putc('\n', stderr);
-      fprintf(stderr,
-              "%s: jtagmkI_close(): "
-              "timeout/error communicating with programmer (resp %c)\n",
-              progname, resp[0]);
-      exit(1);
+  /*
+   * Revert baud rate to what it used to be when we started.  This
+   * appears to make AVR Studio happier when it is about to access the
+   * ICE later on.
+   */
+  if ((serdev->flags & SERDEV_FL_CANSETSPEED) && initial_baudrate != pgm->baudrate) {
+    if ((b = jtagmkI_get_baud(initial_baudrate)) == 0) {
+      fprintf(stderr, "%s: jtagmkI_close(): unsupported baudrate %d\n",
+              progname, initial_baudrate);
     } else {
-      if (verbose == 2)
-        fprintf(stderr, "OK\n");
+      if (verbose >= 2)
+        fprintf(stderr, "%s: jtagmkI_close(): "
+                "trying to set baudrate to %d\n",
+                progname, initial_baudrate);
+      if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
+        serial_setspeed(&pgm->fd, pgm->baudrate);
+      }
     }
-
-    serial_close(pgm->fd);
   }
 
-  pgm->fd = -1;
+  if (pgm->fd.ifd != -1) {
+    serial_close(&pgm->fd);
+  }
+
+  pgm->fd.ifd = -1;
 }
 
 
@@ -1121,7 +1110,7 @@ static int jtagmkI_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       return -1;
   }
 
-  cmd[2] = 1;
+  cmd[2] = 1 - 1;
   if (cmd[1] == MTYPE_SPM) {
     /*
      * Flash is word-addressed, but we cannot handle flash anyway
@@ -1375,17 +1364,16 @@ void jtagmkI_initpgm(PROGRAMMER * pgm)
   pgm->disable        = jtagmkI_disable;
   pgm->program_enable = jtagmkI_program_enable_dummy;
   pgm->chip_erase     = jtagmkI_chip_erase;
-  pgm->cmd            = jtagmkI_cmd;
   pgm->open           = jtagmkI_open;
   pgm->close          = jtagmkI_close;
+  pgm->read_byte      = jtagmkI_read_byte;
+  pgm->write_byte     = jtagmkI_write_byte;
 
   /*
    * optional functions
    */
   pgm->paged_write    = jtagmkI_paged_write;
   pgm->paged_load     = jtagmkI_paged_load;
-  pgm->read_byte      = jtagmkI_read_byte;
-  pgm->write_byte     = jtagmkI_write_byte;
   pgm->print_parms    = jtagmkI_print_parms;
   pgm->set_sck_period = jtagmkI_set_sck_period;
   pgm->page_size      = 256;

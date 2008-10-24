@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500v2.c,v 1.28 2006/10/09 14:34:24 joerg_wunsch Exp $ */
+/* $Id: stk500v2.c,v 1.34 2006/12/20 23:43:34 joerg_wunsch Exp $ */
 /* Based on Id: stk500.c,v 1.46 2004/12/22 01:52:45 bdean Exp */
 
 /*
@@ -131,10 +131,12 @@ struct jtagispentry
 };
 
 static struct jtagispentry jtagispcmds[] = {
+  /* generic */
   { CMD_SET_PARAMETER, 2 },
   { CMD_GET_PARAMETER, 3 },
   { CMD_OSCCAL, 2 },
   { CMD_LOAD_ADDRESS, 2 },
+  /* ISP mode */
   { CMD_ENTER_PROGMODE_ISP, 2 },
   { CMD_LEAVE_PROGMODE_ISP, 2 },
   { CMD_CHIP_ERASE_ISP, 2 },
@@ -148,7 +150,37 @@ static struct jtagispentry jtagispcmds[] = {
   { CMD_READ_LOCK_ISP, 4 },
   { CMD_READ_SIGNATURE_ISP, 4 },
   { CMD_READ_OSCCAL_ISP, 4 },
-  { CMD_SPI_MULTI, SZ_SPI_MULTI }
+  { CMD_SPI_MULTI, SZ_SPI_MULTI },
+  /* all HV modes */
+  { CMD_SET_CONTROL_STACK, 2 },
+  /* HVSP mode */
+  { CMD_ENTER_PROGMODE_HVSP, 2 },
+  { CMD_LEAVE_PROGMODE_HVSP, 2 },
+  { CMD_CHIP_ERASE_HVSP, 2 },
+  { CMD_PROGRAM_FLASH_HVSP, 2 },
+  { CMD_READ_FLASH_HVSP, SZ_READ_FLASH_EE },
+  { CMD_PROGRAM_EEPROM_HVSP, 2 },
+  { CMD_READ_EEPROM_HVSP, SZ_READ_FLASH_EE },
+  { CMD_PROGRAM_FUSE_HVSP, 2 },
+  { CMD_READ_FUSE_HVSP, 3 },
+  { CMD_PROGRAM_LOCK_HVSP, 2 },
+  { CMD_READ_LOCK_HVSP, 3 },
+  { CMD_READ_SIGNATURE_HVSP, 3 },
+  { CMD_READ_OSCCAL_HVSP, 3 },
+  /* PP mode */
+  { CMD_ENTER_PROGMODE_PP, 2 },
+  { CMD_LEAVE_PROGMODE_PP, 2 },
+  { CMD_CHIP_ERASE_PP, 2 },
+  { CMD_PROGRAM_FLASH_PP, 2 },
+  { CMD_READ_FLASH_PP, SZ_READ_FLASH_EE },
+  { CMD_PROGRAM_EEPROM_PP, 2 },
+  { CMD_READ_EEPROM_PP, SZ_READ_FLASH_EE },
+  { CMD_PROGRAM_FUSE_PP, 2 },
+  { CMD_READ_FUSE_PP, 3 },
+  { CMD_PROGRAM_LOCK_PP, 2 },
+  { CMD_READ_LOCK_PP, 3 },
+  { CMD_READ_SIGNATURE_PP, 3 },
+  { CMD_READ_OSCCAL_PP, 3 },
 };
 
 static int stk500v2_getparm(PROGRAMMER * pgm, unsigned char parm, unsigned char * value);
@@ -173,7 +205,7 @@ b2_to_u16(unsigned char *b)
 
 static int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
-  if (serial_send(pgm->fd, data, len) != 0) {
+  if (serial_send(&pgm->fd, data, len) != 0) {
     fprintf(stderr,"%s: stk500_send_mk2(): failed to send command to serial port\n",progname);
     exit(1);
   }
@@ -266,7 +298,7 @@ static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   for (i=0;i<len+6;i++) DEBUG("0x%02x ",buf[i]);
   DEBUG(", %d)\n",len+6);
 
-  if (serial_send(pgm->fd, buf, len+6) != 0) {
+  if (serial_send(&pgm->fd, buf, len+6) != 0) {
     fprintf(stderr,"%s: stk500_send(): failed to send command to serial port\n",progname);
     exit(1);
   }
@@ -277,7 +309,7 @@ static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 
 static int stk500v2_drain(PROGRAMMER * pgm, int display)
 {
-  return serial_drain(pgm->fd, display);
+  return serial_drain(&pgm->fd, display);
 }
 
 static int stk500v2_recv_mk2(PROGRAMMER * pgm, unsigned char msg[],
@@ -285,7 +317,7 @@ static int stk500v2_recv_mk2(PROGRAMMER * pgm, unsigned char msg[],
 {
   int rv;
 
-  rv = serial_recv(pgm->fd, msg, maxsize);
+  rv = serial_recv(&pgm->fd, msg, maxsize);
   if (rv < 0) {
     fprintf(stderr, "%s: stk500v2_recv_mk2: error in USB receive\n", progname);
     return -1;
@@ -309,7 +341,7 @@ static int stk500v2_jtagmkII_recv(PROGRAMMER * pgm, unsigned char msg[],
   if (rv - 1 > maxsize) {
     fprintf(stderr,
             "%s: stk500v2_jtagmkII_recv(): got %u bytes, have only room for %u bytes\n",
-            progname, (unsigned)rv - 1, maxsize);
+            progname, (unsigned)rv - 1, (unsigned)maxsize);
     rv = maxsize;
   }
   switch (jtagmsg[0]) {
@@ -354,7 +386,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
   tstart = tv.tv_sec;
 
   while ( (state != sDONE ) && (!timeout) ) {
-    if (serial_recv(pgm->fd, &c, 1) < 0)
+    if (serial_recv(&pgm->fd, &c, 1) < 0)
       goto timedout;
     DEBUG("0x%02x ",c);
     checksum ^= c;
@@ -608,16 +640,6 @@ static int stk500v2_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
   res[3] = buf[5];
 
   return 0;
-}
-
-
-static int stk500hv_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-                        unsigned char res[4])
-{
-
-  fprintf(stderr, "%s: stk500hv_command(): no direct SPI supported for PP mode\n",
-	  progname);
-  return -1;
 }
 
 
@@ -938,6 +960,16 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
 
   pgmtype = PGMTYPE_UNKNOWN;
 
+  if(strcasecmp(port, "avrdoper") == 0){
+#if defined(HAVE_LIBUSB) || defined(WIN32NATIVE)
+    serdev = &avrdoper_serdev;
+    pgmtype = PGMTYPE_STK500;
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
+#endif
+  }
+
   /*
    * If the port name starts with "usb", divert the serial routines
    * to the USB ones.  The serial_open() function for USB overrides
@@ -957,7 +989,7 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, baud);
+  serial_open(port, baud, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -981,8 +1013,8 @@ static void stk500v2_close(PROGRAMMER * pgm)
 {
   DEBUG("STK500V2: stk500v2_close()\n");
 
-  serial_close(pgm->fd);
-  pgm->fd = -1;
+  serial_close(&pgm->fd);
+  pgm->fd.ifd = -1;
 }
 
 
@@ -2168,7 +2200,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, baud);
+  serial_open(port, baud, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -2177,6 +2209,140 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
 
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
     fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
+            progname);
+    pgm->close(pgm);		/* sign off correctly */
+    exit(1);
+  }
+
+  pgmtype = PGMTYPE_JTAGICE_MKII;
+
+  if (pgm->bitclock != 0.0) {
+    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+      return -1;
+  }
+
+  return 0;
+}
+
+
+/*
+ * Wrapper functions for the AVR Dragon in ISP mode.  This mode
+ * uses the normal JTAG ICE mkII packet stream to communicate with the
+ * ICE, but then encapsulates AVRISP mkII commands using
+ * CMND_ISP_PACKET.
+ */
+
+/*
+ * Open an AVR Dragon in ISP mode.
+ */
+static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
+{
+  long baud;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: stk500v2_dragon_isp_open()\n", progname);
+
+  /*
+   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
+   * attaching.  If the config file or command-line parameters specify
+   * a higher baud rate, we switch to it later on, after establishing
+   * the connection with the ICE.
+   */
+  baud = 19200;
+
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.  The serial_open() function for USB overrides
+   * the meaning of the "baud" parameter to be the USB device ID to
+   * search for.
+   */
+  if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
+    serdev = &usb_serdev;
+    baud = USB_DEVICE_AVRDRAGON;
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
+#endif
+  }
+
+  strcpy(pgm->port, port);
+  serial_open(port, baud, &pgm->fd);
+
+  /*
+   * drain any extraneous input
+   */
+  stk500v2_drain(pgm, 0);
+
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
+    fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
+            progname);
+    pgm->close(pgm);		/* sign off correctly */
+    exit(1);
+  }
+
+  pgmtype = PGMTYPE_JTAGICE_MKII;
+
+  if (pgm->bitclock != 0.0) {
+    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+      return -1;
+  }
+
+  return 0;
+}
+
+
+/*
+ * Wrapper functions for the AVR Dragon in HV mode.  This mode
+ * uses the normal JTAG ICE mkII packet stream to communicate with the
+ * ICE, but then encapsulates AVRISP mkII commands using
+ * CMND_ISP_PACKET.
+ */
+
+/*
+ * Open an AVR Dragon in HV mode (HVSP or parallel).
+ */
+static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
+{
+  long baud;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: stk500v2_dragon_hv_open()\n", progname);
+
+  /*
+   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
+   * attaching.  If the config file or command-line parameters specify
+   * a higher baud rate, we switch to it later on, after establishing
+   * the connection with the ICE.
+   */
+  baud = 19200;
+
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.  The serial_open() function for USB overrides
+   * the meaning of the "baud" parameter to be the USB device ID to
+   * search for.
+   */
+  if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
+    serdev = &usb_serdev;
+    baud = USB_DEVICE_AVRDRAGON;
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
+#endif
+  }
+
+  strcpy(pgm->port, port);
+  serial_open(port, baud, &pgm->fd);
+
+  /*
+   * drain any extraneous input
+   */
+  stk500v2_drain(pgm, 0);
+
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_HV) != 0) {
+    fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in HV mode\n",
             progname);
     pgm->close(pgm);		/* sign off correctly */
     exit(1);
@@ -2209,6 +2375,8 @@ void stk500v2_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = stk500v2_cmd;
   pgm->open           = stk500v2_open;
   pgm->close          = stk500v2_close;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
 
   /*
    * optional functions
@@ -2237,15 +2405,14 @@ void stk500pp_initpgm(PROGRAMMER * pgm)
   pgm->disable        = stk500pp_disable;
   pgm->program_enable = stk500pp_program_enable;
   pgm->chip_erase     = stk500pp_chip_erase;
-  pgm->cmd            = stk500hv_cmd;
   pgm->open           = stk500v2_open;
   pgm->close          = stk500v2_close;
+  pgm->read_byte      = stk500pp_read_byte;
+  pgm->write_byte     = stk500pp_write_byte;
 
   /*
    * optional functions
    */
-  pgm->read_byte      = stk500pp_read_byte;
-  pgm->write_byte     = stk500pp_write_byte;
   pgm->paged_write    = stk500pp_paged_write;
   pgm->paged_load     = stk500pp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
@@ -2269,15 +2436,14 @@ void stk500hvsp_initpgm(PROGRAMMER * pgm)
   pgm->disable        = stk500hvsp_disable;
   pgm->program_enable = stk500hvsp_program_enable;
   pgm->chip_erase     = stk500hvsp_chip_erase;
-  pgm->cmd            = stk500hv_cmd;
   pgm->open           = stk500v2_open;
   pgm->close          = stk500v2_close;
+  pgm->read_byte      = stk500hvsp_read_byte;
+  pgm->write_byte     = stk500hvsp_write_byte;
 
   /*
    * optional functions
    */
-  pgm->read_byte      = stk500hvsp_read_byte;
-  pgm->write_byte     = stk500hvsp_write_byte;
   pgm->paged_write    = stk500hvsp_paged_write;
   pgm->paged_load     = stk500hvsp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
@@ -2304,6 +2470,8 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = stk500v2_cmd;
   pgm->open           = stk500v2_jtagmkII_open;
   pgm->close          = jtagmkII_close;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
 
   /*
    * optional functions
@@ -2313,5 +2481,96 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
   pgm->perform_osccal = stk500v2_perform_osccal;
+  pgm->page_size      = 256;
+}
+
+void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "DRAGON_ISP");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = stk500v2_initialize;
+  pgm->display        = stk500v2_display;
+  pgm->enable         = stk500v2_enable;
+  pgm->disable        = stk500v2_disable;
+  pgm->program_enable = stk500v2_program_enable;
+  pgm->chip_erase     = stk500v2_chip_erase;
+  pgm->cmd            = stk500v2_cmd;
+  pgm->open           = stk500v2_dragon_isp_open;
+  pgm->close          = jtagmkII_close;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = stk500v2_paged_write;
+  pgm->paged_load     = stk500v2_paged_load;
+  pgm->print_parms    = stk500v2_print_parms;
+  pgm->set_sck_period = stk500v2_set_sck_period_mk2;
+  pgm->page_size      = 256;
+}
+
+void stk500v2_dragon_pp_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "DRAGON_PP");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = stk500pp_initialize;
+  pgm->display        = stk500v2_display;
+  pgm->enable         = stk500v2_enable;
+  pgm->disable        = stk500pp_disable;
+  pgm->program_enable = stk500pp_program_enable;
+  pgm->chip_erase     = stk500pp_chip_erase;
+  pgm->open           = stk500v2_dragon_hv_open;
+  pgm->close          = jtagmkII_close;
+  pgm->read_byte      = stk500pp_read_byte;
+  pgm->write_byte     = stk500pp_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = stk500pp_paged_write;
+  pgm->paged_load     = stk500pp_paged_load;
+  pgm->print_parms    = stk500v2_print_parms;
+  pgm->set_vtarget    = stk500v2_set_vtarget;
+  pgm->set_varef      = stk500v2_set_varef;
+  pgm->set_fosc       = stk500v2_set_fosc;
+  pgm->set_sck_period = stk500v2_set_sck_period_mk2;
+  pgm->page_size      = 256;
+}
+
+void stk500v2_dragon_hvsp_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "DRAGON_HVSP");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = stk500hvsp_initialize;
+  pgm->display        = stk500v2_display;
+  pgm->enable         = stk500v2_enable;
+  pgm->disable        = stk500hvsp_disable;
+  pgm->program_enable = stk500hvsp_program_enable;
+  pgm->chip_erase     = stk500hvsp_chip_erase;
+  pgm->open           = stk500v2_dragon_hv_open;
+  pgm->close          = jtagmkII_close;
+  pgm->read_byte      = stk500hvsp_read_byte;
+  pgm->write_byte     = stk500hvsp_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = stk500hvsp_paged_write;
+  pgm->paged_load     = stk500hvsp_paged_load;
+  pgm->print_parms    = stk500v2_print_parms;
+  pgm->set_vtarget    = stk500v2_set_vtarget;
+  pgm->set_varef      = stk500v2_set_varef;
+  pgm->set_fosc       = stk500v2_set_fosc;
+  pgm->set_sck_period = stk500v2_set_sck_period_mk2;
   pgm->page_size      = 256;
 }

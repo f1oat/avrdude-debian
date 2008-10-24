@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: pgm.c,v 1.19 2006/10/09 14:34:24 joerg_wunsch Exp $ */
+/* $Id: pgm.c,v 1.20 2006/11/20 15:04:09 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -30,9 +30,11 @@
 extern char * progname;
 
 static int  pgm_default_2 (struct programmer_t *, AVRPART *);
+static int  pgm_default_3 (struct programmer_t * pgm, AVRPART * p, AVRMEM * mem,
+			   unsigned long addr, unsigned char * value);
 static void pgm_default_4 (struct programmer_t *);
-static int  pgm_default_5 (struct programmer_t *, unsigned char cmd[4],
-                    unsigned char res[4]);
+static int  pgm_default_5 (struct programmer_t * pgm, AVRPART * p, AVRMEM * mem,
+			   unsigned long addr, unsigned char data);
 static void pgm_default_6 (struct programmer_t *, char *);
 
 
@@ -96,9 +98,10 @@ PROGRAMMER * pgm_new(void)
   pgm->powerdown      = pgm_default_powerup_powerdown;
   pgm->program_enable = pgm_default_2;
   pgm->chip_erase     = pgm_default_2;
-  pgm->cmd            = pgm_default_5;
   pgm->open           = pgm_default_open;
   pgm->close          = pgm_default_4;
+  pgm->read_byte      = pgm_default_3;
+  pgm->write_byte     = pgm_default_5;
 
   /*
    * predefined functions - these functions have a valid default
@@ -114,11 +117,10 @@ PROGRAMMER * pgm_new(void)
    * optional functions - these are checked to make sure they are
    * assigned before they are called
    */
+  pgm->cmd            = NULL;
   pgm->paged_write    = NULL;
   pgm->paged_load     = NULL;
   pgm->write_setup    = NULL;
-  pgm->write_byte     = NULL;
-  pgm->read_byte      = NULL;
   pgm->read_sig_bytes = NULL;
   pgm->set_vtarget    = NULL;
   pgm->set_varef      = NULL;
@@ -141,13 +143,20 @@ static int  pgm_default_2 (struct programmer_t * pgm, AVRPART * p)
   return -1;
 }
 
+static int  pgm_default_3 (struct programmer_t * pgm, AVRPART * p, AVRMEM * mem,
+			   unsigned long addr, unsigned char * value)
+{
+  pgm_default();
+  return -1;
+}
+
 static void pgm_default_4 (struct programmer_t * pgm)
 {
   pgm_default();
 }
 
-static int  pgm_default_5 (struct programmer_t * pgm, unsigned char cmd[4],
-                    unsigned char res[4])
+static int  pgm_default_5 (struct programmer_t * pgm, AVRPART * p, AVRMEM * mem,
+			   unsigned long addr, unsigned char data)
 {
   pgm_default();
   return -1;

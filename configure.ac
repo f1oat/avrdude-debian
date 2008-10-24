@@ -18,13 +18,13 @@
 #
 
 #
-# $Id: configure.ac,v 1.38 2006/10/09 14:47:29 joerg_wunsch Exp $
+# $Id: configure.ac,v 1.45 2006/12/22 22:55:33 joerg_wunsch Exp $
 #
 
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(avrdude, 5.2, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 5.3.1, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -32,7 +32,7 @@ AC_CANONICAL_TARGET
 
 AC_CONFIG_SRCDIR([main.c])
 AM_INIT_AUTOMAKE
-AM_CONFIG_HEADER([ac_cfg.h])
+AM_CONFIG_HEADER(ac_cfg.h)
 
 # Checks for programs.
 AC_PROG_CC
@@ -60,9 +60,49 @@ if test x$have_libusb = xyes; then
 fi
 AC_SUBST(LIBUSB, $LIBUSB)
 
+AC_MSG_CHECKING([for a Win32 HID libray])
+SAVED_LIBS="${LIBS}"
+case $target in
+	*-*-mingw32*)
+		LIBHID="-lhid -lsetupapi"
+		HIDINCLUDE="#include <ddk/hidsdi.h>"
+		;;
+	*)
+		LIBHID="-lhid"
+		HIDINCLUDE='#include "my_ddk_hidsdi.h"'
+		;;
+esac
+LIBS="${LIBS} ${LIBHID}"
+
+AH_TEMPLATE([HAVE_LIBHID],
+            [Define if HID support is enabled via the Win32 DDK])
+AC_TRY_RUN([#include <windows.h>
+#include <setupapi.h>
+$HIDINCLUDE
+
+int
+main(void)
+{
+    GUID hidGuid;
+    HidD_GetHidGuid(&hidGuid);
+
+    return 0;
+}
+], [have_libhid=yes], [have_libhid=no], [have_libhid=no])
+AC_MSG_RESULT([$have_libhid])
+if test x$have_libhid = xyes; then
+   AC_DEFINE([HAVE_LIBHID])
+else
+   LIBHID=""
+fi
+LIBS="${SAVED_LIBS}"
+
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h limits.h stdlib.h string.h sys/ioctl.h sys/time.h termios.h unistd.h])
+AC_CHECK_HEADERS([limits.h stdlib.h string.h])
+AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])
+AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
+#include <setupapi.h>])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -97,7 +137,7 @@ AC_ARG_ENABLE(
 	[doc],
 	AC_HELP_STRING(
 		[--enable-doc],
-		[Enable building documents(default)]),
+		[Enable building documents]),
 	[case "${enableval}" in
 		yes) enabled_doc=yes ;;
 		no)  enabled_doc=no ;;
@@ -193,7 +233,7 @@ case $target in
         *-*-mingw32* | *-*-cygwin* | *-*-windows*)
 		WINDOWS_DIRS="windows"
 		CFLAGS="-mno-cygwin -DWIN32NATIVE"
-		LDFLAGS="-static"
+		LDFLAGS="${LDFLAGS} -static"
 		;;
 esac
 AC_SUBST(WINDOWS_DIRS,$WINDOWS_DIRS)

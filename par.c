@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: par.c,v 1.19 2006/08/29 23:12:15 joerg_wunsch Exp $ */
+/* $Id: par.c,v 1.21 2006/12/11 12:47:35 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -96,9 +96,9 @@ static int par_setpin(PROGRAMMER * pgm, int pin, int value)
     value = !value;
 
   if (value)
-    ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    ppi_set(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
   else
-    ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    ppi_clr(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
 
   if (pgm->ispdelay > 1)
     bitbang_delay(pgm->ispdelay);
@@ -129,7 +129,7 @@ static int par_getpin(PROGRAMMER * pgm, int pin)
 
   pin--;
 
-  value = ppi_get(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+  value = ppi_get(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
 
   if (value)
     value = 1;
@@ -160,19 +160,19 @@ static int par_highpulsepin(PROGRAMMER * pgm, int pin)
     inverted = !inverted;
 
   if (inverted) {
-    ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    ppi_clr(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
     if (pgm->ispdelay > 1)
       bitbang_delay(pgm->ispdelay);
 
-    ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    ppi_set(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
     if (pgm->ispdelay > 1)
       bitbang_delay(pgm->ispdelay);
   } else {
-    ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    ppi_set(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
     if (pgm->ispdelay > 1)
       bitbang_delay(pgm->ispdelay);
 
-    ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    ppi_clr(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
     if (pgm->ispdelay > 1)
       bitbang_delay(pgm->ispdelay);
   }
@@ -250,8 +250,8 @@ static int par_open(PROGRAMMER * pgm, char * port)
 
   bitbang_check_prerequisites(pgm);
 
-  pgm->fd = ppi_open(port);
-  if (pgm->fd < 0) {
+  ppi_open(port, &pgm->fd);
+  if (pgm->fd.ifd < 0) {
     fprintf(stderr, "%s: failed to open parallel port \"%s\"\n\n",
             progname, port);
     exit(1);
@@ -260,14 +260,14 @@ static int par_open(PROGRAMMER * pgm, char * port)
   /*
    * save pin values, so they can be restored when device is closed
    */
-  rc = ppi_getall(pgm->fd, PPIDATA);
+  rc = ppi_getall(&pgm->fd, PPIDATA);
   if (rc < 0) {
     fprintf(stderr, "%s: error reading status of ppi data port\n", progname);
     return -1;
   }
   pgm->ppidata = rc;
 
-  rc = ppi_getall(pgm->fd, PPICTRL);
+  rc = ppi_getall(&pgm->fd, PPICTRL);
   if (rc < 0) {
     fprintf(stderr, "%s: error reading status of ppi ctrl port\n", progname);
     return -1;
@@ -285,8 +285,8 @@ static void par_close(PROGRAMMER * pgm)
    * Restore pin values before closing,
    * but ensure that buffers are turned off.
    */
-  ppi_setall(pgm->fd, PPIDATA, pgm->ppidata);
-  ppi_setall(pgm->fd, PPICTRL, pgm->ppictrl);
+  ppi_setall(&pgm->fd, PPIDATA, pgm->ppidata);
+  ppi_setall(&pgm->fd, PPICTRL, pgm->ppictrl);
 
   par_setpin(pgm, pgm->pinno[PPI_AVR_BUFF], 1);
 
@@ -320,8 +320,8 @@ static void par_close(PROGRAMMER * pgm)
     break;
   }
 
-  ppi_close(pgm->fd);
-  pgm->fd = -1;
+  ppi_close(&pgm->fd);
+  pgm->fd.ifd = -1;
 }
 
 static void par_display(PROGRAMMER * pgm, char * p)
@@ -425,6 +425,8 @@ void par_initpgm(PROGRAMMER * pgm)
   pgm->getpin         = par_getpin;
   pgm->highpulsepin   = par_highpulsepin;
   pgm->parseexitspecs = par_parseexitspecs;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
 }
 
 #else  /* !HAVE_PARPORT */

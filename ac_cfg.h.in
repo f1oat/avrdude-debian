@@ -1,5 +1,8 @@
 /* ac_cfg.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Define to 1 if you have the <ddk/hidsdi.h> header file. */
+#undef HAVE_DDK_HIDSDI_H
+
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
@@ -8,6 +11,9 @@
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define if HID support is enabled via the Win32 DDK */
+#undef HAVE_LIBHID
 
 /* Define to 1 if you have the `ncurses' library (-lncurses). */
 #undef HAVE_LIBNCURSES

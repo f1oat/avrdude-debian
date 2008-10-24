@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: term.c,v 1.35 2004/12/22 01:52:45 bdean Exp $ */
+/* $Id: term.c,v 1.36 2006/11/20 15:04:09 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -292,7 +292,7 @@ int cmd_dump(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
   }
 
   for (i=0; i<len; i++) {
-    rc = avr_read_byte(pgm, p, mem, addr+i, &buf[i]);
+    rc = pgm->read_byte(pgm, p, mem, addr+i, &buf[i]);
     if (rc != 0) {
       fprintf(stderr, "error reading %s address 0x%05lx of part %s\n",
               mem->desc, addr+i, p->desc);
@@ -399,7 +399,7 @@ int cmd_write(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
       werror = 1;
     }
 
-    rc = avr_read_byte(pgm, p, mem, addr+i, &b);
+    rc = pgm->read_byte(pgm, p, mem, addr+i, &b);
     if (b != buf[i]) {
       fprintf(stderr, 
               "%s (write): error writing 0x%02x at 0x%05lx cell=0x%02x\n",
@@ -426,6 +426,13 @@ int cmd_send(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
   char * e;
   int i;
   int len;
+
+  if (pgm->cmd == NULL) {
+    fprintf(stderr,
+	    "The %s programmer does not support direct ISP commands.\n",
+	    pgm->type);
+    return -1;
+  }
 
   if (argc != 5) {
     fprintf(stderr, "Usage: send <byte1> <byte2> <byte3> <byte4>\n");

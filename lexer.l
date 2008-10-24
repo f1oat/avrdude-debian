@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: lexer.l,v 1.44 2006/09/19 22:27:30 joerg_wunsch Exp $ */
+/* $Id: lexer.l,v 1.48 2006/11/23 07:07:06 joerg_wunsch Exp $ */
 
 %{
 /* need this for the call to atof() below */
@@ -135,16 +135,23 @@ default_parallel { yylval=NULL; return K_DEFAULT_PARALLEL; }
 default_programmer { yylval=NULL; return K_DEFAULT_PROGRAMMER; }
 default_serial   { yylval=NULL; return K_DEFAULT_SERIAL; }
 devicecode       { yylval=NULL; return K_DEVICECODE; }
+dragon_dw        { yylval=NULL; return K_DRAGON_DW; }
+dragon_hvsp      { yylval=NULL; return K_DRAGON_HVSP; }
+dragon_isp       { yylval=NULL; return K_DRAGON_ISP; }
+dragon_jtag      { yylval=NULL; return K_DRAGON_JTAG; }
+dragon_pp        { yylval=NULL; return K_DRAGON_PP; }
 eecr             { yylval=NULL; return K_EECR; }
 eeprom           { yylval=NULL; return K_EEPROM; }
 enablepageprogramming { yylval=NULL; return K_ENABLEPAGEPROGRAMMING; }
 errled           { yylval=NULL; return K_ERRLED; }
 flash            { yylval=NULL; return K_FLASH; }
 has_jtag         { yylval=NULL; return K_HAS_JTAG; }
+has_debugwire    { yylval=NULL; return K_HAS_DW; }
 id               { yylval=NULL; return K_ID; }
 idr              { yylval=NULL; return K_IDR; }
 jtagmki          { yylval=NULL; return K_JTAG_MKI; }
 jtagmkii         { yylval=NULL; return K_JTAG_MKII; }
+jtagmkii_dw      { yylval=NULL; return K_JTAG_MKII_DW; }
 jtagmkii_isp     { yylval=NULL; return K_JTAG_MKII_ISP; }
 max_write_delay  { yylval=NULL; return K_MAX_WRITE_DELAY; }
 memory           { yylval=NULL; return K_MEMORY; }
@@ -216,7 +223,8 @@ programfusepulsewidth { yylval=NULL; return K_PROGRAMFUSEPULSEWIDTH; }
 programfusepolltimeout { yylval=NULL; return K_PROGRAMFUSEPOLLTIMEOUT; }
 programlockpulsewidth { yylval=NULL; return K_PROGRAMLOCKPULSEWIDTH; }
 programlockpolltimeout { yylval=NULL; return K_PROGRAMLOCKPOLLTIMEOUT; }
-
+flash_instr      { yylval=NULL; return K_FLASH_INSTR; }
+eeprom_instr     { yylval=NULL; return K_EEPROM_INSTR; }
 
 dedicated        { yylval=new_token(K_DEDICATED); return K_DEDICATED; }
 io               { yylval=new_token(K_IO); return K_IO; }

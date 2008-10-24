@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: usb_libusb.c,v 1.8 2006/01/12 23:24:35 joerg_wunsch Exp $ */
+/* $Id: usb_libusb.c,v 1.10 2006/12/11 12:47:35 joerg_wunsch Exp $ */
 
 /*
  * USB interface via libusb for avrdude.
@@ -53,7 +53,7 @@ static int usb_interface;
  * The "baud" parameter is meaningless for USB devices, so we reuse it
  * to pass the desired USB device ID.
  */
-static int usbdev_open(char * port, long baud)
+static void usbdev_open(char * port, long baud, union filedescriptor *fd)
 {
   char string[256];
   char product[256];
@@ -189,7 +189,8 @@ static int usbdev_open(char * port, long baud)
 		      goto trynext;
 		    }
 
-		  return (int)udev;
+		  fd->pfd = udev;
+                  return;
 		}
 	      trynext:
 	      usb_close(udev);
@@ -202,14 +203,9 @@ static int usbdev_open(char * port, long baud)
   exit(1);
 }
 
-static int usbdev_setspeed(int fd, long baud)
+static void usbdev_close(union filedescriptor *fd)
 {
-  return 0;
-}
-
-static void usbdev_close(int fd)
-{
-  usb_dev_handle *udev = (usb_dev_handle *)fd;
+  usb_dev_handle *udev = (usb_dev_handle *)fd->pfd;
 
   (void)usb_release_interface(udev, usb_interface);
 
@@ -223,10 +219,10 @@ static void usbdev_close(int fd)
 }
 
 
-static int usbdev_send(int fd, unsigned char *bp, size_t mlen)
+static int usbdev_send(union filedescriptor *fd, unsigned char *bp, size_t mlen)
 {
-  usb_dev_handle *udev = (usb_dev_handle *)fd;
-  size_t rv;
+  usb_dev_handle *udev = (usb_dev_handle *)fd->pfd;
+  int rv;
   int i = mlen;
   unsigned char * p = bp;
   int tx_size;
@@ -301,9 +297,9 @@ usb_fill_buf(usb_dev_handle *udev)
   return 0;
 }
 
-static int usbdev_recv(int fd, unsigned char *buf, size_t nbytes)
+static int usbdev_recv(union filedescriptor *fd, unsigned char *buf, size_t nbytes)
 {
-  usb_dev_handle *udev = (usb_dev_handle *)fd;
+  usb_dev_handle *udev = (usb_dev_handle *)fd->pfd;
   int i, amnt;
   unsigned char * p = buf;
 
@@ -353,9 +349,9 @@ static int usbdev_recv(int fd, unsigned char *buf, size_t nbytes)
  *
  * This is used for the AVRISP mkII device.
  */
-static int usbdev_recv_frame(int fd, unsigned char *buf, size_t nbytes)
+static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_t nbytes)
 {
-  usb_dev_handle *udev = (usb_dev_handle *)fd;
+  usb_dev_handle *udev = (usb_dev_handle *)fd->pfd;
   int rv, n;
   int i;
   unsigned char * p = buf;
@@ -410,9 +406,9 @@ static int usbdev_recv_frame(int fd, unsigned char *buf, size_t nbytes)
   return n;
 }
 
-static int usbdev_drain(int fd, int display)
+static int usbdev_drain(union filedescriptor *fd, int display)
 {
-  usb_dev_handle *udev = (usb_dev_handle *)fd;
+  usb_dev_handle *udev = (usb_dev_handle *)fd->pfd;
   int rv;
 
   do {
@@ -431,11 +427,11 @@ static int usbdev_drain(int fd, int display)
 struct serial_device usb_serdev =
 {
   .open = usbdev_open,
-  .setspeed = usbdev_setspeed,
   .close = usbdev_close,
   .send = usbdev_send,
   .recv = usbdev_recv,
   .drain = usbdev_drain,
+  .flags = SERDEV_FL_NONE,
 };
 
 /*
@@ -444,11 +440,11 @@ struct serial_device usb_serdev =
 struct serial_device usb_serdev_frame =
 {
   .open = usbdev_open,
-  .setspeed = usbdev_setspeed,
   .close = usbdev_close,
   .send = usbdev_send,
   .recv = usbdev_recv_frame,
   .drain = usbdev_drain,
+  .flags = SERDEV_FL_NONE,
 };
 
 #endif  /* HAVE_LIBUSB */

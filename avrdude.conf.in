@@ -1,4 +1,4 @@
-# $Id: avrdude.conf.in,v 1.105 2006/09/19 22:27:30 joerg_wunsch Exp $
+# $Id: avrdude.conf.in,v 1.116 2006/12/22 22:52:34 joerg_wunsch Exp $
 #
 # AVRDUDE Configuration File
 #
@@ -17,7 +17,9 @@
 #       desc     = <description> ;                  # quoted string
 #       type     = par | stk500 | stk500v2 | stk500pp | stk500hvsp | stk500generic |
 #                  avr910 | butterfly | usbasp |
-#                  jtagmki | jtagmkii | jtagmkii_isp; # programmer type
+#                  jtagmki | jtagmkii | jtagmkii_isp | jtagmkii_dw |
+#                  dragon_dw | dragon_jtag | dragon_isp | dragon_pp |
+#                  dragon_hvsp; # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset    = <num> ;                          # pin number
@@ -34,6 +36,7 @@
 #       id               = <id> ;                 # quoted string
 #       desc             = <description> ;        # quoted string
 #       has_jtag         = <yes/no> ;             # part has JTAG i/f
+#       has_debugwire    = <yes/no> ;             # part has debugWire i/f
 #       devicecode       = <num> ;            # deprecated, use stk500_devcode
 #       stk500_devcode   = <num> ;                # numeric
 #       avr910_devcode   = <num> ;                # numeric
@@ -441,6 +444,54 @@ programmer
   type  = jtagmkii_isp;
 ;
 
+# JTAG ICE mkII in debugWire mode
+programmer
+  id    = "jtag2dw";
+  desc  = "Atmel JTAG ICE mkII in debugWire mode";
+  baudrate = 115200;
+  type  = jtagmkii_dw;
+;
+
+# AVR Dragon in JTAG mode
+programmer
+  id    = "dragon_jtag";
+  desc  = "Atmel AVR Dragon in JTAG mode";
+  baudrate = 115200;
+  type  = dragon_jtag;
+;
+
+# AVR Dragon in ISP mode
+programmer
+  id    = "dragon_isp";
+  desc  = "Atmel AVR Dragon in ISP mode";
+  baudrate = 115200;
+  type  = dragon_isp;
+;
+
+# AVR Dragon in PP mode
+programmer
+  id    = "dragon_pp";
+  desc  = "Atmel AVR Dragon in PP mode";
+  baudrate = 115200;
+  type  = dragon_pp;
+;
+
+# AVR Dragon in HVSP mode
+programmer
+  id    = "dragon_hvsp";
+  desc  = "Atmel AVR Dragon in HVSP mode";
+  baudrate = 115200;
+  type  = dragon_hvsp;
+;
+
+# AVR Dragon in debugWire mode
+programmer
+  id    = "dragon_dw";
+  desc  = "Atmel AVR Dragon in debugWire mode";
+  baudrate = 115200;
+  type  = dragon_dw;
+;
+
 programmer
   id    = "pavr";
   desc  = "Jason Kyle's pAVR Serial Programmer";
@@ -628,6 +679,19 @@ programmer
   buff  = 14;
 ;
 
+# It is almost same as pony-stk200, except vcc on pin 5 to auto
+# disconnect port (download on http://electropol.free.fr)
+programmer
+  id    = "frank-stk200";
+  desc  = "Frank STK200";
+  type  = par;
+  vcc   = 5;
+  sck   = 6;
+  mosi  = 7;
+  reset = 9;
+  miso  = 10;
+  pgmled = 8;
+;
 
 @HAVE_PARPORT_END@
 
@@ -912,6 +976,11 @@ part
 part
     id                  = "t13";
     desc                = "ATtiny13";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x0E, 0x1E;
+     eeprom_instr  = 0xBB, 0xFE, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
+	             0xBC, 0x0E, 0xB4, 0x0E, 0xBA, 0x0D, 0xBB, 0xBC,
+	             0x99, 0xE1, 0xBB, 0xAC;
     stk500_devcode      = 0x14;
     signature           = 0x1e 0x90 0x07;
     chip_erase_delay    = 4000;
@@ -4315,7 +4384,7 @@ part
                           "x x x x  x x x x   o o o o  o o o o";
 
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x   x x x x  i i i x";
+                          "x x x x  x x x x   x x x x  x i i i";
       ;
 
     memory "lock"
@@ -4500,7 +4569,7 @@ part
                           "x x x x  x x x x   o o o o  o o o o";
 
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x   x x x x  i i i x";
+                          "x x x x  x x x x   x x x x  x i i i";
       ;
 
     memory "lock"
@@ -4683,7 +4752,7 @@ part
                           "x x x x  x x x x   o o o o  o o o o";
 
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x   x x x x  i i i x";
+                          "x x x x  x x x x   x x x x  x i i i";
       ;
 
     memory "lock"
@@ -4878,7 +4947,7 @@ part
                           "x x x x  x x x x   o o o o  o o o o";
 
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x   x x x x  i i i x";
+                          "x x x x  x x x x   x x x x  x i i i";
       ;
 
     memory "lock"
@@ -5389,7 +5458,7 @@ part
     desc             = "ATMEGA8515";
     stk500_devcode   = 0x63;
     avr910_devcode   = 0x3B;
-    signature        = 0x1e 0x93 0x07;
+    signature        = 0x1e 0x93 0x06;
     chip_erase_delay = 9000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -5860,6 +5929,11 @@ part
 part
     id                  = "t261";
     desc                = "ATTINY261";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x00, 0x10;
+     eeprom_instr  = 0xBB, 0xFF, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
+	             0xBC, 0x00, 0xB4, 0x00, 0xBA, 0x0D, 0xBB, 0xBC,
+	             0x99, 0xE1, 0xBB, 0xAC;
 #    stk500_devcode      = 0x21;
 #    avr910_devcode      = 0x5e;
     signature           = 0x1e 0x91 0x0c;
@@ -6044,6 +6118,11 @@ part
 part
     id                  = "t461";
     desc                = "ATTINY461";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x00, 0x10;
+     eeprom_instr  = 0xBB, 0xFF, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
+	             0xBC, 0x00, 0xB4, 0x00, 0xBA, 0x0D, 0xBB, 0xBC,
+	             0x99, 0xE1, 0xBB, 0xAC;
 #    stk500_devcode      = 0x21;
 #    avr910_devcode      = 0x5e;
     signature           = 0x1e 0x92 0x08;
@@ -6228,6 +6307,11 @@ part
 part
     id                  = "t861";
     desc                = "ATTINY861";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x00, 0x10;
+     eeprom_instr  = 0xBB, 0xFF, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
+	             0xBC, 0x00, 0xB4, 0x00, 0xBA, 0x0D, 0xBB, 0xBC,
+	             0x99, 0xE1, 0xBB, 0xAC;
 #    stk500_devcode      = 0x21;
 #    avr910_devcode      = 0x5e;
     signature           = 0x1e 0x93 0x0d;
@@ -6411,6 +6495,11 @@ part
 part
     id               = "m48";
     desc             = "ATMEGA48";
+     has_debugwire = yes;
+     flash_instr   = 0xB6, 0x01, 0x11;
+     eeprom_instr  = 0xBD, 0xF2, 0xBD, 0xE1, 0xBB, 0xCF, 0xB4, 0x00,
+	             0xBE, 0x01, 0xB6, 0x01, 0xBC, 0x00, 0xBB, 0xBF,
+	             0x99, 0xF9, 0xBB, 0xAF;
     stk500_devcode   = 0x59;
 #    avr910_devcode   = 0x;
     signature        = 0x1e 0x92 0x05;
@@ -6593,6 +6682,11 @@ part
 part
     id               = "m88";
     desc             = "ATMEGA88";
+     has_debugwire = yes;
+     flash_instr   = 0xB6, 0x01, 0x11;
+     eeprom_instr  = 0xBD, 0xF2, 0xBD, 0xE1, 0xBB, 0xCF, 0xB4, 0x00,
+	             0xBE, 0x01, 0xB6, 0x01, 0xBC, 0x00, 0xBB, 0xBF,
+	             0x99, 0xF9, 0xBB, 0xAF;
     stk500_devcode   = 0x73;
 #    avr910_devcode   = 0x;
     signature        = 0x1e 0x93 0x0a;
@@ -6774,6 +6868,11 @@ part
 part
     id              = "m168";
     desc            = "ATMEGA168";
+     has_debugwire = yes;
+     flash_instr   = 0xB6, 0x01, 0x11;
+     eeprom_instr  = 0xBD, 0xF2, 0xBD, 0xE1, 0xBB, 0xCF, 0xB4, 0x00,
+	             0xBE, 0x01, 0xB6, 0x01, 0xBC, 0x00, 0xBB, 0xBF,
+	             0x99, 0xF9, 0xBB, 0xAF;
     stk500_devcode  = 0x86;
     # avr910_devcode = 0x;
     signature       = 0x1e 0x94 0x06;
@@ -6957,6 +7056,11 @@ part
 part
      id            = "t2313";
      desc          = "ATtiny2313";
+     has_debugwire = yes;
+     flash_instr   = 0xB2, 0x0F, 0x1F;
+     eeprom_instr  = 0xBB, 0xFE, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
+	             0xBA, 0x0F, 0xB2, 0x0F, 0xBA, 0x0D, 0xBB, 0xBC,
+	             0x99, 0xE1, 0xBB, 0xAC;
      stk500_devcode   = 0x23;
 ##   Use the ATtiny26 devcode:
      avr910_devcode   = 0x5e;
@@ -7084,6 +7188,8 @@ part
          size            = 1;
          write           = "1 0 1 0  1 1 0 0  1 1 1 x  x x x x",
                            "x x x x  x x x x  1 1 i i  i i i i";
+         read           = "0 1 0 1  1 0 0 0  0 0 0 0  0 0 0 0",
+                          "x x x x  x x x x  x x o o  o o o o";
         min_write_delay = 9000;
         max_write_delay = 9000;
        ;
@@ -7137,6 +7243,11 @@ part
 part
      id            = "pwm2";
      desc          = "AT90PWM2";
+     has_debugwire = yes;
+     flash_instr   = 0xB6, 0x01, 0x11;
+     eeprom_instr  = 0xBD, 0xF2, 0xBD, 0xE1, 0xBB, 0xCF, 0xB4, 0x00,
+	             0xBE, 0x01, 0xB6, 0x01, 0xBC, 0x00, 0xBB, 0xBF,
+	             0x99, 0xF9, 0xBB, 0xAF;
      stk500_devcode   = 0x65;
 ##  avr910_devcode   = ?;
      signature        = 0x1e 0x93 0x81;
@@ -7316,6 +7427,11 @@ part
 part
      id            = "pwm3";
      desc          = "AT90PWM3";
+     has_debugwire = yes;
+     flash_instr   = 0xB6, 0x01, 0x11;
+     eeprom_instr  = 0xBD, 0xF2, 0xBD, 0xE1, 0xBB, 0xCF, 0xB4, 0x00,
+	             0xBE, 0x01, 0xB6, 0x01, 0xBC, 0x00, 0xBB, 0xBF,
+	             0x99, 0xF9, 0xBB, 0xAF;
      stk500_devcode   = 0x65;
 ##  avr910_devcode   = ?;
      signature        = 0x1e 0x93 0x81;
@@ -7493,6 +7609,11 @@ part
 part
      id            = "t25";
      desc          = "ATtiny25";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x02, 0x12;
+     eeprom_instr  = 0xBB, 0xFF, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
+	             0xBC, 0x02, 0xB4, 0x02, 0xBA, 0x0D, 0xBB, 0xBC,
+	             0x99, 0xE1, 0xBB, 0xAC;
 ## no STK500 devcode in XML file, use the ATtiny45 one
      stk500_devcode   = 0x14;
 ##  avr910_devcode   = ?;
@@ -7668,6 +7789,11 @@ part
 part
      id            = "t45";
      desc          = "ATtiny45";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x02, 0x12;
+     eeprom_instr  = 0xBB, 0xFF, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
+	             0xBC, 0x02, 0xB4, 0x02, 0xBA, 0x0D, 0xBB, 0xBC,
+	             0x99, 0xE1, 0xBB, 0xAC;
      stk500_devcode   = 0x14;
 ##  avr910_devcode   = ?;
 ##  Try the AT90S2313 devcode:
@@ -7842,6 +7968,11 @@ part
 part
      id            = "t85";
      desc          = "ATtiny85";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x02, 0x12;
+     eeprom_instr  = 0xBB, 0xFF, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
+	             0xBC, 0x02, 0xB4, 0x02, 0xBA, 0x0D, 0xBB, 0xBC,
+	             0x99, 0xE1, 0xBB, 0xAC;
 ## no STK500 devcode in XML file, use the ATtiny45 one
      stk500_devcode   = 0x14;
 ##  avr910_devcode   = ?;
@@ -8167,7 +8298,7 @@ part
     memory "efuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x  x x x x  x x i i";
+                          "x x x x  x x x x  x x x x  x i i i";
 
         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
@@ -8355,7 +8486,7 @@ part
     memory "efuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x  x x x x  x x i i";
+                          "x x x x  x x x x  x x x x  x i i i";
 
         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
@@ -8544,7 +8675,7 @@ part
     memory "efuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x  x x x x  x x i i";
+                          "x x x x  x x x x  x x x x  x i i i";
 
         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
@@ -8737,7 +8868,7 @@ part
     memory "efuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x  x x x x  x x i i";
+                          "x x x x  x x x x  x x x x  x i i i";
 
         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
@@ -8930,7 +9061,7 @@ part
     memory "efuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x  x x x x  x x i i";
+                          "x x x x  x x x x  x x x x  x i i i";
 
         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
@@ -8969,6 +9100,11 @@ part
 part
      id            = "t24";
      desc          = "ATtiny24";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x07, 0x17;
+     eeprom_instr  = 0xBB, 0xFF, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
+	             0xBC, 0x07, 0xB4, 0x07, 0xBA, 0x0D, 0xBB, 0xBC,
+	             0x99, 0xE1, 0xBB, 0xAC;
 ## no STK500 devcode in XML file, use the ATtiny45 one
      stk500_devcode   = 0x14;
 ##  avr910_devcode   = ?;
@@ -9146,6 +9282,11 @@ part
 part
      id            = "t44";
      desc          = "ATtiny44";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x07, 0x17;
+     eeprom_instr  = 0xBB, 0xFF, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
+                     0xBC, 0x07, 0xB4, 0x07, 0xBA, 0x0D, 0xBB, 0xBC,
+                     0x99, 0xE1, 0xBB, 0xAC;
 ## no STK500 devcode in XML file, use the ATtiny45 one
      stk500_devcode   = 0x14;
 ##  avr910_devcode   = ?;
@@ -9323,6 +9464,11 @@ part
 part
      id            = "t84";
      desc          = "ATtiny84";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x07, 0x17;
+     eeprom_instr  = 0xBB, 0xFF, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
+	             0xBC, 0x07, 0xB4, 0x07, 0xBA, 0x0D, 0xBB, 0xBC,
+	             0x99, 0xE1, 0xBB, 0xAC;
 ## no STK500 devcode in XML file, use the ATtiny45 one
      stk500_devcode   = 0x14;
 ##  avr910_devcode   = ?;
@@ -9651,7 +9797,7 @@ part
     memory "efuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x  x x x x  x x i i";
+                          "x x x x  x x x x  x x x x  i i i i";
 
         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
@@ -9841,7 +9987,7 @@ part
     memory "efuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x  x x x x  x x i i";
+                          "x x x x  x x x x  x x x x  i i i i";
 
         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
@@ -10029,7 +10175,7 @@ part
     memory "efuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x  x x x x  x x i i";
+                          "x x x x  x x x x  x x x x  i i i i";
 
         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
@@ -10218,7 +10364,7 @@ part
     memory "efuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x  x x x x  x x i i";
+                          "x x x x  x x x x  x x x x  i i i i";
 
         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
@@ -10257,6 +10403,7 @@ part
 part
     id               = "m325";
     desc             = "ATMEGA325";
+    signature        = 0x1e 0x95 0x05;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??; # No STK500v1 support?
 #   avr910_devcode   = 0x??; # Try the ATmega16 one
@@ -10424,7 +10571,6 @@ part
         max_write_delay = 9000;
       ;
 
-#   ATmega325 has Signature Bytes: 0x1E 0x95 0x05.
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   0  0  0  0   0  0  0  0",
@@ -10446,6 +10592,7 @@ part
 part
     id               = "m645";
     desc             = "ATMEGA645";
+    signature        = 0x1E 0x96 0x05;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??; # No STK500v1 support?
 #   avr910_devcode   = 0x??; # Try the ATmega16 one
@@ -10613,7 +10760,6 @@ part
         max_write_delay = 9000;
       ;
 
-#   ATmega645 has Signature Bytes: 0x1E 0x96 0x05.
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   0  0  0  0   0  0  0  0",
@@ -10635,6 +10781,7 @@ part
 part
     id               = "m3250";
     desc             = "ATMEGA3250";
+    signature        = 0x1E 0x95 0x06;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??; # No STK500v1 support?
 #   avr910_devcode   = 0x??; # Try the ATmega16 one
@@ -10802,7 +10949,6 @@ part
         max_write_delay = 9000;
       ;
 
-#   ATmega3250 has Signature Bytes: 0x1E 0x95 0x06.
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   0  0  0  0   0  0  0  0",
@@ -10824,6 +10970,7 @@ part
 part
     id               = "m6450";
     desc             = "ATMEGA6450";
+    signature        = 0x1E 0x96 0x06;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??; # No STK500v1 support?
 #   avr910_devcode   = 0x??; # Try the ATmega16 one
@@ -10991,7 +11138,6 @@ part
         max_write_delay = 9000;
       ;
 
-#   ATmega6450 has Signature Bytes: 0x1E 0x96 0x06..
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   0  0  0  0   0  0  0  0",

@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500v2.h,v 1.4 2006/09/06 20:06:07 joerg_wunsch Exp $ */
+/* $Id: stk500v2.h,v 1.6 2006/11/01 21:47:25 joerg_wunsch Exp $ */
 
 #ifndef stk500v2_h__
 #define stk500v2_h__
@@ -27,6 +27,9 @@ void stk500v2_initpgm (PROGRAMMER * pgm);
 void stk500hvsp_initpgm (PROGRAMMER * pgm);
 void stk500pp_initpgm (PROGRAMMER * pgm);
 void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm);
+void stk500v2_dragon_hvsp_initpgm(PROGRAMMER * pgm);
+void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm);
+void stk500v2_dragon_pp_initpgm(PROGRAMMER * pgm);
 
 #endif
 

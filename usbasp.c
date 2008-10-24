@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: usbasp.c,v 1.2 2006/09/17 20:35:36 joerg_wunsch Exp $ */
+/* $Id: usbasp.c,v 1.3 2006/11/20 15:04:09 joerg_wunsch Exp $ */
 
 /*
  * Interface to the USBasp programmer.
@@ -411,6 +411,8 @@ void usbasp_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = usbasp_cmd;
   pgm->open           = usbasp_open;
   pgm->close          = usbasp_close;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
 
   /*
    * optional functions
