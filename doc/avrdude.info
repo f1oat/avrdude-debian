@@ -8,11 +8,11 @@ END-INFO-DIR-ENTRY
 
    This file documents the avrdude program.
 
-   For avrdude version 5.4, 21 December 2006.
+   For avrdude version 5.5, 29 October 2007.
 
    Copyright (C) 2003, 2005 Brian Dean
 
-   Copyright (C) 2006 Jo"rg Wunsch
+   Copyright (C) 2006, 2007 Jo"rg Wunsch
 
    Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -34,7 +34,7 @@ File: avrdude.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
    This file documents the avrdude program for downloading/uploading
 programs to Atmel AVR microcontrollers.
 
-   For avrdude version 5.4, 21 December 2006.
+   For avrdude version 5.5, 29 October 2007.
 
    Send comments on AVRDUDE to <avrdude-dev@nongnu.org>.
 
@@ -126,9 +126,10 @@ comments will apply there.  In particular, the Dragon starts out with a
 rather fast ISP clock frequency, so the `-B BITCLOCK' option might be
 required to achieve a stable ISP communication.
 
-   The USBasp ISP adapter is also supported, provided AVRDUDE has been
-compiled with libusb support.  It features a simple firwmare-only USB
-implementation, running on an ATmega8 (or ATmega88).
+   The USBasp ISP and USBtinyISP adapters are also supported, provided
+AVRDUDE has been compiled with libusb support.  They both feature
+simple firwmare-only USB implementations, running on an ATmega8 (or
+ATmega88), or ATtiny2313, respectively.
 
 * Menu:
 
@@ -280,20 +281,31 @@ following options are recognized:
      `abcmini'      ABCmini Board, aka Dick Smith HOTCHIP
      `alf'          Nightshade ALF-PgmAVR,
                    `http://nightshade.homeip.net/'
+     `atisp'        AT-ISP V1.1 programming cable for
+                   AVR-SDK1 from,
+                   `http://micro-research.co.th/'
      `avr109'       Atmel AppNote AVR109 Boot Loader
      `avr910'       Atmel Low Cost Serial Programmer
      `avr911'       Atmel AppNote AVR911 AVROSP (an alias
                    for avr109)
      `avrisp'       Atmel AVR ISP (an alias for stk500)
+     `avrisp2'      Atmel AVR ISP mkII (alias for stk500v2)
+     `avrispmkII'   Atmel AVR ISP mkII (alias for stk500v2)
      `avrispv2'     Atmel AVR ISP, running a version 2.x
                    firmware (an alias for stk500v2)
-     `avrispmkII'   Atmel AVR ISP mkII (alias for stk500v2)
-     `avrispmk2'    Atmel AVR ISP mkII (alias for stk500v2)
      `bascom'       Bascom SAMPLE programming cable
+     `blaster'      Altera ByteBlaster
      `bsd'          Brian Dean's Programmer,
                    `http://www.bsdhome.com/avrdude/'
      `butterfly'    Atmel Butterfly Development Board
-     `dt006'        Dontronics DT006
+     `c2n232i'      C2N232I, reset=dtr sck=!rts mosi=!txd
+                   miso=!cts,
+                   `http://www.ktverkko.fi/~msmakela/8bit/c2n232/hardware/index.en.html'
+     `dapa'         Direct AVR Parallel Access cable
+     `dasa'         serial port banging, reset=rts sck=dtr
+                   mosi=txd miso=cts
+     `dasa3'        serial port banging, reset=!dtr
+                   sck=rts mosi=txd miso=cts
      `dragon_dw'    AVR Dragon in debugWire mode
      `dragon_hvsp'  AVR Dragon in high-voltage serial
                    programming mode
@@ -301,37 +313,53 @@ following options are recognized:
      `dragon_jtag'  AVR Dragon in JTAG mode
      `dragon_pp'    AVR Dragon in (high-voltage) parallel
                    programming mode
+     `dt006'        Dontronics DT006
+     `ere-isp-avr'  ERE ISP-AVR,
+                   `http://www.ere.co.th/download/sch050713.pdf'
      `frank-stk200' Frank's STK200 clone,
                    `http://electropol.free.fr/spip/spip.php?article15'
-     `jtagmkI'      Atmel JTAG ICE mkI, running at 115200
+     `futurlec'     Futurlec.com programming cable
+     `jtag1'        Atmel JTAG ICE mkI, running at 115200
                    Bd
-     `jtag1'        _Same as before._
      `jtag1slow'    Atmel JTAG ICE mkI, running at 19200 Bd
-     `jtagmkII'     Atmel JTAG ICE mkII (default speed
+     `jtag2slow'    Atmel JTAG ICE mkII (default speed
                    19200 Bd)
-     `jtag2slow'    _Same as before._
+     `jtag2'        Atmel JTAG ICE mkII, running at 115200
+                   Bd
      `jtag2fast'    Atmel JTAG ICE mkII, running at 115200
                    Bd
-     `jtag2'        _Same as before._
      `jtag2isp'     Atmel JTAG ICE mkII in ISP mode.
      `jtag2dw'      Atmel JTAG ICE mkII in debugWire mode.
+     `jtagmkI'      Atmel JTAG ICE mkI, running at 115200
+                   Bd
+     `jtagmkII'     Atmel JTAG ICE mkII (default speed
+                   19200 Bd)
      `pavr'         Jason Kyle's pAVR Serial Programmer
      `picoweb'      Picoweb Programming Cable,
                    `http://www.picoweb.net/'
      `pony-stk200'  Pony Prog STK200
+     `ponyser'      design ponyprog serial, reset=!txd
+                   sck=rts mosi=dtr miso=cts
+     `siprog'       Lancos SI-Prog,
+                   `http://www.lancos.com/siprogsch.html'
      `sp12'         Steve Bolt's Programmer
      `stk200'       STK200
      `stk500'       Atmel STK500, probing for either
                    version 1.x or 2.x firmware
-     `stk500v1'     Atmel STK500, running a version 1.x
-                   firmware
      `stk500hvsp'   Atmel STK500 in high-voltage serial
                    programming mode(version 2.x firmware
                    only)
      `stk500pp'     Atmel STK500 in parallel programming
                    mode (version 2.xfirmware only)
+     `stk500v1'     Atmel STK500, running a version 1.x
+                   firmware
      `stk500v2'     Atmel STK500, running a version 2.x
                    firmware
+     `usbasp'       USBasp,
+                   `http://www.fischl.de/usbasp/'
+     `usbtiny'      USBtiny simple USB programmer,
+                   `http://www.ladyada.net/make/usbtinyisp/'
+     `xil'          Xilinx JTAG cable
 
 `-C CONFIG-FILE'
      Use the specified config file for configuration data.  This file
@@ -1205,8 +1233,8 @@ A.1.1 Unix Installation
 
 To build and install from the source tarball on Unix like systems:
 
-     $ gunzip -c avrdude-5.4.tar.gz | tar xf -
-     $ cd avrdude-5.4
+     $ gunzip -c avrdude-5.5.tar.gz | tar xf -
+     $ cd avrdude-5.5
      $ ./configure
      $ make
      $ su root -c 'make install'
@@ -1218,8 +1246,8 @@ variable.
    If you do not have root access to your system, you can do the the
 following instead:
 
-     $ gunzip -c avrdude-5.4.tar.gz | tar xf -
-     $ cd avrdude-5.4
+     $ gunzip -c avrdude-5.5.tar.gz | tar xf -
+     $ cd avrdude-5.5
      $ ./configure --prefix=$HOME/local
      $ make
      $ make install
@@ -1261,8 +1289,8 @@ On rpm based linux systems (such as RedHat, SUSE, Mandrake, etc), you
 can build and install the rpm binaries directly from the tarball:
 
      $ su - root
-     # rpmbuild -tb avrdude-5.4.tar.gz
-     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.4-1.i386.rpm
+     # rpmbuild -tb avrdude-5.5.tar.gz
+     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.5-1.i386.rpm
 
    Note that the path to the resulting rpm package, differs from system
 to system. The above example is specific to RedHat.
@@ -1376,8 +1404,8 @@ Cygwin):
 
      $ set PREFIX=<your install directory path>
      $ export PREFIX
-     $ gunzip -c avrdude-5.4.tar.gz | tar xf -
-     $ cd avrdude-5.4
+     $ gunzip -c avrdude-5.5.tar.gz | tar xf -
+     $ cd avrdude-5.5
      $ ./configure LDFLAGS="-static" --prefix=$PREFIX --datadir=$PREFIX
      --sysconfdir=$PREFIX/bin --enable-versioned-doc=no
      $ make
@@ -1661,13 +1689,13 @@ In general, please report any bugs encountered via
      6             5
      9             4
 
-   * Problem: Multiple USBasp programmers connected simultaneously are
-     not found.
+   * Problem: Multiple USBasp or USBtinyISP programmers connected
+     simultaneously are not found.
 
-     Solution: none at this time.  The simplicity of the USBasp
-     programmer doesn't offer a method to distinguish multiple
-     programmers that are connected simultaneously, so effectively only
-     one USBasp is supported.
+     Solution: none at this time.  The simplicity of these programmers
+     doesn't offer a method to distinguish multiple programmers that are
+     connected simultaneously, so effectively only one of them is
+     supported.
 
    * Problem: I cannot do ... when the target is in debugWire mode.
 
@@ -1697,44 +1725,44 @@ In general, please report any bugs encountered via
 
 
 Tag Table:
-Node: Top1082
-Node: Introduction1687
-Node: History6004
-Node: Command Line Options7237
-Node: Option Descriptions7469
-Node: Example Command Line Invocations26504
-Node: Terminal Mode Operation31187
-Node: Terminal Mode Commands31924
-Node: Terminal Mode Examples34540
-Node: Configuration File37724
-Node: AVRDUDE Defaults39142
-Node: Programmer Definitions39726
-Node: Part Definitions40887
-Node: Instruction Format42807
-Node: Other Notes44194
-Node: Platform Dependent Information46372
-Node: Unix46610
-Node: Unix Installation46860
-Node: FreeBSD Installation47656
-Node: Linux Installation48288
-Node: Unix Configuration Files48829
-Node: FreeBSD Configuration Files49463
-Node: Linux Configuration Files49822
-Node: Unix Port Names50137
-Node: Unix Documentation51128
-Node: Windows51655
-Node: Windows Installation51917
-Node: Windows Configuration Files52764
-Node: Configuration file names53031
-Node: How AVRDUDE finds the configuration files.53421
-Node: Windows Port Names54211
-Node: Serial Ports54423
-Node: Parallel Ports54710
-Node: Using the parallel port55288
-Node: Windows NT/2K/XP55515
-Node: Windows 95/9857021
-Node: Documentation57224
-Node: Credits.57780
-Node: Troubleshooting58113
+Node: Top1087
+Node: Introduction1691
+Node: History6059
+Node: Command Line Options7292
+Node: Option Descriptions7524
+Node: Example Command Line Invocations27861
+Node: Terminal Mode Operation32544
+Node: Terminal Mode Commands33281
+Node: Terminal Mode Examples35897
+Node: Configuration File39081
+Node: AVRDUDE Defaults40499
+Node: Programmer Definitions41083
+Node: Part Definitions42244
+Node: Instruction Format44164
+Node: Other Notes45551
+Node: Platform Dependent Information47729
+Node: Unix47967
+Node: Unix Installation48217
+Node: FreeBSD Installation49013
+Node: Linux Installation49645
+Node: Unix Configuration Files50186
+Node: FreeBSD Configuration Files50820
+Node: Linux Configuration Files51179
+Node: Unix Port Names51494
+Node: Unix Documentation52485
+Node: Windows53012
+Node: Windows Installation53274
+Node: Windows Configuration Files54121
+Node: Configuration file names54388
+Node: How AVRDUDE finds the configuration files.54778
+Node: Windows Port Names55568
+Node: Serial Ports55780
+Node: Parallel Ports56067
+Node: Using the parallel port56645
+Node: Windows NT/2K/XP56872
+Node: Windows 95/9858378
+Node: Documentation58581
+Node: Credits.59137
+Node: Troubleshooting59470
 
 End Tag Table

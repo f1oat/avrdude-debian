@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_win32.c,v 1.12 2007/01/24 21:07:54 joerg_wunsch Exp $ */
+/* $Id: ser_win32.c,v 1.13 2007/10/29 21:51:07 joerg_wunsch Exp $ */
 
 /*
  * Native Win32 serial interface for avrdude.
@@ -245,7 +245,6 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 {
 	unsigned char c;
 	unsigned char * p = buf;
-	size_t len = 0;
 	DWORD read;
 
 	HANDLE hComPort=(HANDLE)fd->pfd;
@@ -282,7 +281,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 	{
 		fprintf(stderr, "%s: Recv: ", progname);
 
-		while (len) {
+		while (read) {
 			c = *p;
 			if (isprint(c)) {
 				fprintf(stderr, "%c ", c);
@@ -293,7 +292,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 			fprintf(stderr, "[%02x] ", c);
 
 			p++;
-			len--;
+			read--;
 		}
 		fprintf(stderr, "\n");
 	}

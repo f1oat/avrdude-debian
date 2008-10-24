@@ -18,7 +18,7 @@
 #
 
 #
-# $Id: Makefile.am,v 1.38 2007/01/25 20:51:11 joerg_wunsch Exp $
+# $Id: Makefile.am,v 1.40 2007/10/29 18:03:01 joerg_wunsch Exp $
 #
 
 EXTRA_DIST   = \
@@ -26,6 +26,7 @@ EXTRA_DIST   = \
 	ChangeLog-2001 \
 	ChangeLog-2002 \
 	ChangeLog-2003 \
+	ChangeLog-2004-2006 \
 	avrdude.1 \
 	avrdude.spec \
 	bootstrap
@@ -137,6 +138,8 @@ libavrdude_a_SOURCES = \
 	usbasp.h \
 	usbdevs.h \
 	usb_libusb.c \
+	usbtiny.h \
+	usbtiny.c \
 	update.h \
 	update.c
 

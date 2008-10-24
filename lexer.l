@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: lexer.l,v 1.50 2007/01/24 22:43:46 joerg_wunsch Exp $ */
+/* $Id: lexer.l,v 1.51 2007/10/29 18:03:02 joerg_wunsch Exp $ */
 
 %{
 /* need this for the call to atof() below */
@@ -120,6 +120,7 @@ allowfullpagebitstream { yylval=NULL; return K_ALLOWFULLPAGEBITSTREAM; }
 avr910           { yylval=NULL; return K_AVR910; }
 avr910_devcode   { yylval=NULL; return K_AVR910_DEVCODE; }
 usbasp           { yylval=NULL; return K_USBASP; }
+usbtiny          { yylval=NULL; return K_USBTINY; }
 bank_size        { yylval=NULL; return K_PAGE_SIZE; }
 banked           { yylval=NULL; return K_PAGED; }
 baudrate         { yylval=NULL; return K_BAUDRATE; }

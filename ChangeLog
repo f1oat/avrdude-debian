@@ -1,3 +1,86 @@
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac (AC_INIT): Bump version, releasing avrdude-5.5.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by <bikenomad@gmail.com>:
+	patch #5007: Patch for line-buffering of stdout and stderr
+	* main.c: call setvbuf() for stdout and stderr.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by <graceindustries@gmail.com>:
+	patch #5953: Add AT90CAN64 and AT90CAN32 to avrdude.conf
+	* avrdude.conf.in: Add entry for AT90CAN64 and AT90CAN32.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by Wolfgang Moser:
+	patch #6121: ISP support for the C2N232I device (serial port
+	bitbanging)
+	* avrdude.conf.in: Add entry for c2n232i.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by <karl.yerkes@gmail.com>:
+	patch #6141: accept binary format immediate values
+	* fileio.c: Detect a 0b prefix, and call strtoul() differently
+	in that case.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	bug #21076: -vvvv serial receive prints are empty in Win32 build
+	* ser_win32.c (ser_recv): Drop the essentially unused variable
+	"len", and use the variable "read" in order to track how many
+	bytes have just been read in.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	bug #21145: atmega329p not recognized
+	* avrdude.conf.in: Add definitions for the ATmega329P/3290P.
+	Same as ATmega329/3290 except of the different signature.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	bug #21152: Unable to program atmega324p with avrdude 5.4 and AVRISP
+	using default configuration file.
+	* avrdude.conf.in: Uncomment the (bogus) stk500_devcode lines for
+	the ATmega164P, ATmega324P, ATmega644, and ATmega644P definitions.
+	This only affects users of STK500v1 firmware.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by <ladyada@gmail.com>:
+	Patch #6233: Add support for USBtinyISP programmer
+	* usbtiny.c: New file.
+	* usbtiny.h: (Ditto.)
+	* Makefile.am: Include usbtiny into the build.
+	* avrdude.conf.in: (Ditto.)
+	* config_gram.y: (Ditto.)
+	* lexer.l: (Ditto.)
+	* avrdude.1: Document the usbtiny support.
+	* doc/avrdude.texi: (Ditto.)
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* doc/avrdude.texi: Sort list of supported programmers into
+	alphabetical order, add all missing programmers.
+
+2007-07-24 Thomas Fischl <tfischl@gmx.de>
+
+	* usbasp.c: Added long addresses to support devices with more
+        than 64kB flash. Closes bug #20558: Long address problem with
+        USBasp.
+
+2007-06-27 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* Makefile.am (EXTRA_DIST): Add ChangeLog-2004-2006.
+
+2007-05-16 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac (AC_INIT): Bump version for post-release.
+
 2007-05-16 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* configure.ac (AC_INIT): Bump version, releasing avrdude-5.4.
