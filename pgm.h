@@ -17,10 +17,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: pgm.h,v 1.31 2006/12/11 12:47:35 joerg_wunsch Exp $ */
+/* $Id: pgm.h,v 1.34 2007/01/30 13:41:53 joerg_wunsch Exp $ */
 
-#ifndef __pgm_h__
-#define __pgm_h__
+#ifndef pgm_h
+#define pgm_h
 
 #include <limits.h>
 
@@ -35,8 +35,6 @@
 #define PGM_DESCLEN 80
 #define PGM_PORTLEN PATH_MAX
 #define PGM_TYPELEN 32
-
-extern LISTID       programmers;
 
 typedef enum {
   EXIT_VCC_UNSPEC,
@@ -70,7 +68,7 @@ typedef struct programmer_t {
   int  (*pgm_led)        (struct programmer_t * pgm, int value);
   int  (*vfy_led)        (struct programmer_t * pgm, int value);
   int  (*initialize)     (struct programmer_t * pgm, AVRPART * p);
-  void (*display)        (struct programmer_t * pgm, char * p);
+  void (*display)        (struct programmer_t * pgm, const char * p);
   void (*enable)         (struct programmer_t * pgm);
   void (*disable)        (struct programmer_t * pgm);
   void (*powerup)        (struct programmer_t * pgm);
@@ -106,29 +104,22 @@ typedef struct programmer_t {
   char flag;		      /* for private use of the programmer */
 } PROGRAMMER;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 PROGRAMMER * pgm_new(void);
 
-#if defined(WIN32NATIVE)
+void programmer_display(PROGRAMMER * pgm, const char * p);
+PROGRAMMER * locate_programmer(LISTID programmers, const char * configid);
 
-#include "ac_cfg.h"
-#include <windows.h>
+typedef void (*walk_programmers_cb)(const char *name, const char *desc,
+                                    const char *cfgname, int cfglineno,
+                                    void *cookie);
+void walk_programmers(LISTID programmers, walk_programmers_cb cb, void *cookie);
 
-/* usleep replacements */
-/* sleep Windows in ms, Unix usleep in us
- #define usleep(us) Sleep((us)<20000?20:us/1000)
- #define usleep(us) Sleep(us/1000)
- #define ANTIWARP 3
- #define usleep(us) Sleep(us/1000*ANTIWARP)
-*/
-void usleep(unsigned long us);
-
-#if !defined(HAVE_GETTIMEOFDAY)
-struct timezone;
-int gettimeofday(struct timeval *tv, struct timezone *tz);
-#endif /* HAVE_GETTIMEOFDAY */
-
-#endif /* __win32native_h */
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif

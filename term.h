@@ -17,15 +17,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: term.h,v 1.11 2005/09/21 00:20:32 bdean Exp $ */
+/* $Id: term.h,v 1.12 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
-#ifndef __term_h__
-#define __term_h__
+#ifndef term_h
+#define term_h
 
 #include "avr.h"
 #include "pgm.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int terminal_mode(PROGRAMMER * pgm, struct avrpart * p);
 char * terminal_get_input(const char *prompt);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

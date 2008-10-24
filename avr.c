@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr.c,v 1.71 2006/12/11 14:06:52 joerg_wunsch Exp $ */
+/* $Id: avr.c,v 1.74 2007/05/16 20:15:13 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -28,22 +28,18 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include "avrdude.h"
 
 #include "avr.h"
 #include "lists.h"
 #include "pindefs.h"
 #include "ppi.h"
 #include "safemode.h"
+#include "update.h"
+
+FP_UpdateProgress update_progress;
 
 #define DEBUG 0
-
-extern char       * progname;
-extern char         progbuf[];
-extern PROGRAMMER * pgm;
-
-
-extern int do_cycles;
-
 
 int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
                           unsigned long addr, unsigned char * value)
@@ -176,7 +172,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   memset(buf, 0xff, size);
 
   if ((strcmp(mem->desc, "flash")==0) || (strcmp(mem->desc, "eeprom")==0)) {
-    if (pgm->paged_load != NULL) {
+    if (pgm->paged_load != NULL && mem->page_size != 0) {
       /*
        * the programmer supports a paged mode read, perhaps more
        * efficiently than we can read it directly, so use its routine
@@ -573,7 +569,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   }
 
   if ((strcmp(m->desc, "flash")==0) || (strcmp(m->desc, "eeprom")==0)) {
-    if (pgm->paged_write != NULL) {
+    if (pgm->paged_write != NULL && m->page_size != 0) {
       /*
        * the programmer supports a paged mode write, perhaps more
        * efficiently than we can read it directly, so use its routine
@@ -810,4 +806,55 @@ int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   }
 
   return rc;
+}
+
+/*
+ * Report the progress of a read or write operation from/to the
+ * device.
+ *
+ * The first call of report_progress() should look like this (for a write op):
+ *
+ * report_progress (0, 1, "Writing");
+ *
+ * Then hdr should be passed NULL on subsequent calls while the
+ * operation is progressing. Once the operation is complete, a final
+ * call should be made as such to ensure proper termination of the
+ * progress report:
+ *
+ * report_progress (1, 1, NULL);
+ *
+ * It would be nice if we could reduce the usage to one and only one
+ * call for each of start, during and end cases. As things stand now,
+ * that is not possible and makes maintenance a bit more work.
+ */
+void report_progress (int completed, int total, char *hdr)
+{
+  static int last = 0;
+  static double start_time;
+  int percent = (completed * 100) / total;
+  struct timeval tv;
+  double t;
+
+  if (update_progress == NULL)
+    return;
+
+  gettimeofday(&tv, NULL);
+  t = tv.tv_sec + ((double)tv.tv_usec)/1000000;
+
+  if (hdr) {
+    last = 0;
+    start_time = t;
+    update_progress (percent, t - start_time, hdr);
+  }
+
+  if (percent > 100)
+    percent = 100;
+
+  if (percent > last) {
+    last = percent;
+    update_progress (percent, t - start_time, hdr);
+  }
+
+  if (percent == 100)
+    last = 0;                   /* Get ready for next time. */
 }

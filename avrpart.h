@@ -18,17 +18,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avrpart.h,v 1.25 2006/11/23 07:07:06 joerg_wunsch Exp $ */
+/* $Id: avrpart.h,v 1.28 2007/01/30 13:41:53 joerg_wunsch Exp $ */
 
-#ifndef __avrpart_h__
-#define __avrpart_h__
+#ifndef avrpart_h
+#define avrpart_h
 
 #include <limits.h>
 
 #include "lists.h"
 
-
-extern LISTID part_list;
 
 /*
  * AVR serial programming instructions
@@ -182,6 +180,10 @@ typedef struct avrmem {
   OPCODE * op[AVR_OP_MAX];    /* opcodes */
 } AVRMEM;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Functions for OPCODE structures */
 OPCODE * avr_new_opcode(void);
 int avr_set_bits(OPCODE * op, unsigned char * cmd);
@@ -194,7 +196,7 @@ AVRMEM * avr_new_memtype(void);
 int avr_initmem(AVRPART * p);
 AVRMEM * avr_dup_mem(AVRMEM * m);
 AVRMEM * avr_locate_mem(AVRPART * p, char * desc);
-void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
+void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
                      int verbose);
 
 /* Functions for AVRPART structures */
@@ -202,7 +204,15 @@ AVRPART * avr_new_part(void);
 AVRPART * avr_dup_part(AVRPART * d);
 AVRPART * locate_part(LISTID parts, char * partdesc);
 AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode);
-void list_parts(FILE * f, char * prefix, LISTID parts);
-void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose);
+void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose);
 
+typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
+                                 const char *cfgname, int cfglineno,
+                                 void *cookie);
+void walk_avrparts(LISTID programmers, walk_avrparts_cb cb, void *cookie);
+
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* avrpart_h */

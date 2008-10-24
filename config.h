@@ -17,10 +17,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config.h,v 1.16 2005/11/02 21:03:51 joerg_wunsch Exp $ */
+/* $Id: config.h,v 1.18 2007/01/30 13:41:53 joerg_wunsch Exp $ */
 
-#ifndef __config_h__
-#define __config_h__
+#ifndef config_h
+#define config_h
 
 #include "lists.h"
 #include "pindefs.h"
@@ -49,9 +49,11 @@ extern PROGRAMMER * current_prog;
 extern AVRPART    * current_part;
 extern AVRMEM     * current_mem;
 extern int          lineno;
-extern char       * infile;
+extern const char * infile;
 extern LISTID       string_list;
 extern LISTID       number_list;
+extern LISTID       part_list;
+extern LISTID       programmers;
 extern char         default_programmer[];
 extern char         default_parallel[];
 extern char         default_serial[];
@@ -65,6 +67,10 @@ extern YYSTYPE yylval;
 
 extern char string_buf[MAX_STR_CONST];
 extern char *string_buf_ptr;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int yyparse(void);
 
@@ -89,12 +95,14 @@ TOKEN * keyword(int primary);
 
 void print_token(TOKEN * tkn);
 
-PROGRAMMER * new_programmer(void);
+void pyytext(void);
 
-AVRPART * new_part(void);
+char * dup_string(const char * str);
 
-AVRPART * dup_part(AVRPART * d);
+int read_config(const char * file);
 
-char * dup_string(char * str);
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: usbasp.c,v 1.3 2006/11/20 15:04:09 joerg_wunsch Exp $ */
+/* $Id: usbasp.c,v 1.6 2007/02/02 16:27:49 fischl Exp $ */
 
 /*
  * Interface to the USBasp programmer.
@@ -33,16 +33,13 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
 #include "usbasp.h"
 
 #ifdef HAVE_LIBUSB
 #include <usb.h>
-
-extern int    verbose;
-extern char * progname;
-extern int do_cycles;
 
 static usb_dev_handle *usbhandle;
 
@@ -208,8 +205,7 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   usleep(100000);
 
-  pgm->program_enable(pgm, p);
-  return 0;
+  return pgm->program_enable(pgm, p);
 }
 
 static void usbasp_disable(PROGRAMMER * pgm)
@@ -226,7 +222,7 @@ static void usbasp_enable(PROGRAMMER * pgm)
   return;
 }
 
-static void usbasp_display(PROGRAMMER * pgm, char * p)
+static void usbasp_display(PROGRAMMER * pgm, const char * p)
 {
   return;
 }
@@ -425,8 +421,6 @@ void usbasp_initpgm(PROGRAMMER * pgm)
 
 
 #else /* HAVE_LIBUSB */
-
-extern char * progname;
 
 static int usbasp_nousb_open (struct programmer_t *pgm, char * name)
 {

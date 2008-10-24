@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: bitbang.c,v 1.5 2006/11/20 15:04:09 joerg_wunsch Exp $ */
+/* $Id: bitbang.c,v 1.6 2007/01/24 21:07:54 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -33,15 +33,12 @@
 #  include <sys/time.h>
 #endif
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"
 #include "par.h"
 #include "serbb.h"
-
-extern char * progname;
-extern int do_cycles;
-extern int verbose;
 
 static int delay_decrement;
 

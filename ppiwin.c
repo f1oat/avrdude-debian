@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ppiwin.c,v 1.11 2006/12/11 12:47:35 joerg_wunsch Exp $ */
+/* $Id: ppiwin.c,v 1.12 2007/01/24 21:07:54 joerg_wunsch Exp $ */
 
 /*
 This is the parallel port interface for Windows built using Cygwin.
@@ -43,12 +43,10 @@ reg = register as defined in an enum in ppi.h. This must be converted
 #include <windows.h>
 #include <sys/time.h>
 #include <windows.h>
+
+#include "avrdude.h"
 #include "serial.h"
 #include "ppi.h"
-
-extern char *progname;
-
-
 
 #define DEVICE_LPT1 "lpt1"
 #define DEVICE_LPT2 "lpt2"

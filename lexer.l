@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: lexer.l,v 1.48 2006/11/23 07:07:06 joerg_wunsch Exp $ */
+/* $Id: lexer.l,v 1.50 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
 %{
 /* need this for the call to atof() below */
@@ -29,14 +29,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "avrdude.h"
+
 #include "config.h"
 #include "config_gram.h"
 #include "lists.h"
-
-extern int    lineno;
-extern char * infile;
-
-void pyytext(void);
 
 #define YY_NO_UNPUT
 

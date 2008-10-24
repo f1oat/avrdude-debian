@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: par.c,v 1.21 2006/12/11 12:47:35 joerg_wunsch Exp $ */
+/* $Id: par.c,v 1.23 2007/01/30 13:41:53 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -36,15 +36,12 @@
 # include "solaris_ecpp.h"
 #endif
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"
 #include "ppi.h"
 #include "bitbang.h"
-
-extern char * progname;
-extern int do_cycles;
-extern int verbose;
 
 #if HAVE_PARPORT
 
@@ -324,7 +321,7 @@ static void par_close(PROGRAMMER * pgm)
   pgm->fd.ifd = -1;
 }
 
-static void par_display(PROGRAMMER * pgm, char * p)
+static void par_display(PROGRAMMER * pgm, const char * p)
 {
   char vccpins[64];
   char buffpins[64];

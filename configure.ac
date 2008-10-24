@@ -18,13 +18,13 @@
 #
 
 #
-# $Id: configure.ac,v 1.45 2006/12/22 22:55:33 joerg_wunsch Exp $
+# $Id: configure.ac,v 1.50 2007/05/16 21:40:21 joerg_wunsch Exp $
 #
 
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(avrdude, 5.3.1, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 5.4, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -39,6 +39,7 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_YACC
 AM_PROG_LEX
+AC_PROG_RANLIB
 
 # Checks for libraries.
 AC_CHECK_LIB([termcap], [tputs])
@@ -60,16 +61,36 @@ if test x$have_libusb = xyes; then
 fi
 AC_SUBST(LIBUSB, $LIBUSB)
 
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([limits.h stdlib.h string.h])
+AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])
+AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
+#include <setupapi.h>])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_HEADER_TIME
+
+# Checks for library functions.
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday])
+
 AC_MSG_CHECKING([for a Win32 HID libray])
 SAVED_LIBS="${LIBS}"
 case $target in
-	*-*-mingw32*)
+        *-*-mingw32* | *-*-cygwin* | *-*-windows*)
 		LIBHID="-lhid -lsetupapi"
-		HIDINCLUDE="#include <ddk/hidsdi.h>"
+		if test $ac_cv_header_ddk_hidsdi_h = yes
+		then
+			HIDINCLUDE="#include <ddk/hidsdi.h>"
+		else
+			HIDINCLUDE="#include \"my_ddk_hidsdi.h\""
+		fi
 		;;
 	*)
-		LIBHID="-lhid"
-		HIDINCLUDE='#include "my_ddk_hidsdi.h"'
+		LIBHID=""
 		;;
 esac
 LIBS="${LIBS} ${LIBHID}"
@@ -96,22 +117,7 @@ else
    LIBHID=""
 fi
 LIBS="${SAVED_LIBS}"
-
-# Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS([limits.h stdlib.h string.h])
-AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])
-AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
-#include <setupapi.h>])
-
-# Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-AC_HEADER_TIME
-
-# Checks for library functions.
-AC_PROG_GCC_TRADITIONAL
-AC_FUNC_MALLOC
-AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday])
+AC_SUBST(LIBHID, $LIBHID)
 
 # Checks for misc stuff.
 
@@ -157,14 +163,12 @@ AC_ARG_ENABLE(
 		esac],
 	[enabled_parport=yes])
 
-if test "$enabled_doc" = "yes"; then
-
-SUBDIRS_AC='doc @WINDOWS_DIRS@'
 DIST_SUBDIRS_AC='doc windows'
-else
 
-SUBDIRS_AC='@WINDOWS_DIRS@'
-DIST_SUBDIRS_AC='windows'
+if test "$enabled_doc" = "yes"; then
+	SUBDIRS_AC='doc @WINDOWS_DIRS@'
+else
+	SUBDIRS_AC='@WINDOWS_DIRS@'
 fi
 
 AC_SUBST(DOC_INST_DIR, $DOC_INST_DIR)
@@ -232,7 +236,7 @@ export confsubst
 case $target in
         *-*-mingw32* | *-*-cygwin* | *-*-windows*)
 		WINDOWS_DIRS="windows"
-		CFLAGS="-mno-cygwin -DWIN32NATIVE"
+		CFLAGS="${CFLAGS} -mno-cygwin -DWIN32NATIVE"
 		LDFLAGS="${LDFLAGS} -static"
 		;;
 esac
@@ -244,11 +248,8 @@ if test "$GCC" = yes; then
 fi
 AC_SUBST(ENABLE_WARNINGS,$ENABLE_WARNINGS)
 
-if test "$enabled_doc" = "yes"; then
-AC_CONFIG_FILES([doc/Makefile])
-fi
-
 AC_CONFIG_FILES([
+       doc/Makefile
        windows/Makefile
        avrdude.spec
        Makefile

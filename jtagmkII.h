@@ -17,10 +17,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkII.h,v 1.5 2006/11/20 23:23:37 joerg_wunsch Exp $ */
+/* $Id: jtagmkII.h,v 1.6 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
 #ifndef jtagmkII_h
 #define jtagmkII_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int  jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len);
 int  jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg);
@@ -33,6 +37,10 @@ void jtagmkII_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dw_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dragon_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dragon_dw_initpgm (PROGRAMMER * pgm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

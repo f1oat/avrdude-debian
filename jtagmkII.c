@@ -22,7 +22,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkII.c,v 1.24 2006/12/11 16:48:52 joerg_wunsch Exp $ */
+/* $Id: jtagmkII.c,v 1.26 2007/01/30 13:41:53 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for Atmel JTAG ICE mkII programmer
@@ -41,6 +41,7 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "crc16.h"
 #include "pgm.h"
@@ -49,10 +50,6 @@
 #include "serial.h"
 #include "usbdevs.h"
 
-
-extern int    verbose;
-extern char * progname;
-extern int do_cycles;
 
 /*
  * XXX There should really be a programmer-specific private data
@@ -2073,7 +2070,7 @@ static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
 }
 
 
-static void jtagmkII_display(PROGRAMMER * pgm, char * p)
+static void jtagmkII_display(PROGRAMMER * pgm, const char * p)
 {
   unsigned char hw[4], fw[4];
 

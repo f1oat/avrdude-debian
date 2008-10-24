@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: usb_libusb.c,v 1.10 2006/12/11 12:47:35 joerg_wunsch Exp $ */
+/* $Id: usb_libusb.c,v 1.11 2007/01/24 21:07:54 joerg_wunsch Exp $ */
 
 /*
  * USB interface via libusb for avrdude.
@@ -38,11 +38,9 @@
 
 #include <usb.h>
 
+#include "avrdude.h"
 #include "serial.h"
 #include "usbdevs.h"
-
-extern char *progname;
-extern int verbose;
 
 static char usbbuf[USBDEV_MAX_XFER];
 static int buflen = -1, bufptr;

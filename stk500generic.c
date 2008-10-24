@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500generic.c,v 1.1 2006/09/19 22:27:30 joerg_wunsch Exp $ */
+/* $Id: stk500generic.c,v 1.3 2007/03/25 22:43:50 c_oflynn Exp $ */
 
 /*
  * avrdude interface for Atmel STK500 programmer
@@ -32,11 +32,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "avrdude.h"
 #include "pgm.h"
 #include "stk500.h"
 #include "stk500v2.h"
-
-extern char *progname;
 
 static int stk500generic_open(PROGRAMMER * pgm, char * port)
 {
@@ -48,6 +47,8 @@ static int stk500generic_open(PROGRAMMER * pgm, char * port)
 	      progname);
       return 0;
     }
+
+  pgm->close(pgm);
 
   stk500v2_initpgm(pgm);
   if (pgm->open(pgm, port) >= 0)

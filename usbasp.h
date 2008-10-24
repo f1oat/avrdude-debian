@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: usbasp.h,v 1.2 2006/09/17 20:35:36 joerg_wunsch Exp $ */
+/* $Id: usbasp.h,v 1.3 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
 #ifndef usbasp_h
 #define usbasp_h
@@ -50,6 +50,14 @@
 #define USB_ERROR_ACCESS    2
 #define USB_ERROR_IO        3
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void usbasp_initpgm (PROGRAMMER * pgm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* usbasp_h */

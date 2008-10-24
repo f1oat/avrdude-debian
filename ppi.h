@@ -17,10 +17,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ppi.h,v 1.17 2006/12/11 12:47:35 joerg_wunsch Exp $ */
+/* $Id: ppi.h,v 1.18 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
-#ifndef __ppi_h__
-#define __ppi_h__
+#ifndef ppi_h
+#define ppi_h
 
 /*
  * PPI registers
@@ -31,7 +31,9 @@ enum {
   PPISTATUS
 };
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int ppi_get       (union filedescriptor *fdp, int reg, int bit);
 
@@ -48,6 +50,10 @@ int ppi_toggle    (union filedescriptor *fdp, int reg, int bit);
 void ppi_open     (char * port, union filedescriptor *fdp);
 
 void ppi_close    (union filedescriptor *fdp);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

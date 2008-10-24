@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ppi.c,v 1.28 2006/12/11 12:47:35 joerg_wunsch Exp $ */
+/* $Id: ppi.c,v 1.30 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
 
 #if !defined(WIN32NATIVE)
@@ -41,12 +41,11 @@
 # include "solaris_ecpp.h"
 #endif
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"
 #include "ppi.h"
-
-extern char * progname;
 
 enum {
   PPI_READ,
@@ -54,7 +53,8 @@ enum {
   PPI_SHADOWREAD
 };
 
-int ppi_shadow_access(union filedescriptor *fdp, int reg, unsigned char *v, unsigned char action)
+static int ppi_shadow_access(union filedescriptor *fdp, int reg,
+			     unsigned char *v, unsigned char action)
 {
   static unsigned char shadow[3];
   int shadow_num;

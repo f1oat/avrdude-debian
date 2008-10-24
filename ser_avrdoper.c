@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_avrdoper.c,v 1.3 2006/12/22 22:52:34 joerg_wunsch Exp $ */
+/* $Id: ser_avrdoper.c,v 1.4 2007/01/24 21:07:54 joerg_wunsch Exp $ */
 
 /*
  * Serial Interface emulation for USB programmer "AVR-Doper" in HID mode.
@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "avrdude.h"
 #include "serial.h"
 
 /* ------------------------------------------------------------------------ */
@@ -52,9 +53,6 @@
 
 #define USB_VENDOR_ID   0x16c0
 #define USB_PRODUCT_ID  0x05df
-
-extern char *progname;
-extern int verbose;
 
 static int  reportDataSizes[4] = {13, 29, 61, 125};
 

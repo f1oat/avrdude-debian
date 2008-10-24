@@ -17,13 +17,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr910.h,v 1.3 2004/12/22 01:52:45 bdean Exp $ */
+/* $Id: avr910.h,v 1.4 2007/01/24 22:43:46 joerg_wunsch Exp $ */
 
-#ifndef __avr910_h__
-#define __avr910_h__
+#ifndef avr910_h
+#define avr910_h
 
 #include "avrpart.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void avr910_initpgm (PROGRAMMER * pgm);
 
-#endif /* __avr910_h__ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* avr910_h */
