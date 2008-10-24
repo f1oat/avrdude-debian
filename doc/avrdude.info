@@ -8,7 +8,7 @@ END-INFO-DIR-ENTRY
 
    This file documents the avrdude program.
 
-   For avrdude version 5.2, 9 October 2006.
+   For avrdude version 5.3.1, 21 December 2006.
 
    Copyright (C) 2003, 2005 Brian Dean
 
@@ -34,7 +34,7 @@ File: avrdude.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
    This file documents the avrdude program for downloading/uploading
 programs to Atmel AVR microcontrollers.
 
-   For avrdude version 5.2, 9 October 2006.
+   For avrdude version 5.3.1, 21 December 2006.
 
    Send comments on AVRDUDE to <avrdude-dev@nongnu.org>.
 
@@ -112,8 +112,19 @@ the STK500 firmware version 2 one.  However, as the JTAG ICE is
 intented to allow on-chip debugging as well as memory programming, the
 protocol is more sophisticated.  (The JTAG ICE mkII protocol can also
 be run on top of USB.)  Only the memory programming functionality of
-the JTAG ICE is supported by AVRDUDE.  For the JTAG ICE mkII, both JTAG
-and ISP mode are supported.
+the JTAG ICE is supported by AVRDUDE.  For the JTAG ICE mkII, JTAG,
+debugWire and ISP mode are supported.  See below for the limitations of
+debugWire.
+
+   The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP,
+debugWire).  (High-voltage programming is not yet supported.)  When
+used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
+JTAG ICE mkII, so all device-specific comments for that device will
+apply as well.  When used in ISP mode, the AVR Dragon behaves similar
+to an AVRISP mkII (or JTAG ICE mkII in ISP mode), so all device-specific
+comments will apply there.  In particular, the Dragon starts out with a
+rather fast ISP clock frequency, so the `-B BITCLOCK' option might be
+required to achieve a stable ISP communication.
 
    The USBasp ISP adapter is also supported, provided AVRDUDE has been
 compiled with libusb support.  It features a simple firwmare-only USB
@@ -283,6 +294,15 @@ following options are recognized:
                    `http://www.bsdhome.com/avrdude/'
      `butterfly'    Atmel Butterfly Development Board
      `dt006'        Dontronics DT006
+     `dragon_dw'    AVR Dragon in debugWire mode
+     `dragon_hvsp'  AVR Dragon in high-voltage serial
+                   programming mode
+     `dragon_isp'   AVR Dragon in ISP mode
+     `dragon_jtag'  AVR Dragon in JTAG mode
+     `dragon_pp'    AVR Dragon in (high-voltage) parallel
+                   programming mode
+     `frank-stk200' Frank's STK200 clone,
+                   `http://electropol.free.fr/spip/spip.php?article15'
      `jtagmkI'      Atmel JTAG ICE mkI, running at 115200
                    Bd
      `jtag1'        _Same as before._
@@ -294,6 +314,7 @@ following options are recognized:
                    Bd
      `jtag2'        _Same as before._
      `jtag2isp'     Atmel JTAG ICE mkII in ISP mode.
+     `jtag2dw'      Atmel JTAG ICE mkII in debugWire mode.
      `pavr'         Jason Kyle's pAVR Serial Programmer
      `picoweb'      Picoweb Programming Cable,
                    `http://www.picoweb.net/'
@@ -428,6 +449,11 @@ following options are recognized:
 
      As the AVRISP mkII device can only be talked to over USB, the very
      same method of specifying the port is required there.
+
+     For the USB programmer "AVR-Doper" running in HID mode, the port
+     must be specified as AVRDOPER. Libusb support is required on Unix
+     but not on Windows. For more information about AVR-Doper see
+     `http://www.obdev.at/avrusb/avrdoper.html'.
 
      For programmers that attach to a serial port using some kind of
      higher level protocol (as opposed to bit-bang style programmers),
@@ -1179,8 +1205,8 @@ A.1.1 Unix Installation
 
 To build and install from the source tarball on Unix like systems:
 
-     $ gunzip -c avrdude-5.2.tar.gz | tar xf -
-     $ cd avrdude-5.2
+     $ gunzip -c avrdude-5.3.1.tar.gz | tar xf -
+     $ cd avrdude-5.3.1
      $ ./configure
      $ make
      $ su root -c 'make install'
@@ -1192,8 +1218,8 @@ variable.
    If you do not have root access to your system, you can do the the
 following instead:
 
-     $ gunzip -c avrdude-5.2.tar.gz | tar xf -
-     $ cd avrdude-5.2
+     $ gunzip -c avrdude-5.3.1.tar.gz | tar xf -
+     $ cd avrdude-5.3.1
      $ ./configure --prefix=$HOME/local
      $ make
      $ make install
@@ -1235,8 +1261,8 @@ On rpm based linux systems (such as RedHat, SUSE, Mandrake, etc), you
 can build and install the rpm binaries directly from the tarball:
 
      $ su - root
-     # rpmbuild -tb avrdude-5.2.tar.gz
-     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.2-1.i386.rpm
+     # rpmbuild -tb avrdude-5.3.1.tar.gz
+     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.3.1-1.i386.rpm
 
    Note that the path to the resulting rpm package, differs from system
 to system. The above example is specific to RedHat.
@@ -1350,8 +1376,8 @@ Cygwin):
 
      $ set PREFIX=<your install directory path>
      $ export PREFIX
-     $ gunzip -c avrdude-5.2.tar.gz | tar xf -
-     $ cd avrdude-5.2
+     $ gunzip -c avrdude-5.3.1.tar.gz | tar xf -
+     $ cd avrdude-5.3.1
      $ ./configure LDFLAGS="-static" --prefix=$PREFIX --datadir=$PREFIX
      --sysconfdir=$PREFIX/bin --enable-versioned-doc=no
      $ make
@@ -1643,48 +1669,72 @@ In general, please report any bugs encountered via
      programmers that are connected simultaneously, so effectively only
      one USBasp is supported.
 
+   * Problem: I cannot do ... when the target is in debugWire mode.
+
+     Solution: debugWire mode imposes several limitations.
+
+     The debugWire protocol is Atmel's proprietary one-wire (plus
+     ground) protocol to allow an in-circuit emulation of the smaller
+     AVR devices, using the /RESET line.  DebugWire mode is initiated
+     by activating the DWEN fuse, and then power-cycling the target.
+     While this mode is mainly intented for debugging/emulation, it
+     also offers limited programming capabilities.  Effectively, the
+     only memory areas that can be read or programmed in this mode are
+     flash ROM and EEPROM.  It is also possible to read out the
+     signature.  All other memory areas cannot be accessed.  There is no
+     _chip erase_ functionality in debugWire mode; instead, while
+     reprogramming the flash ROM, each flash ROM page is erased right
+     before updating it.  This is done transparently by the JTAG ICE
+     mkII (or AVR Dragon).  The only way back from debugWire mode is to
+     initiate a special sequence of commands to the JTAG ICE mkII (or
+     AVR Dragon), so the debugWire mode will be temporarily disabled,
+     and the target can be accessed using normal ISP programming.  This
+     sequence is automatically initiated by using the JTAG ICE mkII or
+     AVR Dragon in ISP mode, when they detect that ISP mode cannot be
+     entered.
+
 
 
 
 Tag Table:
-Node: Top1080
-Node: Introduction1683
-Node: History5344
-Node: Command Line Options6577
-Node: Option Descriptions6809
-Node: Example Command Line Invocations25095
-Node: Terminal Mode Operation29778
-Node: Terminal Mode Commands30515
-Node: Terminal Mode Examples33131
-Node: Configuration File36315
-Node: AVRDUDE Defaults37733
-Node: Programmer Definitions38317
-Node: Part Definitions39478
-Node: Instruction Format41398
-Node: Other Notes42785
-Node: Platform Dependent Information44963
-Node: Unix45201
-Node: Unix Installation45451
-Node: FreeBSD Installation46247
-Node: Linux Installation46879
-Node: Unix Configuration Files47420
-Node: FreeBSD Configuration Files48054
-Node: Linux Configuration Files48413
-Node: Unix Port Names48728
-Node: Unix Documentation49719
-Node: Windows50246
-Node: Windows Installation50508
-Node: Windows Configuration Files51355
-Node: Configuration file names51622
-Node: How AVRDUDE finds the configuration files.52012
-Node: Windows Port Names52802
-Node: Serial Ports53014
-Node: Parallel Ports53301
-Node: Using the parallel port53879
-Node: Windows NT/2K/XP54106
-Node: Windows 95/9855612
-Node: Documentation55815
-Node: Credits.56371
-Node: Troubleshooting56704
+Node: Top1084
+Node: Introduction1691
+Node: History6008
+Node: Command Line Options7241
+Node: Option Descriptions7473
+Node: Example Command Line Invocations26508
+Node: Terminal Mode Operation31191
+Node: Terminal Mode Commands31928
+Node: Terminal Mode Examples34544
+Node: Configuration File37728
+Node: AVRDUDE Defaults39146
+Node: Programmer Definitions39730
+Node: Part Definitions40891
+Node: Instruction Format42811
+Node: Other Notes44198
+Node: Platform Dependent Information46376
+Node: Unix46614
+Node: Unix Installation46864
+Node: FreeBSD Installation47668
+Node: Linux Installation48300
+Node: Unix Configuration Files48845
+Node: FreeBSD Configuration Files49479
+Node: Linux Configuration Files49838
+Node: Unix Port Names50153
+Node: Unix Documentation51144
+Node: Windows51671
+Node: Windows Installation51933
+Node: Windows Configuration Files52784
+Node: Configuration file names53051
+Node: How AVRDUDE finds the configuration files.53441
+Node: Windows Port Names54231
+Node: Serial Ports54443
+Node: Parallel Ports54730
+Node: Using the parallel port55308
+Node: Windows NT/2K/XP55535
+Node: Windows 95/9857041
+Node: Documentation57244
+Node: Credits.57800
+Node: Troubleshooting58133
 
 End Tag Table

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr.h,v 1.31 2004/12/22 01:52:45 bdean Exp $ */
+/* $Id: avr.h,v 1.32 2006/11/20 15:04:09 joerg_wunsch Exp $ */
 
 #ifndef __avr_h__
 #define __avr_h__
@@ -32,8 +32,8 @@
 extern struct avrpart parts[];
 
 
-int avr_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
-                  unsigned long addr, unsigned char * value);
+int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+			  unsigned long addr, unsigned char * value);
 
 int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
              int verbose);
@@ -43,6 +43,9 @@ int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
 int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                    unsigned long addr, unsigned char data);
+
+int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+			   unsigned long addr, unsigned char data);
 
 int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
               int verbose);

@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avrpart.h,v 1.23 2006/07/21 21:53:49 joerg_wunsch Exp $ */
+/* $Id: avrpart.h,v 1.25 2006/11/23 07:07:06 joerg_wunsch Exp $ */
 
 #ifndef __avrpart_h__
 #define __avrpart_h__
@@ -89,10 +89,13 @@ typedef struct opcode {
 #define AVRPART_HAS_JTAG       0x0008  /* part has a JTAG i/f */
 #define AVRPART_ALLOWFULLPAGEBITSTREAM 0x0010 /* JTAG ICE mkII param. */
 #define AVRPART_ENABLEPAGEPROGRAMMING 0x0020 /* JTAG ICE mkII param. */
+#define AVRPART_HAS_DW         0x0040  /* part has a debugWire i/f */
 
 #define AVR_DESCLEN 64
 #define AVR_IDLEN   32
 #define CTL_STACK_SIZE 32
+#define FLASH_INSTR_SIZE 3
+#define EEPROM_INSTR_SIZE 20
 typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
@@ -120,6 +123,8 @@ typedef struct avrpart {
 
   enum ctl_stack_t ctl_stack_type;  /* what to use the ctl stack for */
   unsigned char controlstack[CTL_STACK_SIZE]; /* stk500v2 PP/HVSP ctl stack */
+  unsigned char flash_instr[FLASH_INSTR_SIZE]; /* flash instructions (debugWire, JTAG) */
+  unsigned char eeprom_instr[EEPROM_INSTR_SIZE]; /* EEPROM instructions (debugWire, JTAG) */
 
   int           hventerstabdelay;   /* stk500 v2 hv mode parameter */
   int           progmodedelay;      /* stk500 v2 hv mode parameter */

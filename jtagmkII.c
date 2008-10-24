@@ -22,10 +22,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkII.c,v 1.15 2006/09/07 19:57:59 joerg_wunsch Exp $ */
+/* $Id: jtagmkII.c,v 1.24 2006/12/11 16:48:52 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for Atmel JTAG ICE mkII programmer
+ *
+ * The AVR Dragon also uses the same protocol, so it is handled here
+ * as well.
  */
 
 #include "ac_cfg.h"
@@ -103,6 +106,11 @@ static struct {
   RC(RSP_SET_N_PARAMETERS)
 };
 
+/*
+ * pgm->flag is marked as "for private use of the programmer".
+ * The following defines this programmer's use of that field.
+ */
+#define PGM_FL_IS_DW		(0x0001)
 
 /* The length of the device descriptor is firmware-dependent. */
 static size_t device_descriptor_length;
@@ -229,7 +237,7 @@ static void jtagmkII_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
       switch (data[1]) {
       case EMULATOR_MODE_DEBUGWIRE: fprintf(stderr, ": DebugWire"); break;
       case EMULATOR_MODE_JTAG:      fprintf(stderr, ": JTAG"); break;
-      case EMULATOR_MODE_UNKNOWN:   fprintf(stderr, ": Unknown"); break;
+      case EMULATOR_MODE_HV:        fprintf(stderr, ": HVSP/PP"); break;
       case EMULATOR_MODE_SPI:       fprintf(stderr, ": SPI"); break;
       }
     putc('\n', stderr);
@@ -351,7 +359,7 @@ int jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 
   crcappend(buf, len + 8);
 
-  if (serial_send(pgm->fd, buf, len + 10) != 0) {
+  if (serial_send(&pgm->fd, buf, len + 10) != 0) {
     fprintf(stderr,
 	    "%s: jtagmkII_send(): failed to send command to serial port\n",
 	    progname);
@@ -366,7 +374,7 @@ int jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 
 static int jtagmkII_drain(PROGRAMMER * pgm, int display)
 {
-  return serial_drain(pgm->fd, display);
+  return serial_drain(&pgm->fd, display);
 }
 
 
@@ -415,9 +423,9 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
       if (ignorpkt) {
 	/* skip packet's contents */
 	for(l = 0; l < msglen; l++)
-	  rv += serial_recv(pgm->fd, &c, 1);
+	  rv += serial_recv(&pgm->fd, &c, 1);
       } else {
-	rv += serial_recv(pgm->fd, buf + 8, msglen);
+	rv += serial_recv(&pgm->fd, buf + 8, msglen);
       }
       if (rv != 0) {
 	timedout:
@@ -430,7 +438,7 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
 	return -1;
       }
     } else {
-      if (serial_recv(pgm->fd, &c, 1) != 0)
+      if (serial_recv(&pgm->fd, &c, 1) != 0)
 	goto timedout;
     }
     checksum ^= c;
@@ -573,7 +581,7 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
 #define MAXTRIES 33
   unsigned char buf[3], *resp, c = 0xff;
   int status;
-  unsigned int fwver;
+  unsigned int fwver, hwver;
 
   if (verbose >= 3)
     fprintf(stderr, "%s: jtagmkII_getsync()\n", progname);
@@ -601,6 +609,7 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
     if (status > 0) {
       if ((c = resp[0]) == RSP_SIGN_ON) {
 	fwver = ((unsigned)resp[8] << 8) | (unsigned)resp[7];
+	hwver = (unsigned)resp[9];
 	memcpy(serno, resp + 10, 6);
 	if (verbose >= 1 && status > 17) {
 	  fprintf(stderr, "JTAG ICE mkII sign-on message:\n");
@@ -651,24 +660,28 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
    * There's no official documentation from Atmel about what firmware
    * revision matches what device descriptor length.  The algorithm
    * below has been found empirically.
+   *
+   * The original JTAG ICE mkII has hardware version 0, the AVR Dragon
+   * has hardware version 2 (on the slave MCU) and doesn't need the
+   * firmware version checks (by now).
    */
 #define FWVER(maj, min) ((maj << 8) | (min))
-  if (fwver < FWVER(3, 16)) {
+  if (hwver == 0 && fwver < FWVER(3, 16)) {
     device_descriptor_length -= 2;
     fprintf(stderr,
 	    "%s: jtagmkII_getsync(): "
 	    "S_MCU firmware version might be too old to work correctly\n",
 	    progname);
-  } else if (fwver < FWVER(4, 0)) {
+  } else if (hwver == 0 && fwver < FWVER(4, 0)) {
     device_descriptor_length -= 2;
   }
   if (verbose >= 2 && mode != EMULATOR_MODE_SPI)
     fprintf(stderr,
 	    "%s: jtagmkII_getsync(): Using a %zu-byte device descriptor\n",
 	    progname, device_descriptor_length);
-  if (mode == EMULATOR_MODE_SPI) {
+  if (mode == EMULATOR_MODE_SPI || mode == EMULATOR_MODE_HV) {
     device_descriptor_length = 0;
-    if (fwver < FWVER(4, 14)) {
+    if (hwver == 0 && fwver < FWVER(4, 14)) {
       fprintf(stderr,
 	      "%s: jtagmkII_getsync(): ISP functionality requires firmware "
 	      "version >= 4.14\n",
@@ -749,16 +762,6 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
   return 0;
 }
 
-static int jtagmkII_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-                        unsigned char res[4])
-{
-
-  fprintf(stderr, "%s: jtagmkII_command(): no direct SPI supported for JTAG\n",
-	  progname);
-  return -1;
-}
-
-
 /*
  * issue the 'chip erase' command to the AVR device
  */
@@ -803,6 +806,18 @@ static int jtagmkII_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
+/*
+ * There is no chip erase functionality in debugWire mode.
+ */
+static int jtagmkII_chip_erase_dw(PROGRAMMER * pgm, AVRPART * p)
+{
+
+  fprintf(stderr, "%s: Chip erase not supported in debugWire mode\n",
+	  progname);
+
+  return 0;
+}
+
 static void jtagmkII_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
 {
   int status;
@@ -831,6 +846,10 @@ static void jtagmkII_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
       u32_to_b4(sendbuf.dd.ulFlashSize, m->size);
       u16_to_b2(sendbuf.dd.uiFlashPageSize, flash_pagesize);
       u16_to_b2(sendbuf.dd.uiFlashpages, m->size / flash_pagesize);
+      if (p->flags & AVRPART_HAS_DW) {
+	memcpy(sendbuf.dd.ucFlashInst, p->flash_instr, FLASH_INSTR_SIZE);
+	memcpy(sendbuf.dd.ucEepromInst, p->eeprom_instr, EEPROM_INSTR_SIZE);
+      }
     } else if (strcmp(m->desc, "eeprom") == 0) {
       sendbuf.dd.ucEepromPageSize = eeprom_pagesize = m->page_size;
     }
@@ -876,11 +895,21 @@ static int jtagmkII_reset(PROGRAMMER * pgm, unsigned char flags)
   int status;
   unsigned char buf[2], *resp, c;
 
-  buf[0] = CMND_RESET;
-  buf[1] = flags;
+  /*
+   * In debugWire mode, don't reset.  Do a forced stop, and tell the
+   * ICE to stop any timers, too.
+   */
+  if (pgm->flag & PGM_FL_IS_DW) {
+    unsigned char parm[] = { 0 };
+
+    (void)jtagmkII_setparm(pgm, PAR_TIMERS_RUNNING, parm);
+  }
+
+  buf[0] = (pgm->flag & PGM_FL_IS_DW)? CMND_FORCED_STOP: CMND_RESET;
+  buf[1] = (pgm->flag & PGM_FL_IS_DW)? 1: flags;
   if (verbose >= 2)
-    fprintf(stderr, "%s: jtagmkII_reset(): Sending reset command: ",
-	    progname);
+    fprintf(stderr, "%s: jtagmkII_reset(): Sending %s command: ",
+	    progname, (pgm->flag & PGM_FL_IS_DW)? "stop": "reset");
   jtagmkII_send(pgm, buf, 2);
 
   status = jtagmkII_recv(pgm, &resp);
@@ -1040,14 +1069,27 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
   AVRMEM hfuse;
   unsigned char b;
+  int ok;
+  const char *ifname;
 
-  if (!(p->flags & AVRPART_HAS_JTAG)) {
-    fprintf(stderr, "%s: jtagmkII_initialize(): part %s has no JTAG interface\n",
-	    progname, p->desc);
+  ok = 0;
+  if (pgm->flag & PGM_FL_IS_DW) {
+    ifname = "debugWire";
+    if (p->flags & AVRPART_HAS_DW)
+      ok = 1;
+  } else {
+    ifname = "JTAG";
+    if (p->flags & AVRPART_HAS_JTAG)
+      ok = 1;
+  }
+
+  if (!ok) {
+    fprintf(stderr, "%s: jtagmkII_initialize(): part %s has no %s interface\n",
+	    progname, p->desc, ifname);
     return -1;
   }
 
-  if (pgm->baudrate && pgm->baudrate != 19200) {
+  if ((serdev->flags & SERDEV_FL_CANSETSPEED) && pgm->baudrate && pgm->baudrate != 19200) {
     if ((b = jtagmkII_get_baud(pgm->baudrate)) == 0) {
       fprintf(stderr, "%s: jtagmkII_initialize(): unsupported baudrate %d\n",
 	      progname, pgm->baudrate);
@@ -1057,10 +1099,10 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
 		"trying to set baudrate to %d\n",
 		progname, pgm->baudrate);
       if (jtagmkII_setparm(pgm, PAR_BAUD_RATE, &b) == 0)
-	serial_setspeed(pgm->fd, pgm->baudrate);
+	serial_setspeed(&pgm->fd, pgm->baudrate);
     }
   }
-  if (pgm->bitclock != 0.0) {
+  if (!(pgm->flag & PGM_FL_IS_DW) && pgm->bitclock != 0.0) {
     if (verbose >= 2)
       fprintf(stderr, "%s: jtagmkII_initialize(): "
 	      "trying to set JTAG clock period to %.1f us\n",
@@ -1092,14 +1134,16 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (jtagmkII_reset(pgm, 0x01) < 0)
     return -1;
 
-  strcpy(hfuse.desc, "hfuse");
-  if (jtagmkII_read_byte(pgm, p, &hfuse, 1, &b) < 0)
-    return -1;
-  if ((b & OCDEN) != 0)
-    fprintf(stderr,
-	    "%s: jtagmkII_initialize(): warning: OCDEN fuse not programmed, "
-	    "single-byte EEPROM updates not possible\n",
-	    progname);
+  if (!(pgm->flag & PGM_FL_IS_DW)) {
+    strcpy(hfuse.desc, "hfuse");
+    if (jtagmkII_read_byte(pgm, p, &hfuse, 1, &b) < 0)
+      return -1;
+    if ((b & OCDEN) != 0)
+      fprintf(stderr,
+	      "%s: jtagmkII_initialize(): warning: OCDEN fuse not programmed, "
+	      "single-byte EEPROM updates not possible\n",
+	      progname);
+  }
 
   return 0;
 }
@@ -1113,7 +1157,8 @@ static void jtagmkII_disable(PROGRAMMER * pgm)
   free(eeprom_pagecache);
   eeprom_pagecache = NULL;
 
-  (void)jtagmkII_program_disable(pgm);
+  if (!(pgm->flag & PGM_FL_IS_DW))
+    (void)jtagmkII_program_disable(pgm);
 }
 
 static void jtagmkII_enable(PROGRAMMER * pgm)
@@ -1154,7 +1199,7 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, baud);
+  serial_open(port, baud, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -1162,6 +1207,141 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
   jtagmkII_drain(pgm, 0);
 
   jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG);
+
+  return 0;
+}
+
+
+static int jtagmkII_open_dw(PROGRAMMER * pgm, char * port)
+{
+  long baud;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: jtagmkII_open_dw()\n", progname);
+
+  /*
+   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
+   * attaching.  If the config file or command-line parameters specify
+   * a higher baud rate, we switch to it later on, after establishing
+   * the connection with the ICE.
+   */
+  baud = 19200;
+
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.  The serial_open() function for USB overrides
+   * the meaning of the "baud" parameter to be the USB device ID to
+   * search for.
+   */
+  if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
+    serdev = &usb_serdev;
+    baud = USB_DEVICE_JTAGICEMKII;
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
+#endif
+  }
+
+  strcpy(pgm->port, port);
+  serial_open(port, baud, &pgm->fd);
+
+  /*
+   * drain any extraneous input
+   */
+  jtagmkII_drain(pgm, 0);
+
+  jtagmkII_getsync(pgm, EMULATOR_MODE_DEBUGWIRE);
+
+  return 0;
+}
+
+
+static int jtagmkII_dragon_open(PROGRAMMER * pgm, char * port)
+{
+  long baud;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: jtagmkII_dragon_open()\n", progname);
+
+  /*
+   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
+   * attaching.  If the config file or command-line parameters specify
+   * a higher baud rate, we switch to it later on, after establishing
+   * the connection with the ICE.
+   */
+  baud = 19200;
+
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.  The serial_open() function for USB overrides
+   * the meaning of the "baud" parameter to be the USB device ID to
+   * search for.
+   */
+  if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
+    serdev = &usb_serdev;
+    baud = USB_DEVICE_AVRDRAGON;
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
+#endif
+  }
+
+  strcpy(pgm->port, port);
+  serial_open(port, baud, &pgm->fd);
+
+  /*
+   * drain any extraneous input
+   */
+  jtagmkII_drain(pgm, 0);
+
+  jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG);
+
+  return 0;
+}
+
+
+static int jtagmkII_dragon_open_dw(PROGRAMMER * pgm, char * port)
+{
+  long baud;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: jtagmkII_dragon_open_dw()\n", progname);
+
+  /*
+   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
+   * attaching.  If the config file or command-line parameters specify
+   * a higher baud rate, we switch to it later on, after establishing
+   * the connection with the ICE.
+   */
+  baud = 19200;
+
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.  The serial_open() function for USB overrides
+   * the meaning of the "baud" parameter to be the USB device ID to
+   * search for.
+   */
+  if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
+    serdev = &usb_serdev;
+    baud = USB_DEVICE_AVRDRAGON;
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
+#endif
+  }
+
+  strcpy(pgm->port, port);
+  serial_open(port, baud, &pgm->fd);
+
+  /*
+   * drain any extraneous input
+   */
+  jtagmkII_drain(pgm, 0);
+
+  jtagmkII_getsync(pgm, EMULATOR_MODE_DEBUGWIRE);
 
   return 0;
 }
@@ -1238,8 +1418,8 @@ void jtagmkII_close(PROGRAMMER * pgm)
 	    progname, jtagmkII_get_rc(c));
   }
 
-  serial_close(pgm->fd);
-  pgm->fd = -1;
+  serial_close(&pgm->fd);
+  pgm->fd.ifd = -1;
 }
 
 
@@ -1256,7 +1436,7 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     fprintf(stderr, "%s: jtagmkII_paged_write(.., %s, %d, %d)\n",
 	    progname, m->desc, page_size, n_bytes);
 
-  if (jtagmkII_program_enable(pgm) < 0)
+  if (!(pgm->flag & PGM_FL_IS_DW) && jtagmkII_program_enable(pgm) < 0)
     return -1;
 
   if (page_size == 0) page_size = 256;
@@ -1276,6 +1456,10 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[1] = MTYPE_EEPROM_PAGE;
     eeprom_pageaddr = (unsigned long)-1L;
     page_size = eeprom_pagesize;
+    if (pgm->flag & PGM_FL_IS_DW) {
+      free(cmd);
+      return -1;
+    }
   }
 
   serial_recv_timeout = 100;
@@ -1371,7 +1555,7 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     fprintf(stderr, "%s: jtagmkII_paged_load(.., %s, %d, %d)\n",
 	    progname, m->desc, page_size, n_bytes);
 
-  if (jtagmkII_program_enable(pgm) < 0)
+  if (!(pgm->flag & PGM_FL_IS_DW) && jtagmkII_program_enable(pgm) < 0)
     return -1;
 
   page_size = m->readsize;
@@ -1381,6 +1565,8 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[1] = MTYPE_FLASH_PAGE;
   } else if (strcmp(m->desc, "eeprom") == 0) {
     cmd[1] = MTYPE_EEPROM_PAGE;
+    if (pgm->flag & PGM_FL_IS_DW)
+      return -1;
   }
 
   serial_recv_timeout = 100;
@@ -1454,7 +1640,7 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 {
   unsigned char cmd[10];
   unsigned char *resp = NULL, *cache_ptr = NULL;
-  int status, tries;
+  int status, tries, unsupp;
   unsigned long paddr = 0UL, *paddr_ptr = NULL;
   unsigned int pagesize = 0;
 
@@ -1462,10 +1648,11 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     fprintf(stderr, "%s: jtagmkII_read_byte(.., %s, 0x%lx, ...)\n",
 	    progname, mem->desc, addr);
 
-  if (jtagmkII_program_enable(pgm) < 0)
+  if (!(pgm->flag & PGM_FL_IS_DW) && jtagmkII_program_enable(pgm) < 0)
     return -1;
 
   cmd[0] = CMND_READ_MEMORY;
+  unsupp = 0;
 
   if (strcmp(mem->desc, "flash") == 0) {
     cmd[1] = MTYPE_FLASH_PAGE;
@@ -1474,26 +1661,78 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     paddr_ptr = &flash_pageaddr;
     cache_ptr = flash_pagecache;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
-    cmd[1] = MTYPE_EEPROM_PAGE;
-    pagesize = mem->page_size;
-    paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &eeprom_pageaddr;
-    cache_ptr = eeprom_pagecache;
+    if (pgm->flag & PGM_FL_IS_DW) {
+      /* debugWire cannot use page access for EEPROM */
+      cmd[1] = MTYPE_EEPROM;
+    } else {
+      cmd[1] = MTYPE_EEPROM_PAGE;
+      pagesize = mem->page_size;
+      paddr = addr & ~(pagesize - 1);
+      paddr_ptr = &eeprom_pageaddr;
+      cache_ptr = eeprom_pagecache;
+    }
   } else if (strcmp(mem->desc, "lfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 0;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "hfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 1;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "efuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 2;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "lock") == 0) {
     cmd[1] = MTYPE_LOCK_BITS;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "calibration") == 0) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "signature") == 0) {
     cmd[1] = MTYPE_SIGN_JTAG;
+
+    if (pgm->flag & PGM_FL_IS_DW) {
+      /*
+       * In debugWire mode, there is no accessible memory area to read
+       * the signature from, but the essential two bytes can be read
+       * as a parameter from the ICE.
+       */
+      unsigned char parm[4];
+
+      switch (addr) {
+      case 0:
+	*value = 0x1E;		/* Atmel vendor ID */
+	break;
+
+      case 1:
+      case 2:
+	if (jtagmkII_getparm(pgm, PAR_TARGET_SIGNATURE, parm) < 0)
+	  return -1;
+	*value = parm[2 - addr];
+	break;
+
+      default:
+	fprintf(stderr, "%s: illegal address %lu for signature memory\n",
+		progname, addr);
+	return -1;
+      }
+      return 0;
+    }
+  }
+
+  /*
+   * If the respective memory area is not supported under debugWire,
+   * leave here.
+   */
+  if (unsupp) {
+    *value = 42;
+    return -1;
   }
 
   /*
@@ -1540,6 +1779,8 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 	    "%s: jtagmkII_read_byte(): "
 	    "fatal timeout/error communicating with programmer (status %d)\n",
 	    progname, status);
+    if (status < 0)
+      resp = 0;
     goto fail;
   }
   if (verbose >= 3) {
@@ -1566,14 +1807,8 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   return 0;
 
 fail:
-  /*
-   * XXX should return an error status here, but that would cause
-   * the generic methods to retry the request using the SPI method,
-   * which is complete nonsense for JTAG.
-   */
-  *value = 42;
   free(resp);
-  return 0;
+  return -1;
 }
 
 static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
@@ -1581,7 +1816,7 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 {
   unsigned char cmd[11];
   unsigned char *resp = NULL, writedata;
-  int status, tries, need_progmode = 1;
+  int status, tries, need_progmode = 1, unsupp = 0;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_write_byte(.., %s, 0x%lx, ...)\n",
@@ -1593,6 +1828,8 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     cmd[1] = MTYPE_SPM;
     need_progmode = 0;
     flash_pageaddr = (unsigned long)-1L;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
     cmd[1] = MTYPE_EEPROM;
     need_progmode = 0;
@@ -1600,19 +1837,34 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   } else if (strcmp(mem->desc, "lfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 0;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "hfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 1;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "efuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 2;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "lock") == 0) {
     cmd[1] = MTYPE_LOCK_BITS;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "calibration") == 0) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "signature") == 0) {
     cmd[1] = MTYPE_SIGN_JTAG;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   }
+
+  if (unsupp)
+    return -1;
 
   if (need_progmode) {
     if (jtagmkII_program_enable(pgm) < 0)
@@ -1667,13 +1919,8 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   return 0;
 
 fail:
-  /*
-   * XXX should return an error status here, but that would cause
-   * the generic methods to retry the request using the SPI method,
-   * which is complete nonsense for JTAG.
-   */
   free(resp);
-  return 0;
+  return -1;
 }
 
 
@@ -1781,6 +2028,7 @@ static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
   case PAR_BAUD_RATE: size = 1; break;
   case PAR_OCD_VTARGET: size = 2; break;
   case PAR_OCD_JTAG_CLK: size = 1; break;
+  case PAR_TIMERS_RUNNING: size = 1; break;
   default:
     fprintf(stderr, "%s: jtagmkII_setparm(): unknown parameter 0x%02x\n",
 	    progname, parm);
@@ -1852,28 +2100,33 @@ static void jtagmkII_print_parms1(PROGRAMMER * pgm, char * p)
   char clkbuf[20];
   double clk;
 
-  if (jtagmkII_getparm(pgm, PAR_OCD_VTARGET, vtarget) < 0 ||
-      jtagmkII_getparm(pgm, PAR_OCD_JTAG_CLK, jtag_clock) < 0)
+  if (jtagmkII_getparm(pgm, PAR_OCD_VTARGET, vtarget) < 0)
     return;
-
-  if (jtag_clock[0] == 0) {
-    strcpy(clkbuf, "6.4 MHz");
-    clk = 6.4e6;
-  } else if (jtag_clock[0] == 1) {
-    strcpy(clkbuf, "2.8 MHz");
-    clk = 2.8e6;
-  } else if (jtag_clock[0] <= 5) {
-    sprintf(clkbuf, "%.1f MHz", 5.35 / (double)jtag_clock[0]);
-    clk = 5.35e6 / (double)jtag_clock[0];
-  } else {
-    sprintf(clkbuf, "%.1f kHz", 5.35e3 / (double)jtag_clock[0]);
-    clk = 5.35e6 / (double)jtag_clock[0];
-  }
 
   fprintf(stderr, "%sVtarget         : %.1f V\n", p,
 	  b2_to_u16(vtarget) / 1000.0);
-  fprintf(stderr, "%sJTAG clock      : %s (%.1f us)\n", p, clkbuf,
-	  1.0e6 / clk);
+
+  if (!(pgm->flag & PGM_FL_IS_DW)) {
+    if (jtagmkII_getparm(pgm, PAR_OCD_JTAG_CLK, jtag_clock) < 0)
+      return;
+
+    if (jtag_clock[0] == 0) {
+      strcpy(clkbuf, "6.4 MHz");
+      clk = 6.4e6;
+    } else if (jtag_clock[0] == 1) {
+      strcpy(clkbuf, "2.8 MHz");
+      clk = 2.8e6;
+    } else if (jtag_clock[0] <= 5) {
+      sprintf(clkbuf, "%.1f MHz", 5.35 / (double)jtag_clock[0]);
+      clk = 5.35e6 / (double)jtag_clock[0];
+    } else {
+      sprintf(clkbuf, "%.1f kHz", 5.35e3 / (double)jtag_clock[0]);
+      clk = 5.35e6 / (double)jtag_clock[0];
+
+      fprintf(stderr, "%sJTAG clock      : %s (%.1f us)\n", p, clkbuf,
+	      1.0e6 / clk);
+    }
+  }
 
   return;
 }
@@ -1898,18 +2151,104 @@ void jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->disable        = jtagmkII_disable;
   pgm->program_enable = jtagmkII_program_enable_dummy;
   pgm->chip_erase     = jtagmkII_chip_erase;
-  pgm->cmd            = jtagmkII_cmd;
   pgm->open           = jtagmkII_open;
   pgm->close          = jtagmkII_close;
+  pgm->read_byte      = jtagmkII_read_byte;
+  pgm->write_byte     = jtagmkII_write_byte;
 
   /*
    * optional functions
    */
   pgm->paged_write    = jtagmkII_paged_write;
   pgm->paged_load     = jtagmkII_paged_load;
-  pgm->read_byte      = jtagmkII_read_byte;
-  pgm->write_byte     = jtagmkII_write_byte;
   pgm->print_parms    = jtagmkII_print_parms;
   pgm->set_sck_period = jtagmkII_set_sck_period;
   pgm->page_size      = 256;
+}
+
+
+void jtagmkII_dw_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "JTAGMKII_DW");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = jtagmkII_initialize;
+  pgm->display        = jtagmkII_display;
+  pgm->enable         = jtagmkII_enable;
+  pgm->disable        = jtagmkII_disable;
+  pgm->program_enable = jtagmkII_program_enable_dummy;
+  pgm->chip_erase     = jtagmkII_chip_erase_dw;
+  pgm->open           = jtagmkII_open_dw;
+  pgm->close          = jtagmkII_close;
+  pgm->read_byte      = jtagmkII_read_byte;
+  pgm->write_byte     = jtagmkII_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = jtagmkII_paged_write;
+  pgm->paged_load     = jtagmkII_paged_load;
+  pgm->print_parms    = jtagmkII_print_parms;
+  pgm->page_size      = 256;
+  pgm->flag           = PGM_FL_IS_DW;
+}
+
+
+void jtagmkII_dragon_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "DRAGON_JTAG");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = jtagmkII_initialize;
+  pgm->display        = jtagmkII_display;
+  pgm->enable         = jtagmkII_enable;
+  pgm->disable        = jtagmkII_disable;
+  pgm->program_enable = jtagmkII_program_enable_dummy;
+  pgm->chip_erase     = jtagmkII_chip_erase;
+  pgm->open           = jtagmkII_dragon_open;
+  pgm->close          = jtagmkII_close;
+  pgm->read_byte      = jtagmkII_read_byte;
+  pgm->write_byte     = jtagmkII_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = jtagmkII_paged_write;
+  pgm->paged_load     = jtagmkII_paged_load;
+  pgm->print_parms    = jtagmkII_print_parms;
+  pgm->set_sck_period = jtagmkII_set_sck_period;
+  pgm->page_size      = 256;
+}
+
+
+void jtagmkII_dragon_dw_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "DRAGON_DW");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = jtagmkII_initialize;
+  pgm->display        = jtagmkII_display;
+  pgm->enable         = jtagmkII_enable;
+  pgm->disable        = jtagmkII_disable;
+  pgm->program_enable = jtagmkII_program_enable_dummy;
+  pgm->chip_erase     = jtagmkII_chip_erase_dw;
+  pgm->open           = jtagmkII_dragon_open_dw;
+  pgm->close          = jtagmkII_close;
+  pgm->read_byte      = jtagmkII_read_byte;
+  pgm->write_byte     = jtagmkII_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = jtagmkII_paged_write;
+  pgm->paged_load     = jtagmkII_paged_load;
+  pgm->print_parms    = jtagmkII_print_parms;
+  pgm->page_size      = 256;
+  pgm->flag           = PGM_FL_IS_DW;
 }

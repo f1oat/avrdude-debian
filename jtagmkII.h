@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkII.h,v 1.3 2006/09/06 22:30:00 joerg_wunsch Exp $ */
+/* $Id: jtagmkII.h,v 1.5 2006/11/20 23:23:37 joerg_wunsch Exp $ */
 
 #ifndef jtagmkII_h
 #define jtagmkII_h
@@ -30,6 +30,9 @@ int  jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
 		      unsigned char * value);
 
 void jtagmkII_initpgm (PROGRAMMER * pgm);
+void jtagmkII_dw_initpgm (PROGRAMMER * pgm);
+void jtagmkII_dragon_initpgm (PROGRAMMER * pgm);
+void jtagmkII_dragon_dw_initpgm (PROGRAMMER * pgm);
 
 #endif
 

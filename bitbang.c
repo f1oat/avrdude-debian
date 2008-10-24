@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: bitbang.c,v 1.4 2006/08/23 21:06:28 joerg_wunsch Exp $ */
+/* $Id: bitbang.c,v 1.5 2006/11/20 15:04:09 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -355,4 +355,10 @@ void bitbang_check_prerequisites(PROGRAMMER *pgm)
   verify_pin_assigned(pgm, PIN_AVR_SCK,   "AVR SCK");
   verify_pin_assigned(pgm, PIN_AVR_MISO,  "AVR MISO");
   verify_pin_assigned(pgm, PIN_AVR_MOSI,  "AVR MOSI");
+
+  if (pgm->cmd == NULL) {
+    fprintf(stderr, "%s: error: no cmd() method defined for bitbang programmer\n",
+            progname);
+    exit(1);
+  }
 }

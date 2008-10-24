@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500.c,v 1.51 2006/10/09 09:56:10 joerg_wunsch Exp $ */
+/* $Id: stk500.c,v 1.53 2006/12/11 12:47:35 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for Atmel STK500 programmer
@@ -57,7 +57,7 @@ static int stk500_is_page_empty(unsigned int address, int page_size,
 
 static int stk500_send(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 {
-  return serial_send(pgm->fd, buf, len);
+  return serial_send(&pgm->fd, buf, len);
 }
 
 
@@ -65,7 +65,7 @@ static int stk500_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 {
   int rv;
 
-  rv = serial_recv(pgm->fd, buf, len);
+  rv = serial_recv(&pgm->fd, buf, len);
   if (rv < 0) {
     fprintf(stderr,
 	    "%s: stk500_recv(): programmer is not responding\n",
@@ -78,7 +78,7 @@ static int stk500_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 
 static int stk500_drain(PROGRAMMER * pgm, int display)
 {
-  return serial_drain(pgm->fd, display);
+  return serial_drain(&pgm->fd, display);
 }
 
 
@@ -175,6 +175,14 @@ static int stk500_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char cmd[4];
   unsigned char res[4];
+
+  if (pgm->cmd == NULL) {
+    fprintf(stderr,
+	    "%s: Error: %s programmer uses stk500_chip_erase() but does not\n"
+	    "provide a cmd() method.\n",
+	    progname, pgm->type);
+    return -1;
+  }
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
     fprintf(stderr, "chip erase instruction not defined for part \"%s\"\n",
@@ -577,10 +585,7 @@ static void stk500_enable(PROGRAMMER * pgm)
 static int stk500_open(PROGRAMMER * pgm, char * port)
 {
   strcpy(pgm->port, port);
-  if (pgm->baudrate)
-    pgm->fd = serial_open(port, pgm->baudrate);
-  else
-    pgm->fd = serial_open(port, 115200);
+  serial_open(port, pgm->baudrate? pgm->baudrate: 115200, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -596,8 +601,8 @@ static int stk500_open(PROGRAMMER * pgm, char * port)
 
 static void stk500_close(PROGRAMMER * pgm)
 {
-  serial_close(pgm->fd);
-  pgm->fd = -1;
+  serial_close(&pgm->fd);
+  pgm->fd.ifd = -1;
 }
 
 
@@ -1236,6 +1241,8 @@ void stk500_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = stk500_cmd;
   pgm->open           = stk500_open;
   pgm->close          = stk500_close;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
 
   /*
    * optional functions

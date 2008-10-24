@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: serial.h,v 1.9 2006/01/12 23:13:50 joerg_wunsch Exp $ */
+/* $Id: serial.h,v 1.12 2006/12/20 23:43:34 joerg_wunsch Exp $ */
 
 /* This is the API for the generic serial interface. The implementations are
    actually provided by the target dependant files:
@@ -31,20 +31,32 @@
 #define __serial_h__
 
 extern long serial_recv_timeout;
+union filedescriptor
+{
+  int ifd;
+  void *pfd;
+};
 
 struct serial_device
 {
-  int (*open)(char * port, long baud);
-  int (*setspeed)(int fd, long baud);
-  void (*close)(int fd);
+  void (*open)(char * port, long baud, union filedescriptor *fd);
+  int (*setspeed)(union filedescriptor *fd, long baud);
+  void (*close)(union filedescriptor *fd);
 
-  int (*send)(int fd, unsigned char * buf, size_t buflen);
-  int (*recv)(int fd, unsigned char * buf, size_t buflen);
-  int (*drain)(int fd, int display);
+  int (*send)(union filedescriptor *fd, unsigned char * buf, size_t buflen);
+  int (*recv)(union filedescriptor *fd, unsigned char * buf, size_t buflen);
+  int (*drain)(union filedescriptor *fd, int display);
+
+  int flags;
+#define SERDEV_FL_NONE         0x0000 /* no flags */
+#define SERDEV_FL_CANSETSPEED  0x0001 /* device can change speed */
 };
 
 extern struct serial_device *serdev;
-extern struct serial_device serial_serdev, usb_serdev, usb_serdev_frame;
+extern struct serial_device serial_serdev;
+extern struct serial_device usb_serdev;
+extern struct serial_device usb_serdev_frame;
+extern struct serial_device avrdoper_serdev;
 
 #define serial_open (serdev->open)
 #define serial_setspeed (serdev->setspeed)

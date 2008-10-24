@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: serbb_win32.c,v 1.6 2006/08/31 10:55:20 joerg_wunsch Exp $ */
+/* $Id: serbb_win32.c,v 1.8 2006/12/11 12:47:35 joerg_wunsch Exp $ */
 
 /*
  * Win32 serial bitbanging interface for avrdude.
@@ -63,7 +63,7 @@ static int dtr, rts, txd;
 
 static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
 {
-	HANDLE hComPort = (HANDLE)pgm->fd;
+	HANDLE hComPort = (HANDLE)pgm->fd.pfd;
         LPVOID lpMsgBuf;
         DWORD dwFunc;
         const char *name;
@@ -131,7 +131,7 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
 
 static int serbb_getpin(PROGRAMMER * pgm, int pin)
 {
-	HANDLE hComPort = (HANDLE)pgm->fd;
+	HANDLE hComPort = (HANDLE)pgm->fd.pfd;
         LPVOID lpMsgBuf;
         int invert, rv;
         const char *name;
@@ -323,7 +323,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
                         "%s: ser_open(): opened comm port \"%s\", handle 0x%x\n",
                         progname, port, (int)hComPort);
 
-        pgm->fd = (int)hComPort;
+        pgm->fd.pfd = (void *)hComPort;
 
         dtr = rts = txd = 0;
 
@@ -332,7 +332,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 
 static void serbb_close(PROGRAMMER *pgm)
 {
-	HANDLE hComPort=(HANDLE)pgm->fd;
+	HANDLE hComPort=(HANDLE)pgm->fd.pfd;
 	if (hComPort != INVALID_HANDLE_VALUE)
 	{
 		pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 1);
@@ -368,6 +368,8 @@ void serbb_initpgm(PROGRAMMER *pgm)
   pgm->setpin         = serbb_setpin;
   pgm->getpin         = serbb_getpin;
   pgm->highpulsepin   = serbb_highpulsepin;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
 }
 
 #endif  /* WIN32NATIVE */
