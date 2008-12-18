@@ -1,2 +1,3 @@
 01-kfreebsd.patch
 02-manpage_fix.patch
+03-spi_support.patch

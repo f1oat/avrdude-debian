@@ -1,3 +1,12 @@
+avrdude (5.5-6) UNRELEASED; urgency=low
+
+  * debian/patches/03-spi_support.patch
+    - Add new commands to avrdude's terminal mode to support direct SPI
+      transfers. (Closes: #509130)
+      Thanks to Andrew O. Shadoura for the patch.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 18 Dec 2008 23:33:47 +0100
+
 avrdude (5.5-5) unstable; urgency=low
 
   * Misc white space cleanups.
