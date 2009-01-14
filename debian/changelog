@@ -1,3 +1,13 @@
+avrdude (5.5-7) UNRELEASED; urgency=low
+
+  * debian/patches/04-usbtiny_64bit_fix.patch
+    - Fix chip programming failures using USBTiny adapters on 64bit systems.
+      The res[4] variable is passed to usbtiny_cmd() as char pointer and
+      sizeof(char*) evaluates to 8 on 64bit systems. So hardcode the number of
+      bytes we want to read instead of using sizeof. (Closes: #511751)
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 14 Jan 2009 06:57:25 +0100
+
 avrdude (5.5-6) unstable; urgency=low
 
   * debian/patches/03-spi_support.patch
