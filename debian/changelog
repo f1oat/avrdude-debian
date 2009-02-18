@@ -6,6 +6,8 @@ avrdude (5.5-8) UNRELEASED; urgency=low
   * debian/rules
     - Include debhelper.mk before any other files as recommended by the cdbs
       documentation.
+  * debian/control
+    - Wrap Build-Depends.
 
  -- Michael Biebl <biebl@debian.org>  Fri, 06 Feb 2009 00:51:01 +0100
 

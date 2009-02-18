@@ -2,7 +2,18 @@ Source: avrdude
 Section: electronics
 Priority: extra
 Maintainer: Michael Biebl <biebl@debian.org>
-Build-Depends: cdbs, debhelper (>= 5.0.0), autotools-dev, quilt, texi2html, texinfo, texlive-latex-base, flex, bison, libncurses5-dev, libreadline5-dev, libusb-dev
+Build-Depends: cdbs,
+ debhelper (>= 5.0.0),
+ autotools-dev,
+ quilt,
+ texi2html,
+ texinfo,
+ texlive-latex-base,
+ flex,
+ bison,
+ libncurses5-dev,
+ libreadline5-dev,
+ libusb-dev
 Standards-Version: 3.8.0
 Vcs-Git: git://git.debian.org/git/users/biebl/avrdude.git
 Vcs-Browser: http://git.debian.org/?p=users/biebl/avrdude.git;a=summary
