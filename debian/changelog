@@ -8,6 +8,9 @@ avrdude (5.5-8) UNRELEASED; urgency=low
       documentation.
   * debian/control
     - Wrap Build-Depends.
+    - Bump Build-Depends on debhelper to (>= 7).
+  * debian/compat
+    - Bump debhelper compat level to 7.
 
  -- Michael Biebl <biebl@debian.org>  Fri, 06 Feb 2009 00:51:01 +0100
 
