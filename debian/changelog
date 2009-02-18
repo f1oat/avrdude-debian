@@ -1,4 +1,4 @@
-avrdude (5.5-8) UNRELEASED; urgency=low
+avrdude (5.5-8) unstable; urgency=low
 
   * debian/copyright
     - Refer to the versioned GPL-2 file in /usr/share/common-licenses as
@@ -12,7 +12,7 @@ avrdude (5.5-8) UNRELEASED; urgency=low
   * debian/compat
     - Bump debhelper compat level to 7.
 
- -- Michael Biebl <biebl@debian.org>  Fri, 06 Feb 2009 00:51:01 +0100
+ -- Michael Biebl <biebl@debian.org>  Wed, 18 Feb 2009 13:43:47 +0100
 
 avrdude (5.5-7) unstable; urgency=low
 
