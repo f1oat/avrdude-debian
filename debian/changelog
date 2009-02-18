@@ -3,6 +3,9 @@ avrdude (5.5-8) UNRELEASED; urgency=low
   * debian/copyright
     - Refer to the versioned GPL-2 file in /usr/share/common-licenses as
       avrdude is released under version 2 of the GPL.
+  * debian/rules
+    - Include debhelper.mk before any other files as recommended by the cdbs
+      documentation.
 
  -- Michael Biebl <biebl@debian.org>  Fri, 06 Feb 2009 00:51:01 +0100
 
