@@ -1,4 +1,4 @@
-avrdude (5.6-1) UNRELEASED; urgency=low
+avrdude (5.6-1) unstable; urgency=low
 
   * New upstream release.
   * debian/patches/03-spi_support.patch
@@ -6,7 +6,7 @@ avrdude (5.6-1) UNRELEASED; urgency=low
   * debian/patches/04-usbtiny_64bit_fix.patch
     - Removed, fixed upstream.
 
- -- Michael Biebl <biebl@debian.org>  Tue, 03 Mar 2009 16:58:54 +0100
+ -- Michael Biebl <biebl@debian.org>  Tue, 03 Mar 2009 17:43:22 +0100
 
 avrdude (5.5-8) unstable; urgency=low
 
