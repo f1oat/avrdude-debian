@@ -1,4 +1,3 @@
 01-kfreebsd.patch
 02-manpage_fix.patch
-03-spi_support.patch
 04-usbtiny_64bit_fix.patch
