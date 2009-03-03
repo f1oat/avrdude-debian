@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config_gram.y,v 1.59 2007/10/29 18:03:02 joerg_wunsch Exp $ */
+/* $Id: config_gram.y,v 1.62 2009/02/25 09:39:04 joerg_wunsch Exp $ */
 %{
 
 #include "ac_cfg.h"
@@ -37,6 +37,7 @@
 #include "ppi.h"
 #include "pgm.h"
 #include "stk500.h"
+#include "arduino.h"
 #include "stk500v2.h"
 #include "stk500generic.h"
 #include "avr910.h"
@@ -79,6 +80,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_PAGE_SIZE
 %token K_PAGED
 
+%token K_ARDUINO
 %token K_BAUDRATE
 %token K_BS2
 %token K_BUFF
@@ -111,6 +113,8 @@ static int parse_cmdbits(OPCODE * op);
 %token K_MISO
 %token K_MOSI
 %token K_NUM_PAGES
+%token K_NVM_BASE
+%token K_OFFSET
 %token K_PAGEL
 %token K_PAR
 %token K_PARALLEL
@@ -135,6 +139,9 @@ static int parse_cmdbits(OPCODE * op);
 %token K_STK500PP
 %token K_STK500V2
 %token K_STK500GENERIC
+%token K_STK600
+%token K_STK600HVSP
+%token K_STK600PP
 %token K_AVR910
 %token K_USBASP
 %token K_USBTINY
@@ -198,6 +205,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_ENABLEPAGEPROGRAMMING	/* ? yes for mega256*, mega406 */
 %token K_HAS_JTAG		/* MCU has JTAG i/f. */
 %token K_HAS_DW			/* MCU has debugWire i/f. */
+%token K_HAS_PDI                /* MCU has PDI i/f rather than ISP (ATxmega). */
 %token K_IDR			/* address of OCD register in IO space */
 %token K_RAMPZ			/* address of RAMPZ reg. in IO space */
 %token K_SPMCR			/* address of SPMC[S]R in memory space */
@@ -408,6 +416,30 @@ prog_parm :
   K_TYPE TKN_EQUAL K_STK500GENERIC {
     {
       stk500generic_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_ARDUINO {
+    { 
+      arduino_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_STK600 {
+    {
+      stk600_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_STK600HVSP {
+    {
+      stk600hvsp_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_STK600PP {
+    {
+      stk600pp_initpgm(current_prog);
     }
   } |
 
@@ -1007,6 +1039,16 @@ part_parm :
       free_token($3);
     } |
 
+  K_HAS_PDI TKN_EQUAL yesno
+    {
+      if ($3->primary == K_YES)
+        current_part->flags |= AVRPART_HAS_PDI;
+      else if ($3->primary == K_NO)
+        current_part->flags &= ~AVRPART_HAS_PDI;
+
+      free_token($3);
+    } |
+
   K_ALLOWFULLPAGEBITSTREAM TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
@@ -1048,6 +1090,12 @@ part_parm :
   K_EECR TKN_EQUAL TKN_NUMBER
     {
       current_part->eecr = $3->value.number;
+      free_token($3);
+    } |
+
+  K_NVM_BASE TKN_EQUAL TKN_NUMBER
+    {
+      current_part->nvm_base = $3->value.number;
       free_token($3);
     } |
 
@@ -1165,6 +1213,12 @@ mem_spec :
   K_NUM_PAGES       TKN_EQUAL TKN_NUMBER
     {
       current_mem->num_pages = $3->value.number;
+      free_token($3);
+    } |
+
+  K_OFFSET          TKN_EQUAL TKN_NUMBER
+    {
+      current_mem->offset = $3->value.number;
       free_token($3);
     } |
 

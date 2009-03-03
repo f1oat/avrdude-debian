@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: bitbang.c,v 1.6 2007/01/24 21:07:54 joerg_wunsch Exp $ */
+/* $Id: bitbang.c,v 1.7 2009/02/17 15:31:27 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -216,6 +216,39 @@ int bitbang_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
             fprintf(stderr, "%02X ", cmd[i]);
         fprintf(stderr, "] [ ");
         for(i = 0; i < 4; i++)
+		{
+            fprintf(stderr, "%02X ", res[i]);
+		}
+        fprintf(stderr, "]\n");
+	}
+
+  return 0;
+}
+
+/*
+ * transmit bytes via SPI and return the results; 'cmd' and
+ * 'res' must point to data buffers
+ */
+int bitbang_spi(PROGRAMMER * pgm, unsigned char cmd[],
+                   unsigned char res[], int count)
+{
+  int i;
+
+  pgm->setpin(pgm, pgm->pinno[PIN_LED_PGM], 0);
+
+  for (i=0; i<count; i++) {
+    res[i] = bitbang_txrx(pgm, cmd[i]);
+  }
+
+  pgm->setpin(pgm, pgm->pinno[PIN_LED_PGM], 1);
+
+  if(verbose >= 2)
+	{
+        fprintf(stderr, "bitbang_cmd(): [ ");
+        for(i = 0; i < count; i++)
+            fprintf(stderr, "%02X ", cmd[i]);
+        fprintf(stderr, "] [ ");
+        for(i = 0; i < count; i++)
 		{
             fprintf(stderr, "%02X ", res[i]);
 		}

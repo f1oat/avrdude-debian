@@ -18,11 +18,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: serbb_win32.c,v 1.10 2007/01/30 13:41:53 joerg_wunsch Exp $ */
+/* $Id: serbb_win32.c,v 1.11 2009/02/23 22:04:56 joerg_wunsch Exp $ */
 
 /*
  * Win32 serial bitbanging interface for avrdude.
  */
+
+#include "avrdude.h"
 
 #if defined(WIN32NATIVE)
 
@@ -32,7 +34,6 @@
 #include <windows.h>
 #include <stdio.h>
 
-#include "avrdude.h"
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"

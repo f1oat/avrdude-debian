@@ -2,6 +2,7 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2003, 2004, 2006
  *    Eric B. Weddington <eweddington@cso.atmel.com>
+ * Copyright 2008, Joerg Wunsch
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ppiwin.c,v 1.12 2007/01/24 21:07:54 joerg_wunsch Exp $ */
+/* $Id: ppiwin.c,v 1.15 2009/02/23 22:04:56 joerg_wunsch Exp $ */
 
 /*
 This is the parallel port interface for Windows built using Cygwin.
@@ -31,6 +32,7 @@ reg = register as defined in an enum in ppi.h. This must be converted
 
 
 #include "ac_cfg.h"
+#include "avrdude.h"
 
 #if defined (WIN32NATIVE)
 
@@ -44,7 +46,6 @@ reg = register as defined in an enum in ppi.h. This must be converted
 #include <sys/time.h>
 #include <windows.h>
 
-#include "avrdude.h"
 #include "serial.h"
 #include "ppi.h"
 
@@ -106,6 +107,24 @@ void ppi_open(char *port, union filedescriptor *fdp)
             fd = winports[i].base_address;
             break;
         }
+    }
+    if(fd == -1)
+    {
+	/*
+	 * Supplied port name did not match any of the pre-defined
+	 * names.  Try interpreting it as a numeric
+	 * (hexadecimal/decimal/octal) address.
+	 */
+	char *cp;
+
+	fd = strtol(port, &cp, 0);
+	if(*port == '\0' || *cp != '\0')
+	{
+	    fprintf(stderr,
+		    "%s: port name \"%s\" is neither lpt1/2/3 nor valid number\n",
+		    progname, port);
+	    fd = -1;
+	}
     }
     if(fd < 0)
     {
@@ -355,7 +374,7 @@ int gettimeofday(struct timeval *tv, struct timezone *unused){
 
 #endif
 
-void usleep(unsigned long us)
+int usleep(unsigned int us)
 {
 	int has_highperf;
 	LARGE_INTEGER freq,start,stop,loopend;
@@ -388,6 +407,8 @@ void usleep(unsigned long us)
 	}
 	
     DEBUG_DisplayTimingInfo(start, stop, freq, us, has_highperf);
+
+    return 0;
 }
 
 #endif

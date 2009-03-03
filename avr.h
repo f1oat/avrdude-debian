@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr.h,v 1.33 2007/01/24 22:43:46 joerg_wunsch Exp $ */
+/* $Id: avr.h,v 1.34 2009/02/23 22:04:56 joerg_wunsch Exp $ */
 
 #ifndef __avr_h__
 #define __avr_h__
@@ -61,7 +61,7 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size);
 
 int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles);
 
-int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);;
+int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);
 
 int avr_mem_hiaddr(AVRMEM * mem);
 

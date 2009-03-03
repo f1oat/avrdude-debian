@@ -18,13 +18,13 @@
 #
 
 #
-# $Id: configure.ac,v 1.52 2007/10/29 23:00:12 joerg_wunsch Exp $
+# $Id: configure.ac,v 1.57 2009/02/27 10:31:33 joerg_wunsch Exp $
 #
 
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(avrdude, 5.5, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 5.6, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -38,13 +38,15 @@ AM_CONFIG_HEADER(ac_cfg.h)
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_YACC
-AM_PROG_LEX
+AC_PROG_LEX
 AC_PROG_RANLIB
 
 # Checks for libraries.
 AC_CHECK_LIB([termcap], [tputs])
 AC_CHECK_LIB([ncurses], [tputs])
 AC_CHECK_LIB([readline], [readline])
+AC_SEARCH_LIBS([gethostent], [nsl])
+AC_SEARCH_LIBS([setsockopt], [socket])
 AH_TEMPLATE([HAVE_LIBUSB],
             [Define if USB support is enabled via libusb])
 AC_CHECK_LIB([usb], [usb_get_string_simple], [have_libusb=yes])
@@ -62,7 +64,6 @@ fi
 AC_SUBST(LIBUSB, $LIBUSB)
 
 # Checks for header files.
-AC_HEADER_STDC
 AC_CHECK_HEADERS([limits.h stdlib.h string.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])
 AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
@@ -73,8 +74,6 @@ AC_C_CONST
 AC_HEADER_TIME
 
 # Checks for library functions.
-AC_PROG_GCC_TRADITIONAL
-AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday])
 
 AC_MSG_CHECKING([for a Win32 HID libray])
@@ -118,6 +117,13 @@ else
 fi
 LIBS="${SAVED_LIBS}"
 AC_SUBST(LIBHID, $LIBHID)
+
+# Check for types
+
+# Solaris has uint_t and ulong_t typedefs in <sys/types.h>, avoid
+# the redeclaration in usbtiny.c.
+AC_CHECK_TYPES([uint_t], [], [], [#include <sys/types.h>])
+AC_CHECK_TYPES([ulong_t], [], [], [#include <sys/types.h>])
 
 # Checks for misc stuff.
 
@@ -166,9 +172,9 @@ AC_ARG_ENABLE(
 DIST_SUBDIRS_AC='doc windows'
 
 if test "$enabled_doc" = "yes"; then
-	SUBDIRS_AC='doc @WINDOWS_DIRS@'
+	SUBDIRS_AC='doc'
 else
-	SUBDIRS_AC='@WINDOWS_DIRS@'
+	SUBDIRS_AC=''
 fi
 
 AC_SUBST(DOC_INST_DIR, $DOC_INST_DIR)

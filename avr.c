@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr.c,v 1.74 2007/05/16 20:15:13 joerg_wunsch Exp $ */
+/* $Id: avr.c,v 1.75 2008/07/26 22:53:39 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -171,7 +171,8 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
    */
   memset(buf, 0xff, size);
 
-  if ((strcmp(mem->desc, "flash")==0) || (strcmp(mem->desc, "eeprom")==0)) {
+  if ((strcmp(mem->desc, "flash")==0) || (strcmp(mem->desc, "eeprom")==0) ||
+      (strcmp(mem->desc, "boot")==0)) {
     if (pgm->paged_load != NULL && mem->page_size != 0) {
       /*
        * the programmer supports a paged mode read, perhaps more
@@ -568,7 +569,8 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
             progbuf, wsize);
   }
 
-  if ((strcmp(m->desc, "flash")==0) || (strcmp(m->desc, "eeprom")==0)) {
+  if ((strcmp(m->desc, "flash")==0) || (strcmp(m->desc, "eeprom")==0) ||
+      (strcmp(m->desc, "boot")==0)) {
     if (pgm->paged_write != NULL && m->page_size != 0) {
       /*
        * the programmer supports a paged mode write, perhaps more

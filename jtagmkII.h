@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkII.h,v 1.6 2007/01/24 22:43:46 joerg_wunsch Exp $ */
+/* $Id: jtagmkII.h,v 1.7 2008/10/31 21:26:06 joerg_wunsch Exp $ */
 
 #ifndef jtagmkII_h
 #define jtagmkII_h
@@ -37,6 +37,14 @@ void jtagmkII_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dw_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dragon_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dragon_dw_initpgm (PROGRAMMER * pgm);
+
+/*
+ * These functions are referenced from stk500v2.c for JTAG ICE mkII
+ * and AVR Dragon programmers running in one of the STK500v2
+ * modi.
+ */
+void jtagmkII_setup(PROGRAMMER * pgm);
+void jtagmkII_teardown(PROGRAMMER * pgm);
 
 #ifdef __cplusplus
 }

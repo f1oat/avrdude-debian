@@ -1,7 +1,7 @@
 %% -*-texinfo-*-
 \input texinfo
 
-@c $Id: avrdude.texi,v 1.67 2007/10/29 22:37:38 joerg_wunsch Exp $
+@c $Id: avrdude.texi,v 1.78 2009/02/25 09:39:04 joerg_wunsch Exp $
 
 @setfilename avrdude.info
 @settitle AVRDUDE
@@ -30,7 +30,7 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 
 Copyright @copyright{} 2003, 2005 Brian Dean
 
-Copyright @copyright{} 2006, 2007 J@"org Wunsch
+Copyright @copyright{} 2006 - 2009 J@"org Wunsch
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -67,7 +67,7 @@ Use @uref{http://savannah.nongnu.org/bugs/?group=avrdude} to report bugs.
 
 Copyright @copyright{} 2003,2005 Brian S. Dean
 
-Copyright @copyright{} 2006 J@"org Wunsch
+Copyright @copyright{} 2006 - 2008 J@"org Wunsch
 @sp 2
 
 Permission is granted to make and distribute verbatim copies of
@@ -113,6 +113,7 @@ Copyright @copyright{} 2006 J@"org Wunsch
 * Command Line Options::
 * Terminal Mode Operation::
 * Configuration File::          
+* Programmer Specific Information::
 * Platform Dependent Information::
 * Troubleshooting::
 @end menu
@@ -143,6 +144,7 @@ programming fuse/lock bits, etc.
 
 AVRDUDE supports the following basic programmer types: Atmel's STK500,
 Atmel's AVRISP and AVRISP mkII devices,
+Atmel's STK600,
 Atmel's JTAG ICE (both mkI and mkII, the latter also in ISP mode), appnote
 avr910, appnote avr109 (including the AVR Butterfly),
 serial bit-bang adapters,
@@ -164,7 +166,10 @@ emulated on top of USB is likely to not work at all, or to work
 abysmally slow.
 
 The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial port to communicate with the PC.
-The STK500, JTAG ICE, and avr910 contain on-board logic to control the programming of the target
+The STK600, JTAG ICE mkII, AVRISP mkII, USBasp, and USBtinyISP
+programmers communicate through the USB, using @code{libusb} as a
+platform abstraction layer.
+The STK500, STK600, JTAG ICE, and avr910 contain on-board logic to control the programming of the target
 device.
 The avr109 bootloader implements a protocol similar to avr910, but is
 actually implemented in the boot area of the target's flash ROM, as
@@ -185,8 +190,10 @@ by AVRDUDE.
 For the JTAG ICE mkII, JTAG, debugWire and ISP mode are supported.
 See below for the limitations of debugWire.
 
+The Arduino (which is very similar to the STK500 1.x) is supported via
+its own programmer type specification ``arduino''.
+
 The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP, debugWire).
-(High-voltage programming is not yet supported.)
 When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
 JTAG ICE mkII, so all device-specific comments for that device
 will apply as well.
@@ -244,13 +251,14 @@ Roth.
 
 @menu
 * Option Descriptions::
+* Programmers accepting extended parameters::
 * Example Command Line Invocations::
 @end menu
 
 @c
 @c Node
 @c
-@node Option Descriptions, Example Command Line Invocations, Command Line Options, Command Line Options
+@node Option Descriptions, Programmers accepting extended parameters, Command Line Options, Command Line Options
 @section Option Descriptions
 
 @noindent
@@ -292,6 +300,8 @@ Currently, the following MCU types are understood:
 @item @code{m128}  @tab ATmega128
 @item @code{m1280} @tab ATmega1280
 @item @code{m1281} @tab ATmega1281
+@item @code{m1284p} @tab ATmega1284P
+@item @code{m128rfa1} @tab ATmega128RFA1
 @item @code{m16}   @tab ATmega16
 @item @code{m161}  @tab ATmega161
 @item @code{m162}  @tab ATmega162
@@ -322,6 +332,8 @@ Currently, the following MCU types are understood:
 @item @code{t26}   @tab ATtiny26
 @item @code{t45}   @tab ATtiny45
 @item @code{t85}   @tab ATtiny85
+@item @code{x128a1} @tab ATxmega128A1
+@item @code{x128a1d} @tab ATxmega128A1revD
 @end multitable
 
 (*)   The AT90S2323 and ATtiny22 use the same algorithm.
@@ -363,6 +375,8 @@ ABCmini Board, aka Dick Smith HOTCHIP
 @item @code{alf}         @tab
 Nightshade ALF-PgmAVR,@*
 @url{http://nightshade.homeip.net/}
+@item @code{arduino}
+Arduino board, protocol similar to STK500 1.x
 @item @code{atisp}       @tab
 AT-ISP V1.1 programming cable for AVR-SDK1 from,@*
 @url{http://micro-research.co.th/}
@@ -436,6 +450,8 @@ Atmel JTAG ICE mkII in debugWire mode.
 Atmel JTAG ICE mkI, running at 115200 Bd
 @item @code{jtagmkII}    @tab
 Atmel JTAG ICE mkII (default speed 19200 Bd)
+@item @code{mib510}      @tab
+Crossbow MIB510 programming board
 @item @code{pavr}        @tab
 Jason Kyle's pAVR Serial Programmer
 @item @code{picoweb}     @tab
@@ -462,6 +478,12 @@ Atmel STK500 in parallel programming mode (version 2.xfirmware only)
 Atmel STK500, running a version 1.x firmware
 @item @code{stk500v2}    @tab
 Atmel STK500, running a version 2.x firmware
+@item @code{stk600}      @tab
+Atmel STK600 in ISP mode, or in PDI mode for ATxmega devices
+@item @code{stk600hvsp}  @tab
+Atmel STK600 in high-voltage serial programming mode
+@item @code{stk600pp}    @tab
+Atmel STK600 in parallel programming mode
 @item @code{usbasp}      @tab
 USBasp,@*
 @url{http://www.fischl.de/usbasp/}
@@ -488,13 +510,18 @@ the method of searching for the configuration file for Windows.
 Disable auto erase for flash.  When the -U option with flash memory is 
 specified, avrdude will perform a chip erase before starting any of the 
 programming operations, since it generally is a mistake to program the flash
-without performing an erase first.  This option disables that.  However, to 
-remain backward compatible, the -i, and -m options automatically disable the 
-auto erase feature.
+without performing an erase first.  This option disables that.
+Auto erase is not used for ATxmega devices as these devices can
+use page erase before writing each page so no explicit chip erase
+is required.
+Note however that any page not affected by the current operation
+will retain its previous contents.
 
 @item -e
 Causes a chip erase to be executed.  This will reset the contents of the
-flash ROM and EEPROM to the value `0xff', and is basically a
+flash ROM and EEPROM to the value `0xff', and clear all lock bits.
+Except for ATxmega devices which can use page erase,
+it is basically a
 prerequisite command before the flash ROM can be reprogrammed again.
 The only exception would be if the new contents would exclusively cause
 bits to be programmed from the value `1' to `0'.  Note that in order
@@ -543,6 +570,10 @@ the part is reasonable before continuing.  Since it can happen from time
 to time that a device has a broken (erased or overwritten) device
 signature but is otherwise operating normally, this options is provided
 to override the check.
+Also, for programmers like the Atmel STK500 and STK600 which can
+adjust parameters local to the programming tool (independent of an
+actual connection to a target controller), this option can be used
+together with @option{-t} to continue in terminal mode.
 
 @item -i @var{delay}
 For bitbang-type programmers, delay for approximately
@@ -747,6 +778,12 @@ Enable verbose output.
 @item -V
 Disable automatic verify check when uploading data.
 
+@item -x @var{extended_param}
+Pass @var{extended_param} to the chosen programmer implementation as
+an extended parameter.  The interpretation of the extended parameter
+depends on the programmer itself.  See below for a list of programmers
+accepting extended parameters.
+
 @item -y
 Tells AVRDUDE to use the last four bytes of the connected parts' EEPROM
 memory to track the number of times the device has been erased.  When
@@ -774,7 +811,52 @@ should not be used.
 @c
 @c Node
 @c
-@node Example Command Line Invocations,  , Option Descriptions, Command Line Options
+@node Programmers accepting extended parameters, Example Command Line Invocations, Option Descriptions, Command Line Options
+@section Programmers accepting extended parameters
+
+@table @code
+
+@item JTAG ICE mkII
+@itemx AVR Dragon
+
+When using the JTAG ICE mkII or AVR Dragon in JTAG mode, the
+following extended parameter is accepted:
+@table @code
+@item @samp{jtagchain=UB,UA,BB,BA}
+Setup the JTAG scan chain for @var{UB} units before, @var{UA} units
+after, @var{BB} bits before, and @var{BA} bits after the target AVR,
+respectively.
+Each AVR unit within the chain shifts by 4 bits.
+Other JTAG units might require a different bit shift count.
+@end table
+
+@item AVR910
+
+The AVR910 programmer type accepts the following extended parameter:
+@table @code
+@item @samp{devcode=VALUE}
+Override the device code selection by using @var{VALUE}
+as the device code.
+The programmer is not queried for the list of supported
+device codes, and the specified @var{VALUE}
+is not verified but used directly within the
+@code{T} command sent to the programmer.
+@var{VALUE} can be specified using the conventional number notation of the
+C programming language.
+@item @samp{no_blockmode}
+Disables the default checking for block transfer capability.
+Use 
+@samp{no_blockmode} only if your @samp{AVR910} 
+programmer creates errors during initial sequence.
+@end table
+
+@end table
+
+@page
+@c
+@c Node
+@c
+@node Example Command Line Invocations,  , Programmers accepting extended parameters, Command Line Options
 @section Example Command Line Invocations
 
 @noindent
@@ -990,15 +1072,23 @@ Perform a chip erase.
 Send raw instruction codes to the AVR device.  If you need access to a
 feature of an AVR part that is not directly supported by AVRDUDE, this
 command allows you to use it, even though AVRDUDE does not implement the
-command.
+command.   When using direct SPI mode, up to 3 bytes
+can be omitted.
 
 @item sig
 Display the device signature bytes.
+
+@item spi
+Enter direct SPI mode.  The @emph{pgmled} pin acts as slave select.
+@emph{Only supported on parallel bitbang programmers.}
 
 @item part
 Display the current part settings and parameters.  Includes chip
 specific information including all memory types supported by the
 device, read/write timing, etc.
+
+@item pgm
+Return to programming mode (from direct SPI mode).
 
 @item ?
 @itemx help
@@ -1011,28 +1101,31 @@ Leave terminal mode and thus AVRDUDE.
 
 @noindent
 In addition, the following commands are supported on the STK500
-programmer:
+and STK600 programmer:
 
 @table @code
 
 @item vtarg @var{voltage}
 Set the target's supply voltage to @var{voltage} Volts.
 
-@item varef @var{voltage}
+@item varef [@var{channel}] @var{voltage}
 Set the adjustable voltage source to @var{voltage} Volts.
 This voltage is normally used to drive the target's
-@emph{Aref} input on the STK500.
+@emph{Aref} input on the STK500 and STK600.
+The STK600 offers two reference voltages, which can be
+selected by the optional parameter @var{channel} (either
+0 or 1).
 
-@item fosc @var{freq}[@var{M}|@var{k}]
+@item fosc @var{freq}[@code{M}|@code{k}]
 Set the master oscillator to @var{freq} Hz.
-An optional trailing letter @var{M}
-multiplies by 1E6, a trailing letter @var{k} by 1E3.
+An optional trailing letter @code{M}
+multiplies by 1E6, a trailing letter @code{k} by 1E3.
 
 @item fosc off
 Turn the master oscillator off.
 
 @item sck @var{period}
-@emph{STK500 only:}
+@emph{STK500 and STK600 only:}
 Set the SCK clock period to @var{period} microseconds.
 
 @emph{JTAG ICE only:}
@@ -1044,7 +1137,7 @@ This parameter can also be used on the JTAG ICE mkII to specify the
 ISP clock period when operating the ICE in ISP mode.
 
 @item parms
-@emph{STK500 only:}
+@emph{STK500 and STK600 only:}
 Display the current voltage and master oscillator parameters.
 
 @emph{JTAG ICE only:}
@@ -1159,7 +1252,7 @@ avrdude>
 @c
 @c Node
 @c
-@node Configuration File, Platform Dependent Information, Terminal Mode Operation, Top
+@node Configuration File, Programmer Specific Information, Terminal Mode Operation, Top
 @chapter Configuration File
 
 @noindent
@@ -1400,11 +1493,87 @@ functionality does not make sense for these boot loaders.
 
 @end itemize
 
+@c
+@c Node
+@c
+@node Programmer Specific Information, Platform Dependent Information, Configuration File, Top
+@chapter Programmer Specific Information
+
+@menu
+* Atmel STK600::
+@end menu
 
 @c
 @c Node
 @c
-@node Platform Dependent Information, Troubleshooting, Configuration File, Top
+@node Atmel STK600, , Programmer Specific Information, Programmer Specific Information
+@section Atmel STK600
+
+@c
+@c Update the table below by running the tools/get-stk600-devices.xsl
+@c XSLT transformation on targetboard.xml as shipped by the latest
+@c release of AVR Studio.
+@c
+The following devices are supported by the respective STK600 routing
+and socket card:
+
+@multitable @columnfractions .25 .25 .5
+@headitem Routing card @tab Socket card @tab Devices
+@item @code{STK600-RC008T-2} @tab @code{STK600-DIP} @tab ATtiny11 ATtiny12 ATtiny13 ATtiny25 ATtiny45 ATtiny85
+@item @code{STK600-RC008T-7} @tab @code{STK600-DIP} @tab ATtiny15
+@item @code{STK600-RC020T-1} @tab @code{STK600-DIP} @tab ATtiny2313
+@item @code{} @tab @code{STK600-TinyX3U} @tab ATtiny43U
+@item @code{STK600-RC014T-12} @tab @code{STK600-DIP} @tab ATtiny24 ATtiny44 ATtiny84
+@item @code{STK600-RC020T-8} @tab @code{STK600-DIP} @tab ATtiny26 ATtiny261 ATtiny461 ATtiny861
+@item @code{STK600-RC020T-23} @tab @code{STK600-SOIC} @tab ATtiny167
+@item @code{STK600-RC028T-3} @tab @code{STK600-DIP} @tab ATtiny28
+@item @code{STK600-RC028M-6} @tab @code{STK600-DIP} @tab ATtiny48 ATtiny88 ATmega8 ATmega48 ATmega88 ATmega168 ATmega48P ATmega88P ATmega168P ATmega328P
+@item @code{STK600-RC040M-4} @tab @code{STK600-DIP} @tab ATmega8515 ATmega162
+@item @code{STK600-RC040M-5} @tab @code{STK600-DIP} @tab ATmega8535 ATmega16 ATmega32 ATmega164P ATmega324P ATmega644 ATmega644P ATmega1284P
+@item @code{STK600-RC064M-9} @tab @code{STK600-TQFP64} @tab ATmega64 ATmega128 ATmega1281 ATmega2561 AT90CAN32 AT90CAN64 AT90CAN128
+@item @code{STK600-RC064M-10} @tab @code{STK600-TQFP64} @tab ATmega165 ATmega165P ATmega169 ATmega169P ATmega325 ATmega325P ATmega329 ATmega329P ATmega645 ATmega649
+@item @code{STK600-RC100M-11} @tab @code{STK600-TQFP100} @tab ATmega640 ATmega1280 ATmega2560
+@item @code{} @tab @code{STK600-ATMEGA2560} @tab ATmega2560
+@item @code{STK600-RC100M-18} @tab @code{STK600-TQFP100} @tab ATmega3250 ATmega3250P ATmega3290 ATmega3290P ATmega6450 ATmega6490
+@item @code{STK600-RC32U-20} @tab @code{STK600-TQFP32} @tab AT90USB82 AT90USB162
+@item @code{STK600-RC044U-25} @tab @code{STK600-TQFP44} @tab ATmega32U4
+@item @code{STK600-RC064U-17} @tab @code{STK600-TQFP64} @tab AT90USB646 AT90USB1286 AT90USB647 AT90USB1287
+@item @code{STK600-RCPWM-22} @tab @code{STK600-TQFP32} @tab ATmega32C1 ATmega32M1
+@item @code{STK600-RCPWM-19} @tab @code{STK600-SOIC} @tab AT90PWM2 AT90PWM3 AT90PWM2B AT90PWM3B AT90PWM216 AT90PWM316
+@item @code{STK600-RC044M-24} @tab @code{STK600-TSSOP44} @tab ATmega32HVB
+@item @code{STK600-RC100X-13} @tab @code{STK600-TQFP100} @tab ATxmega128A1 ATxmega128A1_revD ATxmega64A1
+@item @code{} @tab @code{STK600-uC3-144} @tab AT32UC3A0512 AT32UC3A0256 AT32UC3A0128
+@item @code{STK600-RCuC3B0-21} @tab @code{STK600-TQFP64-2} @tab AT32UC3B0256 AT32UC3B0128 AT32UC3B064
+@end multitable
+
+Ensure the correct socket and routing card are mounted @emph{before}
+powering on the STK600.  While the STK600 firmware ensures the socket
+and routing card mounted match each other (using a table stored
+internally in nonvolatile memory), it cannot handle the case where a
+wrong routing card is used, e. g. the routing card
+@code{STK600-RC040M-5} (which is meant for 40-pin DIP AVRs that have
+an ADC, with the power supply pins in the center of the package) was
+used but an ATmega8515 inserted (which uses the ``industry standard''
+pinout with Vcc and GND at opposite corners).
+
+Note that for devices that use the routing card @code{STK600-RC008T-2},
+in order to use ISP mode, the jumper for @code{AREF0} must be removed
+as it would otherwise block one of the ISP signals.  High-voltage
+serial programming can be used even with that jumper installed.
+
+The ISP system of the STK600 contains a detection against shortcuts
+and other wiring errors.  AVRDUDE initiates a connection check before
+trying to enter ISP programming mode, and display the result if the
+target is not found ready to be ISP programmed.
+
+High-voltage programming requires the target voltage to be set to at
+least 4.5 V in order to work.  This can be done using
+@emph{Terminal Mode}, see @ref{Terminal Mode Operation}.
+
+@c
+@c Node
+@c
+@node Platform Dependent Information, Troubleshooting, Programmer Specific Information, Top
 @appendix Platform Dependent Information
 
 @menu
@@ -1728,7 +1897,7 @@ Windows serial port device names such as: com1, com2, etc.
 @subsubsection Parallel Ports
 
 @noindent
-AVRDUDE will only accept 3 Windows parallel port names: lpt1, lpt2, or
+AVRDUDE will accept 3 Windows parallel port names: lpt1, lpt2, or
 lpt3.  Each of these names corresponds to a fixed parallel port base
 address:
 
@@ -1749,6 +1918,9 @@ using a laptop, you might have to use lpt3 instead of lpt1. Select the
 name of the port the corresponds to the base address of the parallel
 port that you want.
 
+If the parallel port can be accessed through a different
+address, this address can be specified directly, using the common C
+language notation (i. e., hexadecimal values are prefixed by @code{0x}).
 
 @c
 @c Node
@@ -1919,7 +2091,7 @@ programming works, and is documented that way in the Atmel AVR
 datasheets.
 In order to successfully program the EEPROM that way, a prior chip
 erase (with the EESAVE fuse unprogrammed) is required.
-This also applies to the STK500 in high-voltage programming mode.
+This also applies to the STK500 and STK600 in high-voltage programming mode.
 
 @item
 Problem: How do I turn off the @var{DWEN} fuse?

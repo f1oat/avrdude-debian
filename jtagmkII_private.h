@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkII_private.h,v 1.5 2006/11/01 21:47:25 joerg_wunsch Exp $ */
+/* $Id: jtagmkII_private.h,v 1.6 2008/10/31 21:16:46 joerg_wunsch Exp $ */
 
 
 /*
@@ -179,6 +179,7 @@
 # define EMULATOR_MODE_JTAG 0x01
 # define EMULATOR_MODE_HV 0x02	/* HVSP or PP mode of AVR Dragon */
 # define EMULATOR_MODE_SPI 0x03
+# define EMULATOR_MODE_JTAG_XMEGA 0x05
 #define PAR_IREG 0x04
 #define PAR_BAUD_RATE 0x05
 # define PAR_BAUD_2400 0x01

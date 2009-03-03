@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_avrdoper.c,v 1.4 2007/01/24 21:07:54 joerg_wunsch Exp $ */
+/* $Id: ser_avrdoper.c,v 1.5 2008/07/26 06:04:30 joerg_wunsch Exp $ */
 
 /*
  * Serial Interface emulation for USB programmer "AVR-Doper" in HID mode.
@@ -425,7 +425,7 @@ static int usbGetReport(union filedescriptor *fdp, int reportType, int reportNum
     *len = bytesReceived;
     if(!usesReportIDs){
         buffer[-1] = reportNumber;  /* add dummy report ID */
-        *len++;
+        len++;
     }
     return 0;
 }

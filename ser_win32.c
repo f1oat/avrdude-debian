@@ -18,11 +18,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_win32.c,v 1.13 2007/10/29 21:51:07 joerg_wunsch Exp $ */
+/* $Id: ser_win32.c,v 1.14 2009/02/23 22:04:56 joerg_wunsch Exp $ */
 
 /*
  * Native Win32 serial interface for avrdude.
  */
+
+#include "avrdude.h"
 
 #if defined(WIN32NATIVE)
 
@@ -30,7 +32,6 @@
 #include <stdio.h>
 #include <ctype.h>   /* for isprint */
 
-#include "avrdude.h"
 #include "serial.h"
 
 long serial_recv_timeout = 5000; /* ms */

@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2002-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: pgm.h,v 1.34 2007/01/30 13:41:53 joerg_wunsch Exp $ */
+/* $Id: pgm.h,v 1.38 2009/02/17 15:31:27 joerg_wunsch Exp $ */
 
 #ifndef pgm_h
 #define pgm_h
@@ -77,6 +78,8 @@ typedef struct programmer_t {
   int  (*chip_erase)     (struct programmer_t * pgm, AVRPART * p);
   int  (*cmd)            (struct programmer_t * pgm, unsigned char cmd[4], 
                           unsigned char res[4]);
+  int  (*spi)            (struct programmer_t * pgm, unsigned char cmd[], 
+                          unsigned char res[], int count);
   int  (*open)           (struct programmer_t * pgm, char * port);
   void (*close)          (struct programmer_t * pgm);
   int  (*paged_write)    (struct programmer_t * pgm, AVRPART * p, AVRMEM * m, 
@@ -91,7 +94,7 @@ typedef struct programmer_t {
   int  (*read_sig_bytes) (struct programmer_t * pgm, AVRPART * p, AVRMEM * m);
   void (*print_parms)    (struct programmer_t * pgm);
   int  (*set_vtarget)    (struct programmer_t * pgm, double v);
-  int  (*set_varef)      (struct programmer_t * pgm, double v);
+  int  (*set_varef)      (struct programmer_t * pgm, unsigned int chan, double v);
   int  (*set_fosc)       (struct programmer_t * pgm, double v);
   int  (*set_sck_period) (struct programmer_t * pgm, double v);
   int  (*setpin)         (struct programmer_t * pgm, int pin, int value);
@@ -99,8 +102,12 @@ typedef struct programmer_t {
   int  (*highpulsepin)   (struct programmer_t * pgm, int pin);
   int  (*parseexitspecs) (struct programmer_t * pgm, char *s);
   int  (*perform_osccal) (struct programmer_t * pgm);
+  int  (*parseextparams) (struct programmer_t * pgm, LISTID xparams);
+  void (*setup)          (struct programmer_t * pgm);
+  void (*teardown)       (struct programmer_t * pgm);
   char config_file[PATH_MAX]; /* config file where defined */
   int  lineno;                /* config file line number */
+  void *cookie;		      /* for private use by the programmer */
   char flag;		      /* for private use of the programmer */
 } PROGRAMMER;
 

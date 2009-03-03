@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: usbdevs.h,v 1.2 2006/10/26 21:14:10 joerg_wunsch Exp $ */
+/* $Id: usbdevs.h,v 1.3 2008/03/14 13:00:07 joerg_wunsch Exp $ */
 
 /*
  * defines for the USB interface
@@ -29,6 +29,7 @@
 #define USB_VENDOR_ATMEL 1003
 #define USB_DEVICE_JTAGICEMKII 0x2103
 #define USB_DEVICE_AVRISPMKII  0x2104
+#define USB_DEVICE_STK600      0x2106
 #define USB_DEVICE_AVRDRAGON   0x2107
 
 /*

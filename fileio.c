@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: fileio.c,v 1.38 2007/10/29 22:30:59 joerg_wunsch Exp $ */
+/* $Id: fileio.c,v 1.39 2009/02/19 10:49:55 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -969,8 +969,10 @@ static int fmt_autodetect(char * fname)
         break;
       }
     }
-    if (found)
+    if (found) {
+      fclose(f);
       return FMT_RBIN;
+    }
 
     /* check for lines that look like intel hex */
     if ((buf[0] == ':') && (len >= 11)) {
@@ -981,8 +983,10 @@ static int fmt_autodetect(char * fname)
           break;
         }
       }
-      if (found)
+      if (found) {
+        fclose(f);
         return FMT_IHEX;
+      }
     }
 
     /* check for lines that look like motorola s-record */
@@ -994,11 +998,14 @@ static int fmt_autodetect(char * fname)
           break;
         }
       }
-      if (found)
+      if (found) {
+        fclose(f);
         return FMT_SREC;
+      }
     }
   }
 
+  fclose(f);
   return -1;
 }
 
@@ -1143,7 +1150,9 @@ int fileio(int op, char * filename, FILEFMT format,
       rc = avr_mem_hiaddr(mem);
     }
   }
-
+  if (format != FMT_IMM) {
+    fclose(f);
+  }
   return rc;
 }
 
