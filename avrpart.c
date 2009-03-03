@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avrpart.c,v 1.14 2007/01/30 13:41:53 joerg_wunsch Exp $ */
+/* $Id: avrpart.c,v 1.15 2008/06/07 21:03:41 joerg_wunsch Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -488,22 +488,22 @@ void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
   AVRMEM * m;
 
   fprintf(f,
-          "%sAVR Part              : %s\n"
-          "%sChip Erase delay      : %d us\n"
-          "%sPAGEL                 : P%02X\n"
-          "%sBS2                   : P%02X\n"
-          "%sRESET disposition     : %s\n"
-          "%sRETRY pulse           : %s\n"
-          "%sserial program mode   : %s\n"
-          "%sparallel program mode : %s\n"
-          "%sTimeout               : %d\n"
-          "%sStabDelay             : %d\n"
-          "%sCmdexeDelay           : %d\n"
-          "%sSyncLoops             : %d\n"
-          "%sByteDelay             : %d\n"
-          "%sPollIndex             : %d\n"
-          "%sPollValue             : 0x%02x\n"
-          "%sMemory Detail         :\n\n",
+          "%sAVR Part                      : %s\n"
+          "%sChip Erase delay              : %d us\n"
+          "%sPAGEL                         : P%02X\n"
+          "%sBS2                           : P%02X\n"
+          "%sRESET disposition             : %s\n"
+          "%sRETRY pulse                   : %s\n"
+          "%sserial program mode           : %s\n"
+          "%sparallel program mode         : %s\n"
+          "%sTimeout                       : %d\n"
+          "%sStabDelay                     : %d\n"
+          "%sCmdexeDelay                   : %d\n"
+          "%sSyncLoops                     : %d\n"
+          "%sByteDelay                     : %d\n"
+          "%sPollIndex                     : %d\n"
+          "%sPollValue                     : 0x%02x\n"
+          "%sMemory Detail                 :\n\n",
           prefix, p->desc,
           prefix, p->chip_erase_delay,
           prefix, p->pagel,

@@ -18,7 +18,7 @@
 #
 
 #
-# $Id: Makefile.am,v 1.40 2007/10/29 18:03:01 joerg_wunsch Exp $
+# $Id: Makefile.am,v 1.44 2009/02/25 09:39:03 joerg_wunsch Exp $
 #
 
 EXTRA_DIST   = \
@@ -40,6 +40,7 @@ CLEANFILES = \
 #DIST_SUBDIRS = doc windows
 
 SUBDIRS = @SUBDIRS_AC@
+SUBDIRS += @WINDOWS_DIRS@
 DIST_SUBDIRS = @DIST_SUBDIRS_AC@
 
 AM_YFLAGS    = -d
@@ -52,7 +53,7 @@ avrdude_CFLAGS   = @ENABLE_WARNINGS@
 
 libavrdude_a_CFLAGS   = @ENABLE_WARNINGS@
 
-avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB@ @LIBHID@
+avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB@ @LIBHID@ -lm
 
 bin_PROGRAMS = avrdude
 
@@ -76,6 +77,8 @@ dist-hook:
 libavrdude_a_SOURCES = \
 	config_gram.y \
 	lexer.l \
+	arduino.h \
+	arduino.c \
 	avr.c \
 	avr.h \
 	avr910.c \
@@ -132,8 +135,6 @@ libavrdude_a_SOURCES = \
 	stk500v2_private.h \
 	stk500generic.c \
 	stk500generic.h \
-	term.c \
-	term.h \
 	usbasp.c \
 	usbasp.h \
 	usbdevs.h \
@@ -144,7 +145,9 @@ libavrdude_a_SOURCES = \
 	update.c
 
 avrdude_SOURCES = \
-	main.c
+	main.c \
+	term.c \
+	term.h
 
 man_MANS = avrdude.1
 

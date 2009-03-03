@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2002-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: pgm.c,v 1.24 2007/01/30 13:41:53 joerg_wunsch Exp $ */
+/* $Id: pgm.c,v 1.27 2009/02/17 15:31:27 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -117,6 +118,7 @@ PROGRAMMER * pgm_new(void)
    * assigned before they are called
    */
   pgm->cmd            = NULL;
+  pgm->spi            = NULL;
   pgm->paged_write    = NULL;
   pgm->paged_load     = NULL;
   pgm->write_setup    = NULL;
@@ -125,6 +127,9 @@ PROGRAMMER * pgm_new(void)
   pgm->set_varef      = NULL;
   pgm->set_fosc       = NULL;
   pgm->perform_osccal = NULL;
+  pgm->parseextparams = NULL;
+  pgm->setup          = NULL;
+  pgm->teardown       = NULL;
 
   return pgm;
 }

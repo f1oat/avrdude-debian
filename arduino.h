@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003-2004  Eric B. Weddington <eric@ecentral.com>
+ * Copyright (C) 2009 Lars Immisch
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,37 +17,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/* $Id: arduino.h,v 1.1 2009/02/25 09:39:03 joerg_wunsch Exp $ */
 
-#include "avrdude.h"
+#ifndef arduino_h__
+#define arduino_h__
 
-#if defined(WIN32NATIVE)
-
-#include <limits.h>
-#include <windows.h>
-
-
-static char *filename;
-
-
-void win_sys_config_set(char sys_config[PATH_MAX])
-{
-    sys_config[0] = 0;
-    
-    /* Use Windows API call to search for the Windows default system config file.*/
-    SearchPath(NULL, "avrdude.conf", NULL, PATH_MAX, sys_config, &filename);
-    return;
-}
-
-
-void win_usr_config_set(char usr_config[PATH_MAX])
-{
-    usr_config[0] = 0;
-    
-    /* Use Windows API call to search for the Windows default user config file. */
-	SearchPath(NULL, "avrdude.rc", NULL, PATH_MAX, usr_config, &filename);
-    return;
-}
-
+void arduino_initpgm (PROGRAMMER * pgm);
 
 #endif
 

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ppi.c,v 1.30 2007/01/24 22:43:46 joerg_wunsch Exp $ */
+/* $Id: ppi.c,v 1.31 2009/02/23 22:04:56 joerg_wunsch Exp $ */
 
 
 #if !defined(WIN32NATIVE)
@@ -37,7 +37,7 @@
 # include "freebsd_ppi.h"
 #elif defined(__linux__)
 # include "linux_ppdev.h"
-#elif defined(__sun__) && defined(__svr4__) /* Solaris */
+#elif defined(__sun__) || defined(__sun) /* Solaris */
 # include "solaris_ecpp.h"
 #endif
 

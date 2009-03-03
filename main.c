@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2005  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: main.c,v 1.128 2007/10/29 22:46:45 joerg_wunsch Exp $ */
+/* $Id: main.c,v 1.135 2008/11/04 12:10:28 joerg_wunsch Exp $ */
 
 /*
  * Code to program an Atmel AVR device through one of the supported
@@ -72,6 +73,10 @@ struct list_walk_cookie
 
 static LISTID updates;
 
+static LISTID extended_params;
+
+static PROGRAMMER * pgm;
+
 /*
  * global options
  */
@@ -111,6 +116,7 @@ static void usage(void)
  "                             fuses should be changed back.\n"
  "  -t                         Enter terminal mode.\n"
  "  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
+ "  -x <extended_param>        Pass <extended_param> to programmer.\n"
  "  -y                         Count # erase cycles in EEPROM.\n"
  "  -Y <number>                Initialize erase cycle # in EEPROM.\n"
  "  -v                         Verbose output. -v -v for more.\n"
@@ -127,6 +133,8 @@ static void update_progress_tty (int percent, double etime, char *hdr)
   static char *header;
   static int last = 0;
   int i;
+
+  setvbuf(stderr, (char*)NULL, _IONBF, 0);
 
   hashes[50] = 0;
 
@@ -150,6 +158,8 @@ static void update_progress_tty (int percent, double etime, char *hdr)
     last = 1;
     fprintf (stderr, "\n\n");
   }
+
+  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
 }
 
 static void update_progress_no_tty (int percent, double etime, char *hdr)
@@ -157,6 +167,8 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
   static int done = 0;
   static int last = 0;
   int cnt = (percent>>1)*2;
+
+  setvbuf(stderr, (char*)NULL, _IONBF, 0);
 
   if (hdr) {
     fprintf (stderr, "\n%s | ", hdr);
@@ -177,6 +189,8 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
   }
   else
     last = (percent>>1)*2;    /* Make last a multiple of 2. */
+
+  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
 }
 
 static void list_programmers_callback(const char *name, const char *desc,
@@ -219,6 +233,12 @@ static void list_parts(FILE * f, const char *prefix, LISTID avrparts)
     walk_avrparts(avrparts, list_avrparts_callback, &c);
 }
 
+static void exithook(void)
+{
+    if (pgm->teardown)
+        pgm->teardown(pgm);
+}
+
 /*
  * main routine
  */
@@ -235,7 +255,6 @@ int main(int argc, char * argv [])
   struct stat      sb;
   UPDATE         * upd;
   LNODEID        * ln;
-  PROGRAMMER     * pgm;
 
 
   /* options / operating mode variables */
@@ -260,6 +279,7 @@ int main(int argc, char * argv [])
   int     ispdelay;    /* Specify the delay for ISP clock */
   int     safemode;    /* Enable safemode, 1=safemode on, 0=normal */
   int     silentsafe;  /* Don't ask about fuses, 1=silent, 0=normal */
+  int     init_ok;     /* Device initialization worked well */
   unsigned char safemode_lfuse = 0xff;
   unsigned char safemode_hfuse = 0xff;
   unsigned char safemode_efuse = 0xff;
@@ -302,6 +322,12 @@ int main(int argc, char * argv [])
     exit(1);
   }
 
+  extended_params = lcreat(NULL, 0);
+  if (extended_params == NULL) {
+    fprintf(stderr, "%s: cannot initialize extended parameter list\n", progname);
+    exit(1);
+  }
+
   partdesc      = NULL;
   port          = default_parallel;
   erase         = 0;
@@ -324,7 +350,7 @@ int main(int argc, char * argv [])
   ispdelay      = 0;
   safemode      = 1;       /* Safemode on by default */
   silentsafe    = 0;       /* Ask by default */
-  
+
   if (isatty(STDIN_FILENO) == 0)
       safemode  = 0;       /* Turn off safemode if this isn't a terminal */
 
@@ -372,7 +398,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fi:np:OP:qstU:uvVyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fi:np:OP:qstU:uvVx:yY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -482,6 +508,10 @@ int main(int argc, char * argv [])
 
       case 'V':
         verify = 0;
+        break;
+
+      case 'x':
+        ladd(extended_params, optarg);
         break;
 
       case 'y':
@@ -623,6 +653,29 @@ int main(int argc, char * argv [])
     exit(1);
   }
 
+  if (pgm->setup) {
+    pgm->setup(pgm);
+  }
+  if (pgm->teardown) {
+    atexit(exithook);
+  }
+
+  if (lsize(extended_params) > 0) {
+    if (pgm->parseextparams == NULL) {
+      fprintf(stderr,
+              "%s: WARNING: Programmer doesn't support extended parameters,"
+              " -x option(s) ignored\n",
+              progname);
+    } else {
+      if (pgm->parseextparams(pgm, extended_params) < 0) {
+        fprintf(stderr,
+              "%s: Error parsing extended parameter list\n",
+              progname);
+        exit(1);
+      }
+    }
+  }
+
   if ((strcmp(pgm->type, "STK500") == 0) ||
       (strcmp(pgm->type, "avr910") == 0) ||
       (strcmp(pgm->type, "STK500V2") == 0) ||
@@ -689,20 +742,26 @@ int main(int argc, char * argv [])
   }
 
   if (verbose) {
-    fprintf(stderr, "%sUsing Port            : %s\n", progbuf, port);
-    fprintf(stderr, "%sUsing Programmer      : %s\n", progbuf, programmer);
+    fprintf(stderr, "%sUsing Port                    : %s\n", progbuf, port);
+    fprintf(stderr, "%sUsing Programmer              : %s\n", progbuf, programmer);
+    if ((strcmp(pgm->type, "avr910") == 0)) {
+	  fprintf(stderr, "%savr910_devcode (avrdude.conf) : ", progbuf);
+      if(p->avr910_devcode)fprintf(stderr, "0x%x\n", p->avr910_devcode);
+	  else fprintf(stderr, "none\n");
+	}  
+	
   }
 
   if (baudrate != 0) {
     if (verbose) {
-      fprintf(stderr, "%sOverriding Baud Rate  : %d\n", progbuf, baudrate);
+      fprintf(stderr, "%sOverriding Baud Rate          : %d\n", progbuf, baudrate);
     }
     pgm->baudrate = baudrate;
   }
 
   if (bitclock != 0.0) {
     if (verbose) {
-      fprintf(stderr, "%sSetting bit clk period: %.1f\n", progbuf, bitclock);
+      fprintf(stderr, "%sSetting bit clk period        : %.1f\n", progbuf, bitclock);
     }
 
     pgm->bitclock = bitclock * 1e-6;
@@ -710,7 +769,7 @@ int main(int argc, char * argv [])
 
   if (ispdelay != 0) {
     if (verbose) {
-      fprintf(stderr, "%sSetting isp clock delay: %3i\n", progbuf, ispdelay);
+      fprintf(stderr, "%sSetting isp clock delay        : %3i\n", progbuf, ispdelay);
     }
     pgm->ispdelay = ispdelay;
   }
@@ -765,8 +824,8 @@ int main(int argc, char * argv [])
   /*
    * initialize the chip in preperation for accepting commands
    */
-  rc = pgm->initialize(pgm, p);
-  if (rc < 0) {
+  init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
+  if (!init_ok) {
     fprintf(stderr, "%s: initialization failed, rc=%d\n", progname, rc);
     if (!ovsigck) {
       fprintf(stderr, "%sDouble check connections and try again, "
@@ -793,12 +852,14 @@ int main(int argc, char * argv [])
    * against 0xffffff / 0x000000 should ensure that the signature bytes
    * are valid.
    */
-  rc = avr_signature(pgm, p);
-  if (rc != 0) {
-    fprintf(stderr, "%s: error reading signature data, rc=%d\n",
-            progname, rc);
-    exitrc = 1;
-    goto main_exit;
+  if (init_ok) {
+    rc = avr_signature(pgm, p);
+    if (rc != 0) {
+      fprintf(stderr, "%s: error reading signature data, rc=%d\n",
+	      progname, rc);
+      exitrc = 1;
+      goto main_exit;
+    }
   }
 
   sig = avr_locate_mem(p, "signature");
@@ -859,7 +920,7 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (safemode == 1) {
+  if (init_ok && safemode == 1) {
     /* If safemode is enabled, go ahead and read the current low, high,
        and extended fuse bytes as needed */
 
@@ -895,7 +956,14 @@ int main(int argc, char * argv [])
   }
 
 
-
+  if ((p->flags & AVRPART_HAS_PDI) != 0) {
+    /*
+     * This is an ATxmega which can page erase, so no auto erase is
+     * needed.
+     */
+    auto_erase = 0;
+  }
+  
 
   if ((erase == 0) && (auto_erase == 1)) {
     AVRMEM * m;
@@ -924,7 +992,8 @@ int main(int argc, char * argv [])
    *
    * The cycle count will be displayed anytime it will be changed later.
    */
-  if ((set_cycles == -1) && ((erase == 0) || (do_cycles == 0))) {
+  if (init_ok &&
+      (set_cycles == -1) && ((erase == 0) || (do_cycles == 0))) {
     /*
      * see if the cycle count in the last four bytes of eeprom seems
      * reasonable
@@ -940,7 +1009,7 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (set_cycles != -1) {
+  if (init_ok && set_cycles != -1) {
     rc = avr_get_cycle_count(pgm, p, &cycles);
     if (rc == 0) {
       /*
@@ -963,23 +1032,37 @@ int main(int argc, char * argv [])
   }
 
 
-  if (erase) {
+  if (init_ok && erase) {
     /*
      * erase the chip's flash and eeprom memories, this is required
      * before the chip can accept new programming
      */
-    if (quell_progress < 2) {
-      fprintf(stderr, "%s: erasing chip\n", progname);
+    if (nowrite) {
+      fprintf(stderr,
+	      "%s: conflicting -e and -n options specified, NOT erasing chip\n",
+	      progname);
+    } else {
+      if (quell_progress < 2) {
+	fprintf(stderr, "%s: erasing chip\n", progname);
+      }
+      avr_chip_erase(pgm, p);
     }
-    avr_chip_erase(pgm, p);
   }
 
 
   if (terminal) {
     /*
      * terminal mode
-     */         
+     */
     exitrc = terminal_mode(pgm, p);
+  }
+
+  if (!init_ok) {
+    /*
+     * If we came here by the -tF options, bail out now.
+     */
+    exitrc = 1;
+    goto main_exit;
   }
 
 

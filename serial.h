@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: serial.h,v 1.13 2007/01/24 22:43:46 joerg_wunsch Exp $ */
+/* $Id: serial.h,v 1.14 2008/03/14 13:00:06 joerg_wunsch Exp $ */
 
 /* This is the API for the generic serial interface. The implementations are
    actually provided by the target dependant files:
@@ -35,6 +35,11 @@ union filedescriptor
 {
   int ifd;
   void *pfd;
+  struct
+  {
+    void *handle;
+    int ep;
+  } usb;
 };
 
 struct serial_device

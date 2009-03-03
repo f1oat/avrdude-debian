@@ -1,7 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
- * Copyright (C) 2005 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2005, 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: butterfly.c,v 1.20 2007/01/30 15:47:53 joerg_wunsch Exp $ */
+/* $Id: butterfly.c,v 1.23 2008/06/07 21:03:41 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for the serial programming mode of the Atmel butterfly
@@ -50,23 +50,35 @@
 #include "butterfly.h"
 #include "serial.h"
 
-static char has_auto_incr_addr;
-static unsigned buffersize = 0;
+/*
+ * Private data for this programmer.
+ */
+struct pdata
+{
+  char has_auto_incr_addr;
+  unsigned int buffersize;
+};
 
-/* These two defines are only for debugging. Will remove them once it starts
-   working. */
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
-#define show_func_info() \
-  fprintf(stderr, "%s: line %d: called %s()\n", \
-          __FILE__, __LINE__, __FUNCTION__)
+static void butterfly_setup(PROGRAMMER * pgm)
+{
+  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
+    fprintf(stderr,
+	    "%s: butterfly_setup(): Out of memory allocating private data\n",
+	    progname);
+    exit(1);
+  }
+  memset(pgm->cookie, 0, sizeof(struct pdata));
+}
 
-#define no_show_func_info()
-
+static void butterfly_teardown(PROGRAMMER * pgm)
+{
+  free(pgm->cookie);
+}
 
 static int butterfly_send(PROGRAMMER * pgm, char * buf, size_t len)
 {
-  no_show_func_info();
-
   return serial_send(&pgm->fd, (unsigned char *)buf, len);
 }
 
@@ -74,8 +86,6 @@ static int butterfly_send(PROGRAMMER * pgm, char * buf, size_t len)
 static int butterfly_recv(PROGRAMMER * pgm, char * buf, size_t len)
 {
   int rv;
-
-  no_show_func_info();
 
   rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
   if (rv < 0) {
@@ -90,8 +100,6 @@ static int butterfly_recv(PROGRAMMER * pgm, char * buf, size_t len)
 
 static int butterfly_drain(PROGRAMMER * pgm, int display)
 {
-  no_show_func_info();
-
   return serial_drain(&pgm->fd, display);
 }
 
@@ -111,8 +119,6 @@ static void butterfly_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
 
 static int butterfly_rdy_led(PROGRAMMER * pgm, int value)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return 0;
@@ -121,8 +127,6 @@ static int butterfly_rdy_led(PROGRAMMER * pgm, int value)
 
 static int butterfly_err_led(PROGRAMMER * pgm, int value)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return 0;
@@ -131,8 +135,6 @@ static int butterfly_err_led(PROGRAMMER * pgm, int value)
 
 static int butterfly_pgm_led(PROGRAMMER * pgm, int value)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return 0;
@@ -141,8 +143,6 @@ static int butterfly_pgm_led(PROGRAMMER * pgm, int value)
 
 static int butterfly_vfy_led(PROGRAMMER * pgm, int value)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return 0;
@@ -154,8 +154,6 @@ static int butterfly_vfy_led(PROGRAMMER * pgm, int value)
  */
 static int butterfly_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
-  no_show_func_info();
-
   butterfly_send(pgm, "e", 1);
   butterfly_vfy_cmd_sent(pgm, "chip erase");
 
@@ -182,8 +180,6 @@ static void butterfly_leave_prog_mode(PROGRAMMER * pgm)
  */
 static int butterfly_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
-  no_show_func_info();
-
   return -1;
 }
 
@@ -193,8 +189,6 @@ static int butterfly_program_enable(PROGRAMMER * pgm, AVRPART * p)
  */
 static void butterfly_powerup(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return;
@@ -206,8 +200,6 @@ static void butterfly_powerup(PROGRAMMER * pgm)
  */
 static void butterfly_powerdown(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return;
@@ -225,8 +217,6 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   char buf[10];
   char type;
   char c, devtype_1st;
-
-  no_show_func_info();
 
   /*
    * Send some ESC to activate butterfly bootloader.  This is not needed
@@ -279,8 +269,8 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   /* See if programmer supports autoincrement of address. */
 
   butterfly_send(pgm, "a", 1);
-  butterfly_recv(pgm, &has_auto_incr_addr, 1);
-  if (has_auto_incr_addr == 'Y')
+  butterfly_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1);
+  if (PDATA(pgm)->has_auto_incr_addr == 'Y')
       fprintf(stderr, "Programmer supports auto addr increment.\n");
 
   /* Check support for buffered memory access, abort if not available */
@@ -294,12 +284,12 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
     exit(1);
   };
   butterfly_recv(pgm, &c, 1);
-  buffersize = (unsigned int)(unsigned char)c<<8;
+  PDATA(pgm)->buffersize = (unsigned int)(unsigned char)c<<8;
   butterfly_recv(pgm, &c, 1);
-  buffersize += (unsigned int)(unsigned char)c;
+  PDATA(pgm)->buffersize += (unsigned int)(unsigned char)c;
   fprintf(stderr,
     "Programmer supports buffered memory access with buffersize=%i bytes.\n",
-     buffersize);
+     PDATA(pgm)->buffersize);
 
   /* Get list of devices that the programmer supports. */
 
@@ -331,6 +321,11 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   butterfly_send(pgm, buf, 2);
   butterfly_vfy_cmd_sent(pgm, "select device");
 
+  if (verbose)
+    fprintf(stderr,
+	    "%s: devcode selected: 0x%02x\n",
+	    progname, (unsigned)buf[1]);
+
   butterfly_enter_prog_mode(pgm);
 
   return 0;
@@ -340,8 +335,6 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
 
 static void butterfly_disable(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   butterfly_leave_prog_mode(pgm);
 
   return;
@@ -350,16 +343,12 @@ static void butterfly_disable(PROGRAMMER * pgm)
 
 static void butterfly_enable(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   return;
 }
 
 
 static int butterfly_open(PROGRAMMER * pgm, char * port)
 {
-  no_show_func_info();
-
   strcpy(pgm->port, port);
   /*
    *  If baudrate was not specified use 19200 Baud
@@ -380,8 +369,6 @@ static int butterfly_open(PROGRAMMER * pgm, char * port)
 
 static void butterfly_close(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   /* "exit programmer" */
   butterfly_send(pgm, "E", 1);
   butterfly_vfy_cmd_sent(pgm, "exit bootloader");
@@ -393,8 +380,6 @@ static void butterfly_close(PROGRAMMER * pgm)
 
 static void butterfly_display(PROGRAMMER * pgm, const char * p)
 {
-  no_show_func_info();
-
   return;
 }
 
@@ -433,8 +418,6 @@ static int butterfly_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   char cmd[6];
   int size;
   int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
-
-  no_show_func_info();
 
   if ((strcmp(m->desc, "flash") == 0) || (strcmp(m->desc, "eeprom") == 0))
   {
@@ -528,8 +511,6 @@ static int butterfly_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 {
   char cmd;
 
-  no_show_func_info();
-
   if (strcmp(m->desc, "flash") == 0) {
     return butterfly_read_byte_flash(pgm, p, m, addr, value);
   }
@@ -567,7 +548,7 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned int addr = 0;
   unsigned int max_addr = n_bytes;
   char *cmd;
-  unsigned int blocksize = buffersize;
+  unsigned int blocksize = PDATA(pgm)->buffersize;
   int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 
   if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom")) 
@@ -629,7 +610,7 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   {		/* use buffered mode */
     char cmd[4];
-    int blocksize = buffersize;
+    int blocksize = PDATA(pgm)->buffersize;
 
     cmd[0] = 'g';
     cmd[3] = toupper(m->desc[0]);
@@ -664,8 +645,6 @@ static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 {
   unsigned char tmp;
 
-  no_show_func_info();
-
   if (m->size < 3) {
     fprintf(stderr, "%s: memsize too small for sig byte read", progname);
     return -1;
@@ -684,8 +663,6 @@ static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 
 void butterfly_initpgm(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   strcpy(pgm->type, "avr910");
 
   /*
@@ -716,4 +693,7 @@ void butterfly_initpgm(PROGRAMMER * pgm)
   pgm->paged_load = butterfly_paged_load;
 
   pgm->read_sig_bytes = butterfly_read_sig_bytes;
+
+  pgm->setup          = butterfly_setup;
+  pgm->teardown       = butterfly_teardown;
 }

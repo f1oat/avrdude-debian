@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2002-2004 Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2008 Joerg Wunsch
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500.c,v 1.55 2007/01/30 13:41:53 joerg_wunsch Exp $ */
+/* $Id: stk500.c,v 1.59 2009/02/23 22:04:56 joerg_wunsch Exp $ */
 
 /*
  * avrdude interface for Atmel STK500 programmer
@@ -330,6 +331,77 @@ static int stk500_set_extended_parms(PROGRAMMER * pgm, int n,
   return -1;
 }
 
+/*
+ * Crossbow MIB510 initialization and shutdown.  Use cmd = 1 to
+ * initialize, cmd = 0 to close.
+ */
+static int mib510_isp(PROGRAMMER * pgm, unsigned char cmd)
+{
+  unsigned char buf[9];
+  int tries = 0;
+
+  buf[0] = 0xaa;
+  buf[1] = 0x55;
+  buf[2] = 0x55;
+  buf[3] = 0xaa;
+  buf[4] = 0x17;
+  buf[5] = 0x51;
+  buf[6] = 0x31;
+  buf[7] = 0x13;
+  buf[8] = cmd;
+
+
+ retry:
+
+  tries++;
+
+  stk500_send(pgm, buf, 9);
+  if (stk500_recv(pgm, buf, 1) < 0)
+    exit(1);
+  if (buf[0] == Resp_STK_NOSYNC) {
+    if (tries > 33) {
+      fprintf(stderr, "%s: mib510_isp(): can't get into sync\n",
+              progname);
+      return -1;
+    }
+    if (stk500_getsync(pgm) < 0)
+      return -1;
+    goto retry;
+  }
+  else if (buf[0] != Resp_STK_INSYNC) {
+    fprintf(stderr,
+            "%s: mib510_isp(): protocol error, "
+            "expect=0x%02x, resp=0x%02x\n",
+            progname, Resp_STK_INSYNC, buf[0]);
+    return -1;
+  }
+
+  if (stk500_recv(pgm, buf, 1) < 0)
+    exit(1);
+  if (buf[0] == Resp_STK_OK) {
+    return 0;
+  }
+  else if (buf[0] == Resp_STK_NODEVICE) {
+    fprintf(stderr, "%s: mib510_isp(): no device\n",
+            progname);
+    return -1;
+  }
+
+  if (buf[0] == Resp_STK_FAILED)
+  {
+      fprintf(stderr,
+          "%s: mib510_isp(): command %d failed\n",
+              progname, cmd);
+      return -1;
+  }
+
+
+  fprintf(stderr, "%s: mib510_isp(): unknown response=0x%02x\n",
+          progname, buf[0]);
+
+  return -1;
+}
+
 
 /*
  * initialize the AVR device and prepare it to accept commands
@@ -341,13 +413,18 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
   int tries;
   unsigned maj, min;
   int rc;
-  int n_extparms = 3;
+  int n_extparms;
 
   stk500_getparm(pgm, Parm_STK_SW_MAJOR, &maj);
   stk500_getparm(pgm, Parm_STK_SW_MINOR, &min);
 
-  if ((maj > 1) || ((maj == 1) && (min > 10)))
+  // MIB510 does not need extparams
+  if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0)
+    n_extparms = 0;
+  else if ((maj > 1) || ((maj == 1) && (min > 10)))
     n_extparms = 4;
+  else
+    n_extparms = 3;
 
   tries = 0;
 
@@ -462,7 +539,6 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
     if (stk500_getsync(pgm) < 0)
       return -1;
     goto retry;
-    return -1;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
     fprintf(stderr,
@@ -588,6 +664,11 @@ static int stk500_open(PROGRAMMER * pgm, char * port)
    */
   stk500_drain(pgm, 0);
 
+  // MIB510 init
+  if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0 &&
+      mib510_isp(pgm, 1) != 0)
+    return -1;
+
   if (stk500_getsync(pgm) < 0)
     return -1;
 
@@ -597,6 +678,10 @@ static int stk500_open(PROGRAMMER * pgm, char * port)
 
 static void stk500_close(PROGRAMMER * pgm)
 {
+  // MIB510 close
+  if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0)
+    (void)mib510_isp(pgm, 0);
+
   serial_close(&pgm->fd);
   pgm->fd.ifd = -1;
 }
@@ -666,7 +751,13 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   int flash;
 
   if (page_size == 0) {
-    page_size = 128;
+    // MIB510 uses page size of 256 bytes
+    if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
+      page_size = 256;
+    }
+    else {
+      page_size = 128;
+    }
   }
 
   if (strcmp(m->desc, "flash") == 0) {
@@ -711,7 +802,9 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   for (addr = 0; addr < n; addr += page_size) {
     report_progress (addr, n_bytes, NULL);
     
-	if (addr + page_size > n_bytes) {
+    // MIB510 uses fixed blocks size of 256 bytes
+    if ((strcmp(ldata(lfirst(pgm->id)), "mib510") != 0) &&
+	(addr + page_size > n_bytes)) {
 	   block_size = n_bytes % page_size;
 	}
 	else {
@@ -832,7 +925,9 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   for (addr = 0; addr < n; addr += page_size) {
     report_progress (addr, n_bytes, NULL);
 
-	if (addr + page_size > n_bytes) {
+    // MIB510 uses fixed blocks size of 256 bytes
+    if ((strcmp(ldata(lfirst(pgm->id)), "mib510") != 0) &&
+	(addr + page_size > n_bytes)) {
 	   block_size = n_bytes % page_size;
 	}
 	else {
@@ -875,12 +970,24 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     if (stk500_recv(pgm, buf, 1) < 0)
       exit(1);
-    if (buf[0] != Resp_STK_OK) {
+
+    if(strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
+      if (buf[0] != Resp_STK_INSYNC) {
       fprintf(stderr,
               "\n%s: stk500_paged_load(): (a) protocol error, "
               "expect=0x%02x, resp=0x%02x\n", 
               progname, Resp_STK_INSYNC, buf[0]);
       return -5;
+    }
+  }
+    else {
+      if (buf[0] != Resp_STK_OK) {
+        fprintf(stderr,
+                "\n%s: stk500_paged_load(): (a) protocol error, "
+                "expect=0x%02x, resp=0x%02x\n",
+                progname, Resp_STK_OK, buf[0]);
+        return -5;
+      }
     }
   }
 
@@ -913,7 +1020,8 @@ static int stk500_set_vtarget(PROGRAMMER * pgm, double v)
 }
 
 
-static int stk500_set_varef(PROGRAMMER * pgm, double v)
+static int stk500_set_varef(PROGRAMMER * pgm, unsigned int chan /* unused */,
+                            double v)
 {
   unsigned uaref, utarg;
 

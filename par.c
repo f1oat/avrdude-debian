@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: par.c,v 1.23 2007/01/30 13:41:53 joerg_wunsch Exp $ */
+/* $Id: par.c,v 1.25 2009/02/23 22:04:56 joerg_wunsch Exp $ */
 
 #include "ac_cfg.h"
 
@@ -32,7 +32,7 @@
 # include "freebsd_ppi.h"
 #elif defined(__linux__)
 # include "linux_ppdev.h"
-#elif defined(__sun__) && defined(__svr4__) /* Solaris */
+#elif defined(__sun__) || defined(__sun) /* Solaris */
 # include "solaris_ecpp.h"
 #endif
 
@@ -416,6 +416,7 @@ void par_initpgm(PROGRAMMER * pgm)
   pgm->program_enable = bitbang_program_enable;
   pgm->chip_erase     = bitbang_chip_erase;
   pgm->cmd            = bitbang_cmd;
+  pgm->spi            = bitbang_spi;
   pgm->open           = par_open;
   pgm->close          = par_close;
   pgm->setpin         = par_setpin;

@@ -12,7 +12,7 @@
 
 Summary: AVRDUDE is software for programming Atmel AVR Microcontrollers.
 Name: avrdude
-Version: 5.5
+Version: 5.6
 Release: 1
 URL: http://savannah.nongnu.org/projects/avrdude
 Source0: %{name}-%{version}.tar.gz

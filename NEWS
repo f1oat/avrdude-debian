@@ -1,10 +1,61 @@
-$Id: NEWS,v 1.53 2007/10/29 23:00:12 joerg_wunsch Exp $
+$Id: NEWS,v 1.73 2009/02/27 10:31:33 joerg_wunsch Exp $
 
 Approximate change log for AVRDUDE by version.
 
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
+Version 5.6:
+
+  * New devices supported:
+
+      - AT90USB82
+      - AT90USB162
+      - ATtiny88
+      - ATmega328P
+      - ATmega1284P
+      - ATmega128RFA1
+      - ATxmega128A1 rev D
+      - ATxmega128A1
+      - ATxmega256A3
+
+  * New programmers supported:
+
+      - AT89ISP cable (patch #6069)
+      - Arduino
+
+  * Add support for the -x option to pass extended parameters to the
+    programmer backend.
+
+  * Add support for JTAG daisy-chains, using the -x daisychain=
+    option.
+
+  * Add support for the Atmel STK600 for "classic" AVRs (AT90, ATtiny,
+    ATmega), using either ISP or high-voltage programming modes.
+
+  * Add support for the -x devcode extended parameter to the avr910
+    programmer, to allow overriding the device code sent to the
+    programmer.
+
+  * Add support for the Crossbow MIB510 programmer (patch #6074, #6542).
+
+  * Add support to bootstrap with GNU autoconf 2.61, and automake 1.10,
+    respectively.
+
+  * Add support for ATxmega128A1 (including the revision D engineering
+    samples) for STK600 and AVRISPmkII tools using PDI
+
+  * The option combination -tF now enters terminal mode even if the
+    device initialization failed, so the user can modify programmer
+    parameters (like Vtarget).
+
+  * Add preliminary support for ATxmega128A1 for the JTAG ICE mkII using
+    JTAG.
+
+  * Add support for direct SPI transfers (bug #25156).
+
+  * Bugfixes.
+
 Version 5.5:
 
   * Add support for the USBtinyISP programmer (patch #6233)

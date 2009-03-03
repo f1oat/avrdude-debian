@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: lexer.l,v 1.51 2007/10/29 18:03:02 joerg_wunsch Exp $ */
+/* $Id: lexer.l,v 1.55 2009/02/25 09:39:04 joerg_wunsch Exp $ */
 
 %{
 /* need this for the call to atof() below */
@@ -50,7 +50,7 @@ SIGN     [+-]
 
 /* Bump resources for classic lex. */
 %e2000
-%p5000
+%p10000
 %n1000
 
 %%
@@ -117,6 +117,7 @@ SIGN     [+-]
             exit(1); }
 
 allowfullpagebitstream { yylval=NULL; return K_ALLOWFULLPAGEBITSTREAM; }
+arduino          { yylval=NULL; return K_ARDUINO; }
 avr910           { yylval=NULL; return K_AVR910; }
 avr910_devcode   { yylval=NULL; return K_AVR910_DEVCODE; }
 usbasp           { yylval=NULL; return K_USBASP; }
@@ -145,6 +146,7 @@ errled           { yylval=NULL; return K_ERRLED; }
 flash            { yylval=NULL; return K_FLASH; }
 has_jtag         { yylval=NULL; return K_HAS_JTAG; }
 has_debugwire    { yylval=NULL; return K_HAS_DW; }
+has_pdi          { yylval=NULL; return K_HAS_PDI; }
 id               { yylval=NULL; return K_ID; }
 idr              { yylval=NULL; return K_IDR; }
 jtagmki          { yylval=NULL; return K_JTAG_MKI; }
@@ -158,6 +160,8 @@ miso             { yylval=NULL; return K_MISO; }
 mosi             { yylval=NULL; return K_MOSI; }
 num_banks        { yylval=NULL; return K_NUM_PAGES; }
 num_pages        { yylval=NULL; return K_NUM_PAGES; }
+nvm_base         { yylval=NULL; return K_NVM_BASE; }
+offset           { yylval=NULL; return K_OFFSET; }
 page_size        { yylval=NULL; return K_PAGE_SIZE; }
 paged            { yylval=NULL; return K_PAGED; }
 pagel            { yylval=NULL; return K_PAGEL; }
@@ -183,6 +187,9 @@ stk500pp         { yylval=NULL; return K_STK500PP; }
 stk500v2         { yylval=NULL; return K_STK500V2; }
 stk500generic    { yylval=NULL; return K_STK500GENERIC; }
 stk500_devcode   { yylval=NULL; return K_STK500_DEVCODE; }
+stk600           { yylval=NULL; return K_STK600; }
+stk600hvsp       { yylval=NULL; return K_STK600HVSP; }
+stk600pp         { yylval=NULL; return K_STK600PP; }
 type             { yylval=NULL; return K_TYPE; }
 vcc              { yylval=NULL; return K_VCC; }
 vfyled           { yylval=NULL; return K_VFYLED; }
