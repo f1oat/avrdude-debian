@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: serbb_posix.c,v 1.12 2007/01/30 13:41:53 joerg_wunsch Exp $ */
+/* $Id: serbb_posix.c 725 2007-01-30 13:41:54Z joerg_wunsch $ */
 
 /*
  * Posix serial bitbanging interface for avrdude.

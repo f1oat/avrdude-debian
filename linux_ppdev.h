@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: linux_ppdev.h,v 1.3 2005/11/29 20:20:22 joerg_wunsch Exp $ */
+/* $Id: linux_ppdev.h 557 2005-11-29 20:20:22Z joerg_wunsch $ */
 
 #ifndef linux_ppdev_h
 #define linux_ppdev_h

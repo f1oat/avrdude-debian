@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: usb_libusb.c,v 1.14 2009/02/17 17:09:53 joerg_wunsch Exp $ */
+/* $Id: usb_libusb.c 798 2009-02-17 17:09:53Z joerg_wunsch $ */
 
 /*
  * USB interface via libusb for avrdude.

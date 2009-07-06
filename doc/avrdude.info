@@ -8,7 +8,7 @@ END-INFO-DIR-ENTRY
 
    This file documents the avrdude program.
 
-   For avrdude version 5.6, 25 February 2009.
+   For avrdude version 5.7, 14 April 2009.
 
    Copyright (C) 2003, 2005 Brian Dean
 
@@ -34,7 +34,7 @@ File: avrdude.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
    This file documents the avrdude program for downloading/uploading
 programs to Atmel AVR microcontrollers.
 
-   For avrdude version 5.6, 25 February 2009.
+   For avrdude version 5.7, 14 April 2009.
 
    Send comments on AVRDUDE to <avrdude-dev@nongnu.org>.
 
@@ -494,6 +494,13 @@ following options are recognized:
      Information, to find out the default port names for your platform.
      If you need to use a different parallel or serial port, use this
      option to specify the alternate port name.
+
+     On Win32 operating systems, the parallel ports are referred to as
+     lpt1 through lpt3, referring to the addresses 0x378, 0x278, and
+     0x3BC, respectively.  If the parallel port can be accessed through
+     a different address, this address can be specified directly, using
+     the common C language notation (i. e., hexadecimal values are
+     prefixed by 0X).
 
      For the JTAG ICE mkII, if AVRDUDE has been built with libusb
      support, PORT may alternatively be specified as `usb'[:SERIALNO].
@@ -1403,8 +1410,8 @@ A.1.1 Unix Installation
 
 To build and install from the source tarball on Unix like systems:
 
-     $ gunzip -c avrdude-5.6.tar.gz | tar xf -
-     $ cd avrdude-5.6
+     $ gunzip -c avrdude-5.7.tar.gz | tar xf -
+     $ cd avrdude-5.7
      $ ./configure
      $ make
      $ su root -c 'make install'
@@ -1416,8 +1423,8 @@ variable.
    If you do not have root access to your system, you can do the the
 following instead:
 
-     $ gunzip -c avrdude-5.6.tar.gz | tar xf -
-     $ cd avrdude-5.6
+     $ gunzip -c avrdude-5.7.tar.gz | tar xf -
+     $ cd avrdude-5.7
      $ ./configure --prefix=$HOME/local
      $ make
      $ make install
@@ -1459,8 +1466,8 @@ On rpm based linux systems (such as RedHat, SUSE, Mandrake, etc), you
 can build and install the rpm binaries directly from the tarball:
 
      $ su - root
-     # rpmbuild -tb avrdude-5.6.tar.gz
-     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.6-1.i386.rpm
+     # rpmbuild -tb avrdude-5.7.tar.gz
+     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.7-1.i386.rpm
 
    Note that the path to the resulting rpm package, differs from system
 to system. The above example is specific to RedHat.
@@ -1574,8 +1581,8 @@ Cygwin):
 
      $ set PREFIX=<your install directory path>
      $ export PREFIX
-     $ gunzip -c avrdude-5.6.tar.gz | tar xf -
-     $ cd avrdude-5.6
+     $ gunzip -c avrdude-5.7.tar.gz | tar xf -
+     $ cd avrdude-5.7
      $ ./configure LDFLAGS="-static" --prefix=$PREFIX --datadir=$PREFIX
      --sysconfdir=$PREFIX/bin --enable-versioned-doc=no
      $ make
@@ -1899,47 +1906,47 @@ In general, please report any bugs encountered via
 
 
 Tag Table:
-Node: Top1089
-Node: Introduction1730
-Node: History6350
-Node: Command Line Options7583
-Node: Option Descriptions7861
-Node: Programmers accepting extended parameters29547
-Node: Example Command Line Invocations30986
-Node: Terminal Mode Operation35691
-Node: Terminal Mode Commands36428
-Node: Terminal Mode Examples39495
-Node: Configuration File42679
-Node: AVRDUDE Defaults44098
-Node: Programmer Definitions44682
-Node: Part Definitions45843
-Node: Instruction Format47763
-Node: Other Notes49150
-Node: Programmer Specific Information51328
-Node: Atmel STK60051562
-Node: Platform Dependent Information55748
-Node: Unix55999
-Node: Unix Installation56249
-Node: FreeBSD Installation57045
-Node: Linux Installation57677
-Node: Unix Configuration Files58218
-Node: FreeBSD Configuration Files58852
-Node: Linux Configuration Files59211
-Node: Unix Port Names59526
-Node: Unix Documentation60517
-Node: Windows61044
-Node: Windows Installation61306
-Node: Windows Configuration Files62153
-Node: Configuration file names62420
-Node: How AVRDUDE finds the configuration files.62810
-Node: Windows Port Names63600
-Node: Serial Ports63812
-Node: Parallel Ports64099
-Node: Using the parallel port64868
-Node: Windows NT/2K/XP65095
-Node: Windows 95/9866601
-Node: Documentation66804
-Node: Credits.67360
-Node: Troubleshooting67693
+Node: Top1086
+Node: Introduction1724
+Node: History6344
+Node: Command Line Options7577
+Node: Option Descriptions7855
+Node: Programmers accepting extended parameters29915
+Node: Example Command Line Invocations31354
+Node: Terminal Mode Operation36059
+Node: Terminal Mode Commands36796
+Node: Terminal Mode Examples39863
+Node: Configuration File43047
+Node: AVRDUDE Defaults44466
+Node: Programmer Definitions45050
+Node: Part Definitions46211
+Node: Instruction Format48131
+Node: Other Notes49518
+Node: Programmer Specific Information51696
+Node: Atmel STK60051930
+Node: Platform Dependent Information56116
+Node: Unix56367
+Node: Unix Installation56617
+Node: FreeBSD Installation57413
+Node: Linux Installation58045
+Node: Unix Configuration Files58586
+Node: FreeBSD Configuration Files59220
+Node: Linux Configuration Files59579
+Node: Unix Port Names59894
+Node: Unix Documentation60885
+Node: Windows61412
+Node: Windows Installation61674
+Node: Windows Configuration Files62521
+Node: Configuration file names62788
+Node: How AVRDUDE finds the configuration files.63178
+Node: Windows Port Names63968
+Node: Serial Ports64180
+Node: Parallel Ports64467
+Node: Using the parallel port65236
+Node: Windows NT/2K/XP65463
+Node: Windows 95/9866969
+Node: Documentation67172
+Node: Credits.67728
+Node: Troubleshooting68061
 
 End Tag Table

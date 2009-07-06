@@ -1,7 +1,7 @@
 %% -*-texinfo-*-
 \input texinfo
 
-@c $Id: avrdude.texi,v 1.78 2009/02/25 09:39:04 joerg_wunsch Exp $
+@c $Id: avrdude.texi 818 2009-04-14 18:54:20Z joerg_wunsch $
 
 @setfilename avrdude.info
 @settitle AVRDUDE
@@ -610,6 +610,12 @@ normally connects to the serial port, the default serial port will be
 used. See Appendix A, Platform Dependent Information, to find out the
 default port names for your platform. If you need to use a different
 parallel or serial port, use this option to specify the alternate port name.
+
+On Win32 operating systems, the parallel ports are referred to as lpt1
+through lpt3, referring to the addresses 0x378, 0x278, and 0x3BC,
+respectively.  If the parallel port can be accessed through a different
+address, this address can be specified directly, using the common C
+language notation (i. e., hexadecimal values are prefixed by @var{0x}).
 
 For the JTAG ICE mkII, if AVRDUDE has been built with libusb support,
 @var{port} may alternatively be specified as

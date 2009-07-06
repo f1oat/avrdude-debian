@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: butterfly.c,v 1.23 2008/06/07 21:03:41 joerg_wunsch Exp $ */
+/* $Id: butterfly.c 772 2008-06-07 21:03:41Z joerg_wunsch $ */
 
 /*
  * avrdude interface for the serial programming mode of the Atmel butterfly

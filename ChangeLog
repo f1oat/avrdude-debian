@@ -1,3 +1,113 @@
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Prepare for releasing version 5.7
+
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* main.c: Add my name to the copyright output when being verbose.
+
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Contributed by Shaun Jackman  <sjackman@gmail.com>
+	bug #21798: Fix both XSLT scripts
+	* tools/get-dw-params.xsl (format-hex): Add the parameter count.
+	* tools/get-hv-params.xsl (format_cstack): Ditto.
+
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #21922: ATmega163 still not working in version 5.5
+	* avrdude.conf.in (atmega163): fill in stk500v2 parameters, correct
+	some flash programming parameters as well.
+
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #22206: avrdude: ser_setspeed(): tcsetattr() failed
+	* ser_posix.c (ser_setspeed): Don't pass TCSAFLUSH to tcsetattr() as
+	it apparently fails to work on Solaris.  After reading the
+	documentation again, it seems TCSAFLUSH and TCSANOW are indeed
+	mutually exclusive.
+
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #22234: WINDOWS version: HOWTO: Specify Serial Ports Larger than COM9
+	* ser_win32.c (ser_open): prepend \\.\ to any COM port name, so it is
+	safe to be used for COM ports above 9.
+
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #26408: Crash in stk500v2_open()
+	* stk500generic.c: Implement setup and teardown hooks, calling in turn
+	the respective hooks of the stk500v2 implementation.
+
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #26130: Avrdude doesn't display it's version.
+	* main.c (usage): add a version number display to the default usage
+	message.
+
+2009-07-01  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #26412: avrdude segfaults when called with a programmer that does not
+	support it
+	* main.c: do not call pgm->perform_osccal() unless it is != 0.
+
+2009-06-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Contributed by Zoltan Laday:
+	patch #6825: xmega problems with JTAGICEmkII
+	* jtagmkII.c: Many fixes for Xmega devices.
+	* jtagmkII_private.h: Add various new constants required for
+	Xmega devices.
+	* avrdude.conf.in: New devices: ATXMEGA64A1, ATXMEGA192A1,
+	ATXMEGA256A1, ATXMEGA64A3, ATXMEGA128A3, ATXMEGA192A3,
+	ATXMEGA256A3, ATXMEGA256A3B, ATXMEGA16A4, ATXMEGA32A4,
+	ATXMEGA64A4, ATXMEGA128A4
+	* avr.c (avr_read, avr_write): Add more names for (Xmega)
+	memory areas that require paged operation.
+
+2009-06-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* stk500v2.c (stk600_xprog_write_byte): Handle writing fuse bytes.
+
+2009-04-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Carl Hamilton:
+	* update.c (parse_op): correctly \0-terminate buf after filling
+	it, before it is potentially used as the source of a call to
+	strlen or strcpy.
+
+2009-04-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* doc/avrdude.texi: Merge the -P 0xXXX option description from
+	avrdude.1.
+
+2009-04-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: declare AM_PROG_CC_C_O to avoid the warning
+	"compiling `config_gram.c' with per-target flags
+	requires `AM_PROG_CC_C_O' in `configure.ac'"
+
+2009-03-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #25971: "error writing to <stdout>" with multiple -U params.
+	* fileio.c: Do not close the input/output stream when working on an
+	stdio stream.
+
+2009-02-28  Thomas Fischl <tfischl@gmx.de>
+
+	Based on patch #6484 commited by Jurgis Brigmanis:
+	* usbasp.c: added software control for ISP speed
+	* usbasp.h: (Ditto.)
+
+2009-02-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avr910.c (avr910_read_byte_flash): Eliminate a static variable that
+	hasn't been in use for 5 years.
+
+2009-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Post-release 5.6.
+
 2009-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac: Prepare for releasing version 5.6.

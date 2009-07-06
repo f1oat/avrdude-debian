@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr910.c,v 1.34 2008/07/25 21:14:43 joerg_wunsch Exp $ */
+/* $Id: avr910.c 814 2009-02-28 10:07:01Z joerg_wunsch $ */
 
 /*
  * avrdude interface for Atmel Low Cost Serial programmers which adher to the
@@ -457,33 +457,20 @@ static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 static int avr910_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                   unsigned long addr, unsigned char * value)
 {
-  static int cached = 0;
-  static unsigned char cvalue;
-  static unsigned long caddr;
+  char buf[2];
 
-  if (cached && ((caddr + 1) == addr)) {
-    *value = cvalue;
-    cached = 0;
+  avr910_set_addr(pgm, addr >> 1);
+
+  avr910_send(pgm, "R", 1);
+
+  /* Read back the program mem word (MSB first) */
+  avr910_recv(pgm, buf, sizeof(buf));
+
+  if ((addr & 0x01) == 0) {
+    *value = buf[1];
   }
   else {
-    char buf[2];
-
-    avr910_set_addr(pgm, addr >> 1);
-
-    avr910_send(pgm, "R", 1);
-
-    /* Read back the program mem word (MSB first) */
-    avr910_recv(pgm, buf, sizeof(buf));
-
-    if ((addr & 0x01) == 0) {
-      *value = buf[1];
-      // cached = 1;
-      cvalue = buf[0];
-      caddr = addr;
-    }
-    else {
-      *value = buf[0];
-    }
+    *value = buf[0];
   }
 
   return 0;

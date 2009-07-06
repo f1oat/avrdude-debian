@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: usbdevs.h,v 1.3 2008/03/14 13:00:07 joerg_wunsch Exp $ */
+/* $Id: usbdevs.h 768 2008-03-14 13:00:08Z joerg_wunsch $ */
 
 /*
  * defines for the USB interface

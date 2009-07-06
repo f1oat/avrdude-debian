@@ -18,7 +18,7 @@
 #
 
 #
-# $Id: Makefile.am,v 1.10 2005/09/22 17:51:59 bdean Exp $
+# $Id: Makefile.am 530 2005-09-22 17:51:59Z bdean $
 #
 
 CLEANFILES = \

@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: serbb_win32.c,v 1.11 2009/02/23 22:04:56 joerg_wunsch Exp $ */
+/* $Id: serbb_win32.c 804 2009-02-23 22:04:57Z joerg_wunsch $ */
 
 /*
  * Win32 serial bitbanging interface for avrdude.

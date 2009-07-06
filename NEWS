@@ -1,10 +1,31 @@
-$Id: NEWS,v 1.73 2009/02/27 10:31:33 joerg_wunsch Exp $
+$Id: NEWS 831 2009-07-02 11:44:26Z joerg_wunsch $
 
 Approximate change log for AVRDUDE by version.
 
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
+Version 5.7:
+
+  * New devices supported:
+
+      - ATXMEGA64A1
+      - ATXMEGA192A1
+      -	ATXMEGA256A1
+      - ATXMEGA64A3
+      - ATXMEGA128A3
+      - ATXMEGA192A3
+      -	ATXMEGA256A3
+      - ATXMEGA256A3B
+      - ATXMEGA16A4
+      - ATXMEGA32A4
+      - ATXMEGA64A4
+      - ATXMEGA128A4
+
+  * Major Xmega fixes for the JTAG ICE mkII (patch #6825)
+
+  * Bugfixes.
+
 Version 5.6:
 
   * New devices supported:

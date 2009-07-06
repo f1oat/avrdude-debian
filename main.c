@@ -1,7 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2005  Brian S. Dean <bsd@bsdhome.com>
- * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright 2007-2009 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: main.c,v 1.135 2008/11/04 12:10:28 joerg_wunsch Exp $ */
+/* $Id: main.c 829 2009-07-02 11:26:29Z joerg_wunsch $ */
 
 /*
  * Code to program an Atmel AVR device through one of the supported
@@ -122,8 +122,8 @@ static void usage(void)
  "  -v                         Verbose output. -v -v for more.\n"
  "  -q                         Quell progress output. -q -q for less.\n"
  "  -?                         Display this usage.\n"
- "\navrdude project: <URL:http://savannah.nongnu.org/projects/avrdude>\n"
-          ,progname);
+ "\navrdude version %s, URL: <http://savannah.nongnu.org/projects/avrdude/>\n"
+          ,progname, version);
 }
 
 
@@ -563,8 +563,9 @@ int main(int argc, char * argv [])
      */
     fprintf(stderr,
             "\n%s: Version %s, compiled on %s at %s\n"
-            "%sCopyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/\n\n",
-            progname, version, __DATE__, __TIME__, progbuf);
+            "%sCopyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/\n"
+	    "%sCopyright (c) 2007-2009 Joerg Wunsch\n\n",
+            progname, version, __DATE__, __TIME__, progbuf, progbuf);
   }
 
   if (verbose) {
@@ -786,8 +787,15 @@ int main(int argc, char * argv [])
      * perform an RC oscillator calibration
      * as outlined in appnote AVR053
      */
-    fprintf(stderr, "%s: performing RC oscillator calibration\n", progname);
-    exitrc = pgm->perform_osccal(pgm);
+    if (pgm->perform_osccal == 0) {
+      fprintf(stderr,
+              "%s: programmer does not support RC oscillator calibration\n",
+	      progname);
+      exitrc = 1;
+    } else {
+      fprintf(stderr, "%s: performing RC oscillator calibration\n", progname);
+      exitrc = pgm->perform_osccal(pgm);
+    }
     if (exitrc == 0 && quell_progress < 2) {
       fprintf(stderr,
               "%s: calibration value is now stored in EEPROM at address 0\n",

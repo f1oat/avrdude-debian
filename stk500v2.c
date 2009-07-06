@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500v2.c,v 1.47 2009/02/26 19:43:55 joerg_wunsch Exp $ */
+/* $Id: stk500v2.c 820 2009-06-24 21:18:36Z joerg_wunsch $ */
 /* Based on Id: stk500.c,v 1.46 2004/12/22 01:52:45 bdean Exp */
 
 /*
@@ -3015,6 +3015,9 @@ static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
         addr += 0x008c0000;
     } else if (strcmp(mem->desc, "lockbits") == 0) {
         b[1] = XPRG_MEM_TYPE_LOCKBITS;
+        addr += 0x008f0000;
+    } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
+        b[1] = XPRG_MEM_TYPE_FUSE;
         addr += 0x008f0000;
     } else if (strcmp(mem->desc, "usersig") == 0) {
         b[1] = XPRG_MEM_TYPE_USERSIG;

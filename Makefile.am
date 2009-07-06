@@ -18,7 +18,7 @@
 #
 
 #
-# $Id: Makefile.am,v 1.44 2009/02/25 09:39:03 joerg_wunsch Exp $
+# $Id: Makefile.am 808 2009-02-25 09:39:04Z joerg_wunsch $
 #
 
 EXTRA_DIST   = \

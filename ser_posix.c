@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_posix.c,v 1.20 2007/05/15 20:30:15 joerg_wunsch Exp $ */
+/* $Id: ser_posix.c 826 2009-07-02 10:31:13Z joerg_wunsch $ */
 
 /*
  * Posix serial interface for avrdude.
@@ -120,10 +120,10 @@ static int ser_setspeed(union filedescriptor *fd, long baud)
 
   cfsetospeed(&termios, speed);
   cfsetispeed(&termios, speed);
-  
-  rc = tcsetattr(fd->ifd, TCSANOW | TCSAFLUSH, &termios);
+
+  rc = tcsetattr(fd->ifd, TCSANOW, &termios);
   if (rc < 0) {
-    fprintf(stderr, "%s: ser_setspeed(): tcsetattr() failed",
+    fprintf(stderr, "%s: ser_setspeed(): tcsetattr() failed\n",
             progname);
     return -errno;
   }

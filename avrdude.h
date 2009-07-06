@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avrdude.h,v 1.3 2008/11/19 23:32:30 joerg_wunsch Exp $ */
+/* $Id: avrdude.h 788 2008-11-19 23:32:30Z joerg_wunsch $ */
 
 #ifndef avrdude_h
 #define avrdude_h

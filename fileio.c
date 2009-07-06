@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: fileio.c,v 1.39 2009/02/19 10:49:55 joerg_wunsch Exp $ */
+/* $Id: fileio.c 816 2009-03-22 21:28:46Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -1150,7 +1150,7 @@ int fileio(int op, char * filename, FILEFMT format,
       rc = avr_mem_hiaddr(mem);
     }
   }
-  if (format != FMT_IMM) {
+  if (format != FMT_IMM && !using_stdio) {
     fclose(f);
   }
   return rc;

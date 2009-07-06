@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500generic.c,v 1.3 2007/03/25 22:43:50 c_oflynn Exp $ */
+/* $Id: stk500generic.c 824 2009-07-02 09:11:45Z joerg_wunsch $ */
 
 /*
  * avrdude interface for Atmel STK500 programmer
@@ -65,9 +65,27 @@ static int stk500generic_open(PROGRAMMER * pgm, char * port)
   return -1;
 }
 
+static void stk500generic_setup(PROGRAMMER * pgm)
+{
+  /*
+   * Only STK500v2 needs setup/teardown.
+   */
+  stk500v2_initpgm(pgm);
+  pgm->setup(pgm);
+}
+
+static void stk500generic_teardown(PROGRAMMER * pgm)
+{
+  stk500v2_initpgm(pgm);
+  pgm->teardown(pgm);
+}
+
+
 void stk500generic_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "STK500GENERIC");
 
   pgm->open           = stk500generic_open;
+  pgm->setup          = stk500generic_setup;
+  pgm->teardown       = stk500generic_teardown;
 }

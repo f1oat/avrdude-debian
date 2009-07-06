@@ -18,7 +18,7 @@
 #
 
 #
-# $Id: Makefile.am,v 1.3 2003/09/22 21:13:57 arcanum Exp $
+# $Id: Makefile.am 371 2003-09-22 21:13:57Z arcanum $
 #
 
 #

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config.h,v 1.18 2007/01/30 13:41:53 joerg_wunsch Exp $ */
+/* $Id: config.h 725 2007-01-30 13:41:54Z joerg_wunsch $ */
 
 #ifndef config_h
 #define config_h

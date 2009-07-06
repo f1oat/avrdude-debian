@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500.c,v 1.59 2009/02/23 22:04:56 joerg_wunsch Exp $ */
+/* $Id: stk500.c 804 2009-02-23 22:04:57Z joerg_wunsch $ */
 
 /*
  * avrdude interface for Atmel STK500 programmer

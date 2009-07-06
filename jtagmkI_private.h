@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkI_private.h,v 1.1 2005/11/25 06:14:06 joerg_wunsch Exp $ */
+/* $Id: jtagmkI_private.h 547 2005-11-25 06:14:06Z joerg_wunsch $ */
 
 
 /*

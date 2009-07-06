@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avrpart.h,v 1.29 2008/07/26 22:53:39 joerg_wunsch Exp $ */
+/* $Id: avrpart.h 777 2008-07-26 22:53:40Z joerg_wunsch $ */
 
 #ifndef avrpart_h
 #define avrpart_h
