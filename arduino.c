@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: arduino.c,v 1.1 2009/02/25 09:39:03 joerg_wunsch Exp $ */
+/* $Id: arduino.c 808 2009-02-25 09:39:04Z joerg_wunsch $ */
 
 /*
  * avrdude interface for Arduino programmer

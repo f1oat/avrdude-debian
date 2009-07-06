@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: update.c,v 1.1 2007/01/24 22:43:46 joerg_wunsch Exp $ */
+/* $Id: update.c 819 2009-04-28 18:35:14Z joerg_wunsch $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,6 +51,7 @@ UPDATE * parse_op(char * s)
   p = s;
   while ((i < (sizeof(buf)-1) && *p && (*p != ':')))
     buf[i++] = *p++;
+  buf[i] = 0;
 
   if (*p != ':') {
     upd->memtype = (char *)malloc(strlen("flash")+1);
@@ -68,8 +69,6 @@ UPDATE * parse_op(char * s)
     upd->format = FMT_AUTO;
     return upd;
   }
-
-  buf[i] = 0;
 
   upd->memtype = (char *)malloc(strlen(buf)+1);
   if (upd->memtype == NULL) {

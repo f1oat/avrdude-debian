@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_avrdoper.c,v 1.5 2008/07/26 06:04:30 joerg_wunsch Exp $ */
+/* $Id: ser_avrdoper.c 776 2008-07-26 06:04:30Z joerg_wunsch $ */
 
 /*
  * Serial Interface emulation for USB programmer "AVR-Doper" in HID mode.

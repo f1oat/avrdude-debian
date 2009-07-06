@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: pindefs.h,v 1.12 2005/09/18 20:12:23 joerg_wunsch Exp $ */
+/* $Id: pindefs.h 515 2005-09-18 20:12:23Z joerg_wunsch $ */
 
 #ifndef __pindefs_h__
 #define __pindefs_h__

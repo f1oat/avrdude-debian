@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_win32.c,v 1.14 2009/02/23 22:04:56 joerg_wunsch Exp $ */
+/* $Id: ser_win32.c 825 2009-07-02 10:23:57Z joerg_wunsch $ */
 
 /*
  * Native Win32 serial interface for avrdude.
@@ -110,6 +110,7 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
 {
 	LPVOID lpMsgBuf;
 	HANDLE hComPort=INVALID_HANDLE_VALUE;
+	char *newname = 0;
 
 	/*
 	 * If the port is of the form "net:<host>:<port>", then
@@ -125,10 +126,22 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
 		exit(1);
 	}
 
-	/* if (hComPort!=INVALID_HANDLE_VALUE) 
-		fprintf(stderr, "%s: ser_open(): \"%s\" is already open\n",
-				progname, port);
-	*/
+	if (strncasecmp(port, "com", strlen("com")) == 0) {
+
+	    // prepend "\\\\.\\" to name, required for port # >= 10
+	    newname = malloc(strlen("\\\\.\\") + strlen(port) + 1);
+
+	    if (newname == 0) {
+		fprintf(stderr,
+			"%s: ser_open(): out of memory\n",
+			progname);
+		exit(1);
+	    }
+	    strcpy(newname, "\\\\.\\");
+	    strcat(newname, port);
+
+	    port = newname;
+	}
 
 	hComPort = CreateFile(port, GENERIC_READ | GENERIC_WRITE, 0, NULL,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -173,6 +186,10 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
 		fprintf(stderr, "%s: ser_open(): can't set initial timeout for \"%s\"\n",
 				progname, port);
 		exit(1);
+	}
+
+	if (newname != 0) {
+	    free(newname);
 	}
 }
 

@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: lexer.l,v 1.55 2009/02/25 09:39:04 joerg_wunsch Exp $ */
+/* $Id: lexer.l 808 2009-02-25 09:39:04Z joerg_wunsch $ */
 
 %{
 /* need this for the call to atof() below */

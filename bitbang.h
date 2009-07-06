@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: bitbang.h,v 1.5 2009/02/17 15:31:27 joerg_wunsch Exp $ */
+/* $Id: bitbang.h 797 2009-02-17 15:31:27Z joerg_wunsch $ */
 
 #ifndef bitbang_h
 #define bitbang_h

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avrpart.c,v 1.15 2008/06/07 21:03:41 joerg_wunsch Exp $ */
+/* $Id: avrpart.c 772 2008-06-07 21:03:41Z joerg_wunsch $ */
 
 #include <stdlib.h>
 #include <string.h>

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ppiwin.c,v 1.15 2009/02/23 22:04:56 joerg_wunsch Exp $ */
+/* $Id: ppiwin.c 804 2009-02-23 22:04:57Z joerg_wunsch $ */
 
 /*
 This is the parallel port interface for Windows built using Cygwin.

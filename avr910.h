@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr910.h,v 1.4 2007/01/24 22:43:46 joerg_wunsch Exp $ */
+/* $Id: avr910.h 722 2007-01-24 22:43:46Z joerg_wunsch $ */
 
 #ifndef avr910_h
 #define avr910_h

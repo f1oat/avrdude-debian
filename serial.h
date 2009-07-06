@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: serial.h,v 1.14 2008/03/14 13:00:06 joerg_wunsch Exp $ */
+/* $Id: serial.h 768 2008-03-14 13:00:08Z joerg_wunsch $ */
 
 /* This is the API for the generic serial interface. The implementations are
    actually provided by the target dependant files:

@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: pgm.c,v 1.27 2009/02/17 15:31:27 joerg_wunsch Exp $ */
+/* $Id: pgm.c 797 2009-02-17 15:31:27Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 

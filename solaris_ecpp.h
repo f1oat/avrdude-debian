@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: solaris_ecpp.h,v 1.2 2005/11/29 20:20:22 joerg_wunsch Exp $ */
+/* $Id: solaris_ecpp.h 557 2005-11-29 20:20:22Z joerg_wunsch $ */
 
 #ifndef solaris_ecpp_h
 #define solaris_ecpp_h

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: freebsd_ppi.h,v 1.2 2005/11/29 20:20:22 joerg_wunsch Exp $ */
+/* $Id: freebsd_ppi.h 557 2005-11-29 20:20:22Z joerg_wunsch $ */
 
 #ifndef freebsd_ppi_h
 #define freebsd_ppi_h

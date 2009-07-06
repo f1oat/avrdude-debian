@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500generic.h,v 1.1 2006/09/19 22:27:30 joerg_wunsch Exp $ */
+/* $Id: stk500generic.h 663 2006-09-19 22:27:30Z joerg_wunsch $ */
 
 #ifndef stk500generic_h__
 #define stk500generic_h__

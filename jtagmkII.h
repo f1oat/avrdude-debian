@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkII.h,v 1.7 2008/10/31 21:26:06 joerg_wunsch Exp $ */
+/* $Id: jtagmkII.h 781 2008-10-31 21:26:06Z joerg_wunsch $ */
 
 #ifndef jtagmkII_h
 #define jtagmkII_h

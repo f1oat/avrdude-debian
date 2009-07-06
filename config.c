@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config.c,v 1.17 2007/01/30 13:41:53 joerg_wunsch Exp $ */
+/* $Id: config.c 725 2007-01-30 13:41:54Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 

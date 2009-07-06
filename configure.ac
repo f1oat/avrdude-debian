@@ -18,13 +18,13 @@
 #
 
 #
-# $Id: configure.ac,v 1.57 2009/02/27 10:31:33 joerg_wunsch Exp $
+# $Id: configure.ac 830 2009-07-02 11:43:46Z joerg_wunsch $
 #
 
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(avrdude, 5.6, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 5.7, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -40,6 +40,9 @@ AC_PROG_INSTALL
 AC_PROG_YACC
 AC_PROG_LEX
 AC_PROG_RANLIB
+
+dnl Makefile.am:77: compiling `config_gram.c' with per-target flags requires `AM_PROG_CC_C_O' in `configure.ac'
+AM_PROG_CC_C_O
 
 # Checks for libraries.
 AC_CHECK_LIB([termcap], [tputs])

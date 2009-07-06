@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: my_ddk_hidsdi.h,v 1.1 2006/12/20 23:43:34 joerg_wunsch Exp $ */
+/* $Id: my_ddk_hidsdi.h 704 2006-12-20 23:43:34Z joerg_wunsch $ */
 
 /*
 The following is a replacement for hidsdi.h from the Windows DDK. It defines some
