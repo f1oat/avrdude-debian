@@ -8,7 +8,7 @@ END-INFO-DIR-ENTRY
 
    This file documents the avrdude program.
 
-   For avrdude version 5.7, 14 April 2009.
+   For avrdude version 5.8, 14 April 2009.
 
    Copyright (C) 2003, 2005 Brian Dean
 
@@ -34,7 +34,7 @@ File: avrdude.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
    This file documents the avrdude program for downloading/uploading
 programs to Atmel AVR microcontrollers.
 
-   For avrdude version 5.7, 14 April 2009.
+   For avrdude version 5.8, 14 April 2009.
 
    Send comments on AVRDUDE to <avrdude-dev@nongnu.org>.
 
@@ -1410,8 +1410,8 @@ A.1.1 Unix Installation
 
 To build and install from the source tarball on Unix like systems:
 
-     $ gunzip -c avrdude-5.7.tar.gz | tar xf -
-     $ cd avrdude-5.7
+     $ gunzip -c avrdude-5.8.tar.gz | tar xf -
+     $ cd avrdude-5.8
      $ ./configure
      $ make
      $ su root -c 'make install'
@@ -1423,8 +1423,8 @@ variable.
    If you do not have root access to your system, you can do the the
 following instead:
 
-     $ gunzip -c avrdude-5.7.tar.gz | tar xf -
-     $ cd avrdude-5.7
+     $ gunzip -c avrdude-5.8.tar.gz | tar xf -
+     $ cd avrdude-5.8
      $ ./configure --prefix=$HOME/local
      $ make
      $ make install
@@ -1466,8 +1466,8 @@ On rpm based linux systems (such as RedHat, SUSE, Mandrake, etc), you
 can build and install the rpm binaries directly from the tarball:
 
      $ su - root
-     # rpmbuild -tb avrdude-5.7.tar.gz
-     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.7-1.i386.rpm
+     # rpmbuild -tb avrdude-5.8.tar.gz
+     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.8-1.i386.rpm
 
    Note that the path to the resulting rpm package, differs from system
 to system. The above example is specific to RedHat.
@@ -1581,8 +1581,8 @@ Cygwin):
 
      $ set PREFIX=<your install directory path>
      $ export PREFIX
-     $ gunzip -c avrdude-5.7.tar.gz | tar xf -
-     $ cd avrdude-5.7
+     $ gunzip -c avrdude-5.8.tar.gz | tar xf -
+     $ cd avrdude-5.8
      $ ./configure LDFLAGS="-static" --prefix=$PREFIX --datadir=$PREFIX
      --sysconfdir=$PREFIX/bin --enable-versioned-doc=no
      $ make
