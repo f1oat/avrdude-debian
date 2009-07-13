@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_avrdoper.c 776 2008-07-26 06:04:30Z joerg_wunsch $ */
+/* $Id: ser_avrdoper.c 837 2009-07-10 22:48:48Z joerg_wunsch $ */
 
 /*
  * Serial Interface emulation for USB programmer "AVR-Doper" in HID mode.
@@ -92,6 +92,7 @@ static void convertUniToAscii(char *buffer)
     while(*uni != 0){
         if(*uni >= 256){
             *ascii++ = '?';
+            uni++;
         }else{
             *ascii++ = *uni++;
         }

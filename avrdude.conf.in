@@ -1,4 +1,4 @@
-# $Id: avrdude.conf.in 827 2009-07-02 10:45:53Z joerg_wunsch $
+# $Id: avrdude.conf.in 835 2009-07-10 22:22:22Z joerg_wunsch $
 #
 # AVRDUDE Configuration File
 #
@@ -6563,6 +6563,7 @@ part
 
     memory "eeprom"
         size            = 512;
+        page_size       = 4;
         min_write_delay = 9000;
         max_write_delay = 9000;
         readback_p1     = 0xff;

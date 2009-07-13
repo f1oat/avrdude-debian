@@ -1,3 +1,39 @@
+2009-07-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Prepare for releasing version 5.8
+
+2009-07-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Roger Wolff:
+	bug #26527: bug in unicode conversion
+	* ser_avrdoper.c (convertUniToAscii): when encountering a UTF-16
+	character that cannot be converted to ASCII, increment the UTF-16
+	pointer anyway when proceeding.
+
+2009-07-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtagmkI.c (jtagmkI_send): Replace %zd format by %u since not all
+	implementations do understand the C99 formatting options (sigh).
+	* jtagmkII.c (jtagmkII_send): (Ditto.)
+	* stk500v2.c (stk500v2_recv): (Ditto.)
+
+2009-07-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #26002: HVPP of EEPROM with AVR Dragon and ATmega8 Fails
+	* avrdude.conf.in (ATmega8): add page size for EEPROM.
+
+2009-07-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* stk500v2.c: Fix a serious memory corruption problem resulting
+	out of the chaining of both, the stk500v2 and the jtagmkII
+	programmers for some programming hardware (JTAG ICE mkII and AVR
+	Dragon running in ISP, HVSP or PP mode), where both programmers
+	have to maintain their private programmer data.
+
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Post-release (is pre-release...)
+
 2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac: Prepare for releasing version 5.7

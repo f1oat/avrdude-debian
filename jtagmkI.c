@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkI.c 775 2008-07-25 21:14:43Z joerg_wunsch $ */
+/* $Id: jtagmkI.c 836 2009-07-10 22:39:37Z joerg_wunsch $ */
 
 /*
  * avrdude interface for Atmel JTAG ICE (mkI) programmer
@@ -200,7 +200,7 @@ static int jtagmkI_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   unsigned char *buf;
 
   if (verbose >= 3)
-    fprintf(stderr, "\n%s: jtagmkI_send(): sending %zd bytes\n",
+    fprintf(stderr, "\n%s: jtagmkI_send(): sending %u bytes\n",
 	    progname, len);
 
   if ((buf = malloc(len + 2)) == NULL)
