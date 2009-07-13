@@ -1,9 +1,9 @@
-avrdude (5.7-1) UNRELEASED; urgency=low
+avrdude (5.8-1) UNRELEASED; urgency=low
 
   * New upstream release.
   * Bump Standards-Version to 3.8.2. No further changes.
 
- -- Michael Biebl <biebl@debian.org>  Tue, 07 Jul 2009 00:11:36 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 13 Jul 2009 02:31:21 +0200
 
 avrdude (5.6-1) unstable; urgency=low
 
