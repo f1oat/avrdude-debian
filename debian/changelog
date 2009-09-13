@@ -1,3 +1,9 @@
+avrdude (5.8-2) UNRELEASED; urgency=low
+
+  * Replace libreadline5-dev build dependency with libreadline-dev.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 13 Sep 2009 18:59:38 +0200
+
 avrdude (5.8-1) unstable; urgency=low
 
   * New upstream release.

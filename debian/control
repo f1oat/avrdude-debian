@@ -12,7 +12,7 @@ Build-Depends: cdbs,
  flex,
  bison,
  libncurses5-dev,
- libreadline5-dev,
+ libreadline-dev,
  libusb-dev
 Standards-Version: 3.8.2
 Vcs-Git: git://git.debian.org/git/users/biebl/avrdude.git
