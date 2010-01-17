@@ -1,4 +1,4 @@
-avrdude (5.9-1) UNRELEASED; urgency=low
+avrdude (5.9-1) unstable; urgency=low
 
   * New upstream release.
   * debian/patches/01-kfreebsd.patch
@@ -14,7 +14,7 @@ avrdude (5.9-1) UNRELEASED; urgency=low
   * debian/patches/99-autoreconf.patch
     - Run autoreconf -i for the changes above.
 
- -- Michael Biebl <biebl@debian.org>  Sun, 17 Jan 2010 01:00:40 +0100
+ -- Michael Biebl <biebl@debian.org>  Sun, 17 Jan 2010 14:19:31 +0100
 
 avrdude (5.8-2) unstable; urgency=low
 
