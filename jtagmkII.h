@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkII.h 781 2008-10-31 21:26:06Z joerg_wunsch $ */
+/* $Id: jtagmkII.h 912 2010-01-13 17:34:18Z joerg_wunsch $ */
 
 #ifndef jtagmkII_h
 #define jtagmkII_h
@@ -34,9 +34,12 @@ int  jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
 		      unsigned char * value);
 
 void jtagmkII_initpgm (PROGRAMMER * pgm);
+void jtagmkII_avr32_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dw_initpgm (PROGRAMMER * pgm);
+void jtagmkII_pdi_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dragon_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dragon_dw_initpgm (PROGRAMMER * pgm);
+void jtagmkII_dragon_pdi_initpgm (PROGRAMMER * pgm);
 
 /*
  * These functions are referenced from stk500v2.c for JTAG ICE mkII

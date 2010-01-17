@@ -18,13 +18,13 @@
 #
 
 #
-# $Id: configure.ac 838 2009-07-10 22:52:02Z joerg_wunsch $
+# $Id: configure.ac 918 2010-01-15 21:37:08Z joerg_wunsch $
 #
 
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(avrdude, 5.8, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 5.9, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -254,6 +254,25 @@ AC_SUBST(WINDOWS_DIRS,$WINDOWS_DIRS)
 # If we are compiling with gcc, enable all warning and make warnings errors.
 if test "$GCC" = yes; then
     ENABLE_WARNINGS="-Wall"
+
+	# does this compiler support -Wno-pointer-sign ?
+	AC_MSG_CHECKING([if gcc accepts -Wno-pointer-sign ])
+
+	safe_CFLAGS=$CFLAGS
+	CFLAGS="$ENABLE_WARNINGS -Wno-pointer-sign"
+
+	AC_TRY_COMPILE(, [ int main () { return 0 ; } ], [
+		no_pointer_sign=yes
+		AC_MSG_RESULT([yes]) 
+		], [
+		no_pointer_sign=no
+		AC_MSG_RESULT([no]) 
+		])
+	CFLAGS=$safe_CFLAGS
+
+	if test x$no_pointer_sign = xyes; then
+		ENABLE_WARNINGS="$ENABLE_WARNINGS -Wno-pointer-sign"
+	fi
 fi
 AC_SUBST(ENABLE_WARNINGS,$ENABLE_WARNINGS)
 

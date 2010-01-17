@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: lexer.l 808 2009-02-25 09:39:04Z joerg_wunsch $ */
+/* $Id: lexer.l 916 2010-01-15 16:36:13Z joerg_wunsch $ */
 
 %{
 /* need this for the call to atof() below */
@@ -127,6 +127,7 @@ banked           { yylval=NULL; return K_PAGED; }
 baudrate         { yylval=NULL; return K_BAUDRATE; }
 bs2              { yylval=NULL; return K_BS2; }
 buff             { yylval=NULL; return K_BUFF; }
+buspirate        { yylval=NULL; return K_BUSPIRATE; }
 butterfly        { yylval=NULL; return K_BUTTERFLY; }
 chip_erase_delay { yylval=NULL; return K_CHIP_ERASE_DELAY; }
 desc             { yylval=NULL; return K_DESC; }
@@ -138,6 +139,7 @@ dragon_dw        { yylval=NULL; return K_DRAGON_DW; }
 dragon_hvsp      { yylval=NULL; return K_DRAGON_HVSP; }
 dragon_isp       { yylval=NULL; return K_DRAGON_ISP; }
 dragon_jtag      { yylval=NULL; return K_DRAGON_JTAG; }
+dragon_pdi       { yylval=NULL; return K_DRAGON_PDI; }
 dragon_pp        { yylval=NULL; return K_DRAGON_PP; }
 eecr             { yylval=NULL; return K_EECR; }
 eeprom           { yylval=NULL; return K_EEPROM; }
@@ -147,12 +149,16 @@ flash            { yylval=NULL; return K_FLASH; }
 has_jtag         { yylval=NULL; return K_HAS_JTAG; }
 has_debugwire    { yylval=NULL; return K_HAS_DW; }
 has_pdi          { yylval=NULL; return K_HAS_PDI; }
+has_tpi          { yylval=NULL; return K_HAS_TPI; }
 id               { yylval=NULL; return K_ID; }
 idr              { yylval=NULL; return K_IDR; }
+is_avr32         { yylval=NULL; return K_IS_AVR32; }
 jtagmki          { yylval=NULL; return K_JTAG_MKI; }
 jtagmkii         { yylval=NULL; return K_JTAG_MKII; }
+jtagmkii_avr32   { yylval=NULL; return K_JTAG_MKII_AVR32; }
 jtagmkii_dw      { yylval=NULL; return K_JTAG_MKII_DW; }
 jtagmkii_isp     { yylval=NULL; return K_JTAG_MKII_ISP; }
+jtagmkii_pdi     { yylval=NULL; return K_JTAG_MKII_PDI; }
 max_write_delay  { yylval=NULL; return K_MAX_WRITE_DELAY; }
 memory           { yylval=NULL; return K_MEMORY; }
 min_write_delay  { yylval=NULL; return K_MIN_WRITE_DELAY; }

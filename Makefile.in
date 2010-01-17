@@ -34,7 +34,7 @@
 #
 
 #
-# $Id: Makefile.am 808 2009-02-25 09:39:04Z joerg_wunsch $
+# $Id: Makefile.am 878 2009-11-04 23:42:16Z mludvig $
 #
 
 
@@ -84,6 +84,7 @@ am_libavrdude_a_OBJECTS = libavrdude_a-config_gram.$(OBJEXT) \
 	libavrdude_a-lexer.$(OBJEXT) libavrdude_a-arduino.$(OBJEXT) \
 	libavrdude_a-avr.$(OBJEXT) libavrdude_a-avr910.$(OBJEXT) \
 	libavrdude_a-avrpart.$(OBJEXT) libavrdude_a-bitbang.$(OBJEXT) \
+	libavrdude_a-buspirate.$(OBJEXT) \
 	libavrdude_a-butterfly.$(OBJEXT) libavrdude_a-config.$(OBJEXT) \
 	libavrdude_a-confwin.$(OBJEXT) libavrdude_a-crc16.$(OBJEXT) \
 	libavrdude_a-fileio.$(OBJEXT) libavrdude_a-jtagmkI.$(OBJEXT) \
@@ -309,6 +310,8 @@ libavrdude_a_SOURCES = \
 	avrpart.h \
 	bitbang.c \
 	bitbang.h \
+	buspirate.c \
+	buspirate.h \
 	butterfly.c \
 	butterfly.h \
 	config.c \
@@ -483,6 +486,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-avr910.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-avrpart.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-bitbang.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-buspirate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-butterfly.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-config.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-config_gram.Po@am__quote@
@@ -622,6 +626,20 @@ libavrdude_a-bitbang.obj: bitbang.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='bitbang.c' object='libavrdude_a-bitbang.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_a_CPPFLAGS) $(CPPFLAGS) $(libavrdude_a_CFLAGS) $(CFLAGS) -c -o libavrdude_a-bitbang.obj `if test -f 'bitbang.c'; then $(CYGPATH_W) 'bitbang.c'; else $(CYGPATH_W) '$(srcdir)/bitbang.c'; fi`
+
+libavrdude_a-buspirate.o: buspirate.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_a_CPPFLAGS) $(CPPFLAGS) $(libavrdude_a_CFLAGS) $(CFLAGS) -MT libavrdude_a-buspirate.o -MD -MP -MF $(DEPDIR)/libavrdude_a-buspirate.Tpo -c -o libavrdude_a-buspirate.o `test -f 'buspirate.c' || echo '$(srcdir)/'`buspirate.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libavrdude_a-buspirate.Tpo $(DEPDIR)/libavrdude_a-buspirate.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='buspirate.c' object='libavrdude_a-buspirate.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_a_CPPFLAGS) $(CPPFLAGS) $(libavrdude_a_CFLAGS) $(CFLAGS) -c -o libavrdude_a-buspirate.o `test -f 'buspirate.c' || echo '$(srcdir)/'`buspirate.c
+
+libavrdude_a-buspirate.obj: buspirate.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_a_CPPFLAGS) $(CPPFLAGS) $(libavrdude_a_CFLAGS) $(CFLAGS) -MT libavrdude_a-buspirate.obj -MD -MP -MF $(DEPDIR)/libavrdude_a-buspirate.Tpo -c -o libavrdude_a-buspirate.obj `if test -f 'buspirate.c'; then $(CYGPATH_W) 'buspirate.c'; else $(CYGPATH_W) '$(srcdir)/buspirate.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libavrdude_a-buspirate.Tpo $(DEPDIR)/libavrdude_a-buspirate.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='buspirate.c' object='libavrdude_a-buspirate.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_a_CPPFLAGS) $(CPPFLAGS) $(libavrdude_a_CFLAGS) $(CFLAGS) -c -o libavrdude_a-buspirate.obj `if test -f 'buspirate.c'; then $(CYGPATH_W) 'buspirate.c'; else $(CYGPATH_W) '$(srcdir)/buspirate.c'; fi`
 
 libavrdude_a-butterfly.o: butterfly.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_a_CPPFLAGS) $(CPPFLAGS) $(libavrdude_a_CFLAGS) $(CFLAGS) -MT libavrdude_a-butterfly.o -MD -MP -MF $(DEPDIR)/libavrdude_a-butterfly.Tpo -c -o libavrdude_a-butterfly.o `test -f 'butterfly.c' || echo '$(srcdir)/'`butterfly.c

@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: serbb_win32.c 804 2009-02-23 22:04:57Z joerg_wunsch $ */
+/* $Id: serbb_win32.c 917 2010-01-15 16:40:17Z joerg_wunsch $ */
 
 /*
  * Win32 serial bitbanging interface for avrdude.
@@ -125,6 +125,10 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
                 LocalFree(lpMsgBuf);
                 exit(1);
         }
+
+	if (pgm->ispdelay > 1)
+	  bitbang_delay(pgm->ispdelay);
+
         return 0;
 }
 
@@ -223,16 +227,11 @@ static int serbb_getpin(PROGRAMMER * pgm, int pin)
 
 static int serbb_highpulsepin(PROGRAMMER * pgm, int pin)
 {
-        if (pin < 1 || pin > 7)
-                return -1;
+        if ( (pin & PIN_MASK) < 1 || (pin & PIN_MASK) > DB9PINS )
+          return -1;
 
         serbb_setpin(pgm, pin, 1);
-	if (pgm->ispdelay > 1)
-	  bitbang_delay(pgm->ispdelay);
-
         serbb_setpin(pgm, pin, 0);
-	if (pgm->ispdelay > 1)
-	  bitbang_delay(pgm->ispdelay);
 
         return 0;
 }

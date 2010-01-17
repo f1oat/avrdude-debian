@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: bitbang.c 797 2009-02-17 15:31:27Z joerg_wunsch $ */
+/* $Id: bitbang.c 898 2010-01-08 20:02:35Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -42,7 +42,10 @@
 
 static int delay_decrement;
 
-#if !defined(WIN32NATIVE)
+#if defined(WIN32NATIVE)
+static int has_perfcount;
+static LARGE_INTEGER freq;
+#else
 static volatile int done;
 
 typedef void (*mysighandler_t)(int);
@@ -53,22 +56,44 @@ static void alarmhandler(int signo)
   done = 1;
   signal(SIGALRM, saved_alarmhandler);
 }
-#endif /* !WIN32NATIVE */
+#endif /* WIN32NATIVE */
 
 /*
  * Calibrate the microsecond delay loop below.
  */
 static void bitbang_calibrate_delay(void)
 {
-  /*
-   * Right now, we don't have any Win32 implementation for this, so we
-   * can only run on a preconfigured delay stepping there.  The figure
-   * below should at least be correct within an order of magnitude,
-   * judging from the auto-calibration figures seen on various Unix
-   * systems on comparable hardware.
-   */
 #if defined(WIN32NATIVE)
-  delay_decrement = 100;
+  /*
+   * If the hardware supports a high-resolution performance counter,
+   * we ultimately prefer that one, as it gives quite accurate delays
+   * on modern high-speed CPUs.
+   */
+  if (QueryPerformanceFrequency(&freq))
+  {
+    has_perfcount = 1;
+    if (verbose >= 2)
+      fprintf(stderr,
+              "%s: Using performance counter for bitbang delays\n",
+              progname);
+  }
+  else
+  {
+    /*
+     * If a high-resolution performance counter is not available, we
+     * don't have any Win32 implementation for setting up the
+     * per-microsecond delay count, so we can only run on a
+     * preconfigured delay stepping there.  The figure below should at
+     * least be correct within an order of magnitude, judging from the
+     * auto-calibration figures seen on various Unix systems on
+     * comparable hardware.
+     */
+    if (verbose >= 2)
+      fprintf(stderr,
+      "%s: Using guessed per-microsecond delay count for bitbang delays\n",
+              progname);
+    delay_decrement = 100;
+  }
 #else  /* !WIN32NATIVE */
   struct itimerval itv;
   volatile int i;
@@ -116,10 +141,27 @@ static void bitbang_calibrate_delay(void)
  */
 void bitbang_delay(int us)
 {
+#if defined(WIN32NATIVE)
+  LARGE_INTEGER countNow, countEnd;
+
+  if (has_perfcount)
+  {
+    QueryPerformanceCounter(&countNow);
+    countEnd.QuadPart = countNow.QuadPart + freq.QuadPart * us / 1000000ll;
+
+    while (countNow.QuadPart < countEnd.QuadPart)
+      QueryPerformanceCounter(&countNow);
+  }
+  else /* no performance counters -- run normal uncalibrated delay */
+  {
+#endif  /* WIN32NATIVE */
   volatile int del = us * delay_decrement;
 
   while (del > 0)
     del--;
+#if defined(WIN32NATIVE)
+  }
+#endif /* WIN32NATIVE */
 }
 
 /*

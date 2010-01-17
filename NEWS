@@ -1,10 +1,32 @@
-$Id: NEWS 838 2009-07-10 22:52:02Z joerg_wunsch $
+$Id: NEWS 918 2010-01-15 21:37:08Z joerg_wunsch $
 
 Approximate change log for AVRDUDE by version.
 
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
+Version 5.9:
+
+  * New devices supported:
+
+      - AVR32A0512 (JTAGMKII only)
+      - ATmega32U4
+      - ATtiny4
+      - ATtiny5
+      - ATtiny9
+      - ATtiny10
+
+  * New programmers supported:
+
+      - BusPirate
+      - Arduino
+      - JTAGICEmkII and AVR Dragon in PDI mode (ATxmega devices)
+      - STK600 and AVRISP mkII in TPI mode (ATtiny4/5/9/10)
+
+  * Bugfixes
+
+      - see ChangeLog and ChangeLog-2009 for details
+
 Version 5.8:
 
   * Bugfixes; most importantly, fix a serious memory corruption for

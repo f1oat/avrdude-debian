@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr.c 821 2009-06-24 21:32:12Z joerg_wunsch $ */
+/* $Id: avr.c 907 2010-01-12 15:42:40Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -171,26 +171,18 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
    */
   memset(buf, 0xff, size);
 
-  if ((strcmp(mem->desc, "eeprom")==0) || 
-      (strcmp(mem->desc, "flash")==0) ||
-      (strcmp(mem->desc, "application")==0) ||
-      (strcmp(mem->desc, "apptable")==0) ||
-      (strcmp(mem->desc, "boot")==0) ||
-      (strcmp(mem->desc, "usersig")==0) ||
-      (strcmp(mem->desc, "prodsig")==0)) {
-    if (pgm->paged_load != NULL && mem->page_size != 0) {
-      /*
-       * the programmer supports a paged mode read, perhaps more
-       * efficiently than we can read it directly, so use its routine
-       * instead
-       */
-      rc = pgm->paged_load(pgm, p, mem, mem->page_size, size);
-      if (rc >= 0) {
-	if (strcasecmp(mem->desc, "flash") == 0)
-	  return avr_mem_hiaddr(mem);
-	else
-	  return rc;
-      }
+  if (pgm->paged_load != NULL && mem->page_size != 0) {
+    /*
+     * the programmer supports a paged mode read, perhaps more
+     * efficiently than we can read it directly, so use its routine
+     * instead
+     */
+    rc = pgm->paged_load(pgm, p, mem, mem->page_size, size);
+    if (rc >= 0) {
+      if (strcasecmp(mem->desc, "flash") == 0)
+        return avr_mem_hiaddr(mem);
+      else
+        return rc;
     }
   }
 
@@ -545,7 +537,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
 {
   int              rc;
   int              wsize;
-  unsigned long    i;
+  long             i;
   unsigned char    data;
   int              werror;
   AVRMEM         * m;
@@ -574,21 +566,14 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
             progbuf, wsize);
   }
 
-  if ((strcmp(m->desc, "application")==0) || 
-      (strcmp(m->desc, "apptable")==0) ||
-      (strcmp(m->desc, "boot")==0) ||
-      (strcmp(m->desc, "flash")==0) ||
-      (strcmp(m->desc, "prodsig")==0) ||
-      (strcmp(m->desc, "usersig")==0)) {
-    if (pgm->paged_write != NULL && m->page_size != 0) {
-      /*
-       * the programmer supports a paged mode write, perhaps more
-       * efficiently than we can read it directly, so use its routine
-       * instead
-       */
-      if ((i = pgm->paged_write(pgm, p, m, m->page_size, size)) >= 0)
-	return i;
-    }
+  if (pgm->paged_write != NULL && m->page_size != 0) {
+    /*
+     * the programmer supports a paged mode write, perhaps more
+     * efficiently than we can read it directly, so use its routine
+     * instead
+     */
+    if ((i = pgm->paged_write(pgm, p, m, m->page_size, size)) >= 0)
+      return i;
   }
 
   if (pgm->write_setup) {

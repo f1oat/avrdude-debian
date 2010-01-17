@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config_gram.y 808 2009-02-25 09:39:04Z joerg_wunsch $ */
+/* $Id: config_gram.y 916 2010-01-15 16:36:13Z joerg_wunsch $ */
 %{
 
 #include "ac_cfg.h"
@@ -38,6 +38,7 @@
 #include "pgm.h"
 #include "stk500.h"
 #include "arduino.h"
+#include "buspirate.h"
 #include "stk500v2.h"
 #include "stk500generic.h"
 #include "avr910.h"
@@ -84,6 +85,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_BAUDRATE
 %token K_BS2
 %token K_BUFF
+%token K_BUSPIRATE
 %token K_CHIP_ERASE_DELAY
 %token K_DEDICATED
 %token K_DEFAULT_PARALLEL
@@ -95,6 +97,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_DRAGON_HVSP
 %token K_DRAGON_ISP
 %token K_DRAGON_JTAG
+%token K_DRAGON_PDI
 %token K_DRAGON_PP
 %token K_STK500_DEVCODE
 %token K_AVR910_DEVCODE
@@ -105,8 +108,10 @@ static int parse_cmdbits(OPCODE * op);
 %token K_IO
 %token K_JTAG_MKI
 %token K_JTAG_MKII
+%token K_JTAG_MKII_AVR32
 %token K_JTAG_MKII_DW
 %token K_JTAG_MKII_ISP
+%token K_JTAG_MKII_PDI
 %token K_LOADPAGE
 %token K_MAX_WRITE_DELAY
 %token K_MIN_WRITE_DELAY
@@ -206,7 +211,9 @@ static int parse_cmdbits(OPCODE * op);
 %token K_HAS_JTAG		/* MCU has JTAG i/f. */
 %token K_HAS_DW			/* MCU has debugWire i/f. */
 %token K_HAS_PDI                /* MCU has PDI i/f rather than ISP (ATxmega). */
+%token K_HAS_TPI                /* MCU has TPI i/f rather than ISP (ATtiny4/5/9/10). */
 %token K_IDR			/* address of OCD register in IO space */
+%token K_IS_AVR32               /* chip is in the avr32 family */
 %token K_RAMPZ			/* address of RAMPZ reg. in IO space */
 %token K_SPMCR			/* address of SPMC[S]R in memory space */
 %token K_EECR    		/* address of EECR in memory space */
@@ -425,6 +432,12 @@ prog_parm :
     }
   } |
 
+  K_TYPE TKN_EQUAL K_BUSPIRATE {
+    {
+      buspirate_initpgm(current_prog);
+    }
+  } |
+
   K_TYPE TKN_EQUAL K_STK600 {
     {
       stk600_initpgm(current_prog);
@@ -478,6 +491,11 @@ prog_parm :
       jtagmkII_initpgm(current_prog);
     }
   } |
+  K_TYPE TKN_EQUAL K_JTAG_MKII_AVR32 {
+    {
+      jtagmkII_avr32_initpgm(current_prog);
+    }
+  } |
 
   K_TYPE TKN_EQUAL K_JTAG_MKII_DW {
     {
@@ -488,6 +506,12 @@ prog_parm :
   K_TYPE TKN_EQUAL K_JTAG_MKII_ISP {
     {
       stk500v2_jtagmkII_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_JTAG_MKII_PDI {
+    {
+      jtagmkII_pdi_initpgm(current_prog);
     }
   } |
 
@@ -512,6 +536,12 @@ prog_parm :
   K_TYPE TKN_EQUAL K_DRAGON_JTAG {
     {
       jtagmkII_dragon_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_DRAGON_PDI {
+    {
+      jtagmkII_dragon_pdi_initpgm(current_prog);
     }
   } |
 
@@ -1049,6 +1079,26 @@ part_parm :
       free_token($3);
     } |
 
+  K_HAS_TPI TKN_EQUAL yesno
+    {
+      if ($3->primary == K_YES)
+        current_part->flags |= AVRPART_HAS_TPI;
+      else if ($3->primary == K_NO)
+        current_part->flags &= ~AVRPART_HAS_TPI;
+
+      free_token($3);
+    } |
+
+  K_IS_AVR32 TKN_EQUAL yesno
+    {
+      if ($3->primary == K_YES)
+        current_part->flags |= AVRPART_AVR32;
+      else if ($3->primary == K_NO)
+        current_part->flags &= AVRPART_AVR32;
+
+      free_token($3);
+    } |
+    
   K_ALLOWFULLPAGEBITSTREAM TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
@@ -1370,7 +1420,7 @@ static int parse_cmdbits(OPCODE * op)
   char * e;
   char * q;
   int len;
-  char * s, *brkt;
+  char * s, *brkt = NULL;
 
   bitno = 32;
   while (lsize(string_list)) {

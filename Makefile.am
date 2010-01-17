@@ -18,7 +18,7 @@
 #
 
 #
-# $Id: Makefile.am 808 2009-02-25 09:39:04Z joerg_wunsch $
+# $Id: Makefile.am 878 2009-11-04 23:42:16Z mludvig $
 #
 
 EXTRA_DIST   = \
@@ -88,6 +88,8 @@ libavrdude_a_SOURCES = \
 	avrpart.h \
 	bitbang.c \
 	bitbang.h \
+	buspirate.c \
+	buspirate.h \
 	butterfly.c \
 	butterfly.h \
 	config.c \

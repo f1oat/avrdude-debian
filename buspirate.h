@@ -1,6 +1,9 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2002-2004  Brian S. Dean <bsd@bsdhome.com>
+ *
+ * avrdude support for The Bus Pirate - universal serial interface
+ *
+ * Copyright (C) 2009 Michal Ludvig <mludvig@logix.net.nz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,25 +20,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500.h 845 2009-10-10 01:41:40Z mludvig $ */
+/* $Id: buspirate.h 885 2010-01-07 13:29:49Z joerg_wunsch $ */
 
-#ifndef stk500_h
-#define stk500_h
+#ifndef buspirate_h
+#define buspirate_h
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void stk500_initpgm (PROGRAMMER * pgm);
-
-/* used by arduino.c to avoid duplicate code */
-int stk500_getsync(PROGRAMMER * pgm);
-int stk500_drain(PROGRAMMER * pgm, int display);
-
-#ifdef __cplusplus
-}
-#endif
+void buspirate_initpgm (struct programmer_t *pgm);
 
 #endif
-
-

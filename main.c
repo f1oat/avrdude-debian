@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: main.c 829 2009-07-02 11:26:29Z joerg_wunsch $ */
+/* $Id: main.c 916 2010-01-15 16:36:13Z joerg_wunsch $ */
 
 /*
  * Code to program an Atmel AVR device through one of the supported
@@ -280,6 +280,7 @@ int main(int argc, char * argv [])
   int     safemode;    /* Enable safemode, 1=safemode on, 0=normal */
   int     silentsafe;  /* Don't ask about fuses, 1=silent, 0=normal */
   int     init_ok;     /* Device initialization worked well */
+  int     is_open;     /* Device open succeeded */
   unsigned char safemode_lfuse = 0xff;
   unsigned char safemode_hfuse = 0xff;
   unsigned char safemode_efuse = 0xff;
@@ -350,6 +351,7 @@ int main(int argc, char * argv [])
   ispdelay      = 0;
   safemode      = 1;       /* Safemode on by default */
   silentsafe    = 0;       /* Ask by default */
+  is_open       = 0;
 
   if (isatty(STDIN_FILENO) == 0)
       safemode  = 0;       /* Turn off safemode if this isn't a terminal */
@@ -679,13 +681,14 @@ int main(int argc, char * argv [])
 
   if ((strcmp(pgm->type, "STK500") == 0) ||
       (strcmp(pgm->type, "avr910") == 0) ||
+      (strcmp(pgm->type, "BusPirate") == 0) ||
       (strcmp(pgm->type, "STK500V2") == 0) ||
       (strcmp(pgm->type, "JTAGMKII") == 0)) {
     if (port == default_parallel) {
       port = default_serial;
     }
   }
-
+  
   if (partdesc == NULL) {
     fprintf(stderr,
             "%s: No AVR part has been specified, use \"-p Part\"\n\n",
@@ -722,6 +725,15 @@ int main(int argc, char * argv [])
     }
   }
 
+  if(p->flags & AVRPART_AVR32) {
+    safemode = 0;
+    auto_erase = 0;
+  }
+
+  if(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_TPI)) {
+    safemode = 0;
+  }
+
   /*
    * set up seperate instances of the avr part, one for use in
    * programming, one for use in verifying.  These are separate
@@ -749,8 +761,7 @@ int main(int argc, char * argv [])
 	  fprintf(stderr, "%savr910_devcode (avrdude.conf) : ", progbuf);
       if(p->avr910_devcode)fprintf(stderr, "0x%x\n", p->avr910_devcode);
 	  else fprintf(stderr, "none\n");
-	}  
-	
+    }  
   }
 
   if (baudrate != 0) {
@@ -764,7 +775,6 @@ int main(int argc, char * argv [])
     if (verbose) {
       fprintf(stderr, "%sSetting bit clk period        : %.1f\n", progbuf, bitclock);
     }
-
     pgm->bitclock = bitclock * 1e-6;
   }
 
@@ -781,6 +791,7 @@ int main(int argc, char * argv [])
     pgm->ppidata = 0; /* clear all bits at exit */
     goto main_exit;
   }
+  is_open = 1;
 
   if (calibrate) {
     /*
@@ -860,67 +871,69 @@ int main(int argc, char * argv [])
    * against 0xffffff / 0x000000 should ensure that the signature bytes
    * are valid.
    */
-  if (init_ok) {
-    rc = avr_signature(pgm, p);
-    if (rc != 0) {
-      fprintf(stderr, "%s: error reading signature data, rc=%d\n",
-	      progname, rc);
-      exitrc = 1;
-      goto main_exit;
-    }
-  }
-
-  sig = avr_locate_mem(p, "signature");
-  if (sig == NULL) {
-    fprintf(stderr,
-            "%s: WARNING: signature data not defined for device \"%s\"\n",
-            progname, p->desc);
-  }
-
-  if (sig != NULL) {
-    int ff, zz;
-
-    if (quell_progress < 2) {
-      fprintf(stderr, "%s: Device signature = 0x", progname);
-    }
-    ff = zz = 1;
-    for (i=0; i<sig->size; i++) {
-      if (quell_progress < 2) {
-        fprintf(stderr, "%02x", sig->buf[i]);
-      }
-      if (sig->buf[i] != 0xff)
-        ff = 0;
-      if (sig->buf[i] != 0x00)
-        zz = 0;
-    }
-    if (quell_progress < 2) {
-      fprintf(stderr, "\n");
-    }
-
-    if (ff || zz) {
-      fprintf(stderr,
-              "%s: Yikes!  Invalid device signature.\n", progname);
-      if (!ovsigck) {
-        fprintf(stderr, "%sDouble check connections and try again, "
-                "or use -F to override\n"
-                "%sthis check.\n\n",
-                progbuf, progbuf);
+  if(!(p->flags & AVRPART_AVR32)) {
+    if (init_ok) {
+      rc = avr_signature(pgm, p);
+      if (rc != 0) {
+        fprintf(stderr, "%s: error reading signature data, rc=%d\n",
+          progname, rc);
         exitrc = 1;
         goto main_exit;
       }
     }
-
-    if (sig->size != 3 ||
-	sig->buf[0] != p->signature[0] ||
-	sig->buf[1] != p->signature[1] ||
-	sig->buf[2] != p->signature[2]) {
+  
+    sig = avr_locate_mem(p, "signature");
+    if (sig == NULL) {
       fprintf(stderr,
-	      "%s: Expected signature for %s is %02X %02X %02X\n",
-	      progname, p->desc,
-	      p->signature[0], p->signature[1], p->signature[2]);
+              "%s: WARNING: signature data not defined for device \"%s\"\n",
+              progname, p->desc);
+    }
+
+    if (sig != NULL) {
+      int ff, zz;
+
+      if (quell_progress < 2) {
+        fprintf(stderr, "%s: Device signature = 0x", progname);
+      }
+      ff = zz = 1;
+      for (i=0; i<sig->size; i++) {
+        if (quell_progress < 2) {
+          fprintf(stderr, "%02x", sig->buf[i]);
+        }
+        if (sig->buf[i] != 0xff)
+          ff = 0;
+        if (sig->buf[i] != 0x00)
+          zz = 0;
+      }
+      if (quell_progress < 2) {
+        fprintf(stderr, "\n");
+      }
+
+      if (ff || zz) {
+        fprintf(stderr,
+                "%s: Yikes!  Invalid device signature.\n", progname);
+        if (!ovsigck) {
+          fprintf(stderr, "%sDouble check connections and try again, "
+                  "or use -F to override\n"
+                  "%sthis check.\n\n",
+                  progbuf, progbuf);
+          exitrc = 1;
+          goto main_exit;
+        }
+      }
+    }
+    
+    if (sig->size != 3 ||
+    sig->buf[0] != p->signature[0] ||
+    sig->buf[1] != p->signature[1] ||
+    sig->buf[2] != p->signature[2]) {
+      fprintf(stderr,
+          "%s: Expected signature for %s is %02X %02X %02X\n",
+          progname, p->desc,
+          p->signature[0], p->signature[1], p->signature[2]);
       if (!ovsigck) {
         fprintf(stderr, "%sDouble check chip, "
-		"or use -F to override this check.\n",
+        "or use -F to override this check.\n",
                 progbuf);
         exitrc = 1;
         goto main_exit;
@@ -932,20 +945,20 @@ int main(int argc, char * argv [])
     /* If safemode is enabled, go ahead and read the current low, high,
        and extended fuse bytes as needed */
 
-	rc = safemode_readfuses(&safemode_lfuse, &safemode_hfuse,
+    rc = safemode_readfuses(&safemode_lfuse, &safemode_hfuse,
                            &safemode_efuse, &safemode_fuse, pgm, p, verbose);
 
     if (rc != 0) {
 
 	  //Check if the programmer just doesn't support reading
-	  if (rc == -5)
+  	  if (rc == -5)
 			{
-			if (verbose > 0)
+			  if (verbose > 0)
 				{
 				fprintf(stderr, "%s: safemode: Fuse reading not support by programmer.\n"
                 	            "              Safemode disabled.\n", progname);
 				}
-			safemode = 0;
+	  		safemode = 0;
 			}
       else
 			{
@@ -956,26 +969,14 @@ int main(int argc, char * argv [])
       		exitrc = 1;
 		    goto main_exit;
 			}
+    } else {
+      //Save the fuses as default
+      safemode_memfuses(1, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
     }
-	else  {
-	    //Save the fuses as default
-    	safemode_memfuses(1, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
-	}
   }
-
-
-  if ((p->flags & AVRPART_HAS_PDI) != 0) {
-    /*
-     * This is an ATxmega which can page erase, so no auto erase is
-     * needed.
-     */
-    auto_erase = 0;
-  }
-  
 
   if ((erase == 0) && (auto_erase == 1)) {
     AVRMEM * m;
-
     for (ln=lfirst(updates); ln; ln=lnext(ln)) {
       upd = ldata(ln);
       m = avr_locate_mem(p, upd->memtype);
@@ -1000,7 +1001,7 @@ int main(int argc, char * argv [])
    *
    * The cycle count will be displayed anytime it will be changed later.
    */
-  if (init_ok &&
+  if (init_ok && !(p->flags & AVRPART_AVR32) && 
       (set_cycles == -1) && ((erase == 0) || (do_cycles == 0))) {
     /*
      * see if the cycle count in the last four bytes of eeprom seems
@@ -1017,7 +1018,7 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (init_ok && set_cycles != -1) {
+  if (init_ok && set_cycles != -1 && !(p->flags & AVRPART_AVR32)) {
     rc = avr_get_cycle_count(pgm, p, &cycles);
     if (rc == 0) {
       /*
@@ -1039,7 +1040,6 @@ int main(int argc, char * argv [])
     }
   }
 
-
   if (init_ok && erase) {
     /*
      * erase the chip's flash and eeprom memories, this is required
@@ -1051,12 +1051,12 @@ int main(int argc, char * argv [])
 	      progname);
     } else {
       if (quell_progress < 2) {
-	fprintf(stderr, "%s: erasing chip\n", progname);
+      	fprintf(stderr, "%s: erasing chip\n", progname);
       }
-      avr_chip_erase(pgm, p);
+      exitrc = avr_chip_erase(pgm, p);
+      if(exitrc) goto main_exit;
     }
   }
-
 
   if (terminal) {
     /*
@@ -1085,7 +1085,7 @@ int main(int argc, char * argv [])
 
   /* Right before we exit programming mode, which will make the fuse
      bits active, check to make sure they are still correct */
-  if (safemode == 1){
+  if (safemode == 1) {
     /* If safemode is enabled, go ahead and read the current low,
      * high, and extended fuse bytes as needed */
     unsigned char safemodeafter_lfuse = 0xff;
@@ -1246,12 +1246,13 @@ main_exit:
    * program complete
    */
 
+  if (is_open) {
+    pgm->powerdown(pgm);
 
-  pgm->powerdown(pgm);
+    pgm->disable(pgm);
 
-  pgm->disable(pgm);
-
-  pgm->rdy_led(pgm, OFF);
+    pgm->rdy_led(pgm, OFF);
+  }
 
   pgm->close(pgm);
 

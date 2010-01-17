@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_win32.c 825 2009-07-02 10:23:57Z joerg_wunsch $ */
+/* $Id: ser_win32.c 890 2010-01-08 10:39:18Z joerg_wunsch $ */
 
 /*
  * Native Win32 serial interface for avrdude.
@@ -67,9 +67,15 @@ static DWORD serial_baud_lookup(long baud)
     map++;
   }
 
-  fprintf(stderr, "%s: serial_baud_lookup(): unknown baud rate: %ld", 
-          progname, baud);
-  exit(1);
+  /*
+   * If a non-standard BAUD rate is used, issue
+   * a warning (if we are verbose) and return the raw rate
+   */
+  if (verbose > 0)
+      fprintf(stderr, "%s: serial_baud_lookup(): Using non-standard baud rate: %ld",
+              progname, baud);
+
+  return baud;
 }
 
 
@@ -201,6 +207,20 @@ static void ser_close(union filedescriptor *fd)
 		CloseHandle (hComPort);
 
 	hComPort = INVALID_HANDLE_VALUE;
+}
+
+static int ser_set_dtr_rts(union filedescriptor *fd, int is_on)
+{
+	HANDLE hComPort=(HANDLE)fd->pfd;
+
+	if (is_on) {
+		EscapeCommFunction(hComPort, SETDTR);
+		EscapeCommFunction(hComPort, SETRTS);
+	} else {
+		EscapeCommFunction(hComPort, CLRDTR);
+		EscapeCommFunction(hComPort, CLRRTS);
+	}
+	return 0;
 }
 
 
@@ -378,6 +398,7 @@ struct serial_device serial_serdev =
   .send = ser_send,
   .recv = ser_recv,
   .drain = ser_drain,
+  .set_dtr_rts = ser_set_dtr_rts,
   .flags = SERDEV_FL_CANSETSPEED,
 };
 

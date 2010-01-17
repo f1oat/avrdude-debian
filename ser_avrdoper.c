@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_avrdoper.c 837 2009-07-10 22:48:48Z joerg_wunsch $ */
+/* $Id: ser_avrdoper.c 845 2009-10-10 01:41:40Z mludvig $ */
 
 /*
  * Serial Interface emulation for USB programmer "AVR-Doper" in HID mode.
@@ -634,6 +634,14 @@ static int avrdoper_drain(union filedescriptor *fdp, int display)
 
 /* ------------------------------------------------------------------------- */
 
+static int avrdoper_set_dtr_rts(union filedescriptor *fdp, int is_on)
+{
+	fprintf(stderr, "%s: AVR-Doper doesn't support DTR/RTS setting\n", progname);
+    return -1;
+}
+
+/* ------------------------------------------------------------------------- */
+
 struct serial_device avrdoper_serdev =
 {
   .open = avrdoper_open,
@@ -641,6 +649,7 @@ struct serial_device avrdoper_serdev =
   .send = avrdoper_send,
   .recv = avrdoper_recv,
   .drain = avrdoper_drain,
+  .set_dtr_rts = avrdoper_set_dtr_rts,
   .flags = SERDEV_FL_NONE,
 };
 

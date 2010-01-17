@@ -3,7 +3,7 @@
  * Copyright (C) 2005 Erik Walthinsen
  * Copyright (C) 2002-2004 Brian S. Dean <bsd@bsdhome.com>
  * Copyright (C) 2006 David Moore
- * Copyright (C) 2006,2007 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2006,2007,2010 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500v2.c 836 2009-07-10 22:39:37Z joerg_wunsch $ */
+/* $Id: stk500v2.c 916 2010-01-15 16:36:13Z joerg_wunsch $ */
 /* Based on Id: stk500.c,v 1.46 2004/12/22 01:52:45 bdean Exp */
 
 /*
@@ -211,6 +211,15 @@ static const struct jtagispentry jtagispcmds[] = {
 };
 
 /*
+ * From XML file:
+  <REVISION>
+    <RC_ID_MAJOR>0</RC_ID_MAJOR>
+    <RC_ID_MINOR>56</RC_ID_MINOR>
+    <EC_ID_MAJOR>0</EC_ID_MAJOR>
+    <EC_ID_MINOR>1</EC_ID_MINOR>
+  </REVISION>
+ */
+/*
  * These two tables can be semi-automatically updated from
  * targetboards.xml using tools/get-stk600-cards.xsl.
  */
@@ -226,9 +235,11 @@ static const struct carddata routing_cards[] =
   { 0x10, "STK600-RC064M-10" },
   { 0x11, "STK600-RC100M-11" },
   { 0x13, "STK600-RC100X-13" },
+  { 0x15, "STK600-RC044X-15" },
   { 0x18, "STK600-RC100M-18" },
   { 0x19, "STK600-RCPWM-19" },
-  { 0x1B, "STK600-RC32U-20" },
+  { 0x1A, "STK600-RC064X-14" },
+  { 0x1B, "STK600-RC032U-20" },
   { 0x1C, "STK600-RC014T-12" },
   { 0x1E, "STK600-RC064U-17" },
   { 0x1F, "STK600-RCuC3B0-21" },
@@ -236,22 +247,51 @@ static const struct carddata routing_cards[] =
   { 0x21, "STK600-RC020T-23" },
   { 0x22, "STK600-RC044M-24" },
   { 0x23, "STK600-RC044U-25" },
+  { 0x24, "STK600-RCPWM-26" },
+  { 0x25, "STK600-RCuC3B48-27" },
+  { 0x27, "STK600-RC032M-29" },
+  { 0x28, "STK600-RC044M-30" },
+  { 0x29, "STK600-RC044M-31" },
+  { 0x2A, "STK600-RC014T-42" },
+  { 0x2B, "STK600-RC020T-43" },
+  { 0x30, "STK600-RCUC3A144-32" },
+  { 0x34, "STK600-RCUC3L0-34" },
+  { 0x38, "STK600-RCUC3C0-36" },
+  { 0x3B, "STK600-RCUC3C0-37" },
+  { 0x3E, "STK600-RCUC3A144-33" },
+  { 0x46, "STK600-RCuC3A100-28" },
   { 0x55, "STK600-RC064M-9" },
+  { 0x88, "STK600-RCUC3C1-38" },
+  { 0x8B, "STK600-RCUC3C1-39" },
   { 0xA0, "STK600-RC008T-7" },
+  { 0xB8, "STK600-RCUC3C2-40" },
+  { 0xBB, "STK600-RCUC3C2-41" },
 };
 
 static const struct carddata socket_cards[] =
 {
+  { 0x01, "STK600-TQFP48" },
   { 0x02, "STK600-TQFP32" },
   { 0x03, "STK600-TQFP100" },
   { 0x04, "STK600-SOIC" },
+  { 0x06, "STK600-TQFP144" },
   { 0x09, "STK600-TinyX3U" },
   { 0x0C, "STK600-TSSOP44" },
   { 0x0D, "STK600-TQFP44" },
   { 0x0E, "STK600-TQFP64-2" },
   { 0x0F, "STK600-ATMEGA2560" },
+  { 0x15, "STK600-MLF64" },
+  { 0x16, "STK600-ATXMEGAT0" },
+  { 0x18, "QT600-ATMEGA324-QM64" },
+  { 0x19, "STK600-ATMEGA128RFA1" },
+  { 0x1A, "QT600-ATTINY88-QT8" },
+  { 0x1B, "QT600-ATXMEGA128A1-QT16" },
+  { 0x1C, "QT600-AT32UC3L-QM64" },
+  { 0x1D, "STK600-HVE2" },
+  { 0x1E, "STK600-ATTINY10" },
   { 0x55, "STK600-TQFP64" },
   { 0x69, "STK600-uC3-144" },
+  { 0xF0, "STK600-ATXMEGA1281A1" },
   { 0xF1, "STK600-DIP" },
 };
 
@@ -271,6 +311,7 @@ static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v);
 static int stk600_set_sck_period(PROGRAMMER * pgm, double v);
 
 static void stk600_setup_xprog(PROGRAMMER * pgm);
+static void stk600_setup_isp(PROGRAMMER * pgm);
 static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p);
 
 static void stk500v2_setup(PROGRAMMER * pgm)
@@ -575,7 +616,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
           msg[curlen] = c;
         } else {
           fprintf(stderr, "%s: stk500v2_recv(): buffer too small, received %d byte into %u byte buffer\n",
-                  progname,curlen,maxsize);
+                  progname,curlen,(unsigned int)maxsize);
           return -2;
         }
         if ((curlen == 0) && (msg[0] == ANSWER_CKSUM_ERROR)) {
@@ -1056,13 +1097,17 @@ static int stk500hvsp_program_enable(PROGRAMMER * pgm, AVRPART * p)
 static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
 
-  if ((PDATA(pgm)->pgmtype == PGMTYPE_STK600 || PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII) != 0
-     && (p->flags & AVRPART_HAS_PDI) != 0) {
+  if ((PDATA(pgm)->pgmtype == PGMTYPE_STK600 ||
+       PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII ||
+       PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) != 0
+      && (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_TPI)) != 0) {
     /*
      * This is an ATxmega device, must use XPROG protocol for the
      * remaining actions.
      */
     stk600_setup_xprog(pgm);
+  } else {
+    stk600_setup_isp(pgm);
   }
 
   return pgm->program_enable(pgm, p);
@@ -1456,7 +1501,8 @@ static int stk500hv_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     buf[2] = pagesize & 0xff;
 
     /* flash and EEPROM reads require the load address command */
-    stk500v2_loadaddr(pgm, use_ext_addr | (paddr >> addrshift));
+    if (stk500v2_loadaddr(pgm, use_ext_addr | (paddr >> addrshift)) < 0)
+        return -1;
   } else {
     buf[1] = addr;
   }
@@ -1612,7 +1658,8 @@ static int stk500hv_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     memcpy(buf + 5, cache_ptr, pagesize);
 
     /* flash and EEPROM reads require the load address command */
-    stk500v2_loadaddr(pgm, use_ext_addr | (paddr >> addrshift));
+    if (stk500v2_loadaddr(pgm, use_ext_addr | (paddr >> addrshift)) < 0)
+        return -1;
   } else {
     buf[1] = addr;
     buf[2] = data;
@@ -1781,7 +1828,8 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     buf[2] = block_size & 0xff;
 
     if((last_addr==UINT_MAX)||(last_addr+block_size != addr)){
-      stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift));
+      if (stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift)) < 0)
+        return -1;
     }
     last_addr=addr;
 
@@ -1877,7 +1925,8 @@ static int stk500hv_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     buf[2] = page_size & 0xff;
 
     if ((last_addr == UINT_MAX) || (last_addr + block_size != addr)) {
-      stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift));
+      if (stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift)) < 0)
+        return -1;
     }
     last_addr=addr;
 
@@ -1996,7 +2045,8 @@ static int stk500v2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     // when crossing a 64 KB boundary in flash.
     if (hiaddr != (addr & ~0xFFFF)) {
       hiaddr = addr & ~0xFFFF;
-      stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift));
+      if (stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift)) < 0)
+        return -1;
     }
 
     result = stk500v2_command(pgm,buf,4,sizeof(buf));
@@ -2075,7 +2125,8 @@ static int stk500hv_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     // when crossing a 64 KB boundary in flash.
     if (hiaddr != (addr & ~0xFFFF)) {
       hiaddr = addr & ~0xFFFF;
-      stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift));
+      if (stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift)) < 0)
+        return -1;
     }
 
     result = stk500v2_command(pgm, buf, 3, sizeof(buf));
@@ -2358,9 +2409,11 @@ static int stk600_set_vtarget(PROGRAMMER * pgm, double v)
    * Vtarget on the STK600 can only be adjusted while not being in
    * programming mode.
    */
-  pgm->disable(pgm);
+  if (PDATA(pgm)->lastpart)
+      pgm->disable(pgm);
   rv = stk500v2_setparm(pgm, PARAM_VTARGET, utarg);
-  pgm->program_enable(pgm, PDATA(pgm)->lastpart);
+  if (PDATA(pgm)->lastpart)
+      pgm->program_enable(pgm, PDATA(pgm)->lastpart);
 
   return rv;
 }
@@ -2777,9 +2830,8 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
     fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
             progname);
-    pgm->close(pgm);		/* sign off correctly */
     pgm->cookie = mycookie;
-    exit(1);
+    return -1;
   }
   pgm->cookie = mycookie;
 
@@ -2791,6 +2843,23 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
   }
 
   return 0;
+}
+
+
+/*
+ * Close an AVR Dragon or JTAG ICE mkII in ISP/HVSP/PP mode.
+ */
+static void stk500v2_jtagmkII_close(PROGRAMMER * pgm)
+{
+  void *mycookie;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: stk500v2_jtagmkII_close()\n", progname);
+
+  mycookie = pgm->cookie;
+  pgm->cookie = PDATA(pgm)->chained_pdata;
+  jtagmkII_close(pgm);
+  pgm->cookie = mycookie;
 }
 
 
@@ -2847,11 +2916,10 @@ static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
   mycookie = pgm->cookie;
   pgm->cookie = PDATA(pgm)->chained_pdata;
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
-    fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
+    fprintf(stderr, "%s: failed to sync with the AVR Dragon in ISP mode\n",
             progname);
-    pgm->close(pgm);		/* sign off correctly */
     pgm->cookie = mycookie;
-    exit(1);
+    return -1;
   }
   pgm->cookie = mycookie;
 
@@ -2919,11 +2987,10 @@ static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
   mycookie = pgm->cookie;
   pgm->cookie = PDATA(pgm)->chained_pdata;
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_HV) != 0) {
-    fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in HV mode\n",
+    fprintf(stderr, "%s: failed to sync with the AVR Dragon in HV mode\n",
             progname);
-    pgm->close(pgm);		/* sign off correctly */
     pgm->cookie = mycookie;
-    exit(1);
+    return -1;
   }
   pgm->cookie = mycookie;
 
@@ -2979,72 +3046,106 @@ static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p)
     unsigned char buf[16];
     unsigned int eepagesize = 42;
     unsigned int nvm_base;
-    AVRMEM *mem;
+    AVRMEM *mem = NULL;
+    int use_tpi;
 
-    if (p->nvm_base == 0) {
-        fprintf(stderr,
-                "%s: stk600_xprog_program_enable(): no nvm_base parameter for XPROG device\n",
-                progname);
-        return -1;
-    }
-    if ((mem = avr_locate_mem(p, "eeprom")) != NULL) {
-        if (mem->page_size == 0) {
+    use_tpi = (p->flags & AVRPART_HAS_TPI) != 0;
+
+    if (!use_tpi) {
+        if (p->nvm_base == 0) {
             fprintf(stderr,
-                    "%s: stk600_xprog_program_enable(): no EEPROM page_size parameter for XPROG device\n",
+            "%s: stk600_xprog_program_enable(): no nvm_base parameter for PDI device\n",
                     progname);
             return -1;
         }
-        eepagesize = mem->page_size;
+        if ((mem = avr_locate_mem(p, "eeprom")) != NULL) {
+            if (mem->page_size == 0) {
+                fprintf(stderr,
+                "%s: stk600_xprog_program_enable(): no EEPROM page_size parameter for PDI device\n",
+                        progname);
+                return -1;
+            }
+            eepagesize = mem->page_size;
+        }
     }
 
     buf[0] = CMD_XPROG_SETMODE;
-    buf[1] = 0;                 /* PDI mode */
+    buf[1] = use_tpi? XPRG_MODE_TPI: XPRG_MODE_PDI;
     if (stk500v2_command(pgm, buf, 2, sizeof(buf)) < 0) {
         fprintf(stderr,
-                "%s: stk600_xprog_program_enable(): CMD_XPROG_SETMODE failed\n",
-                progname);
+        "%s: stk600_xprog_program_enable(): CMD_XPROG_SETMODE(XPRG_MODE_%s) failed\n",
+                progname, use_tpi? "TPI": "PDI");
         return -1;
     }
 
     buf[0] = XPRG_CMD_ENTER_PROGMODE;
     if (stk600_xprog_command(pgm, buf, 1, 2) < 0) {
         fprintf(stderr,
-                "%s: stk600_xprog_program_enable(): XPRG_CMD_ENTER_PROGMODE failed\n",
+        "%s: stk600_xprog_program_enable(): XPRG_CMD_ENTER_PROGMODE failed\n",
                 progname);
         return -1;
     }
 
-    buf[0] = XPRG_CMD_SET_PARAM;
-    buf[1] = XPRG_PARAM_NVMBASE;
-    nvm_base = p->nvm_base;
-    /*
-     * The 0x01000000 appears to be an indication to the programmer
-     * that the respective address is located in IO (i.e., SRAM)
-     * memory address space rather than flash.  This is not documented
-     * anywhere in AVR079 but matches what AVR Studio does.
-     */
-    nvm_base |= 0x01000000;
-    buf[2] = nvm_base >> 24;
-    buf[3] = nvm_base >> 16;
-    buf[4] = nvm_base >> 8;
-    buf[5] = nvm_base;
-    if (stk600_xprog_command(pgm, buf, 6, 2) < 0) {
-        fprintf(stderr,
-                "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_NVMBASE) failed\n",
-                progname);
-        return -1;
-    }
+    if (use_tpi) {
+        /*
+         * Whatever all that might mean, it matches what AVR Studio
+         * does.
+         */
+        if (stk500v2_setparm_real(pgm, PARAM_DISCHARGEDELAY, 232) < 0)
+            return -1;
 
-    if (mem != NULL) {
         buf[0] = XPRG_CMD_SET_PARAM;
-        buf[1] = XPRG_PARAM_EEPPAGESIZE;
-        buf[2] = eepagesize >> 8;
-        buf[3] = eepagesize;
-        if (stk600_xprog_command(pgm, buf, 4, 2) < 0) {
+        buf[1] = XPRG_PARAM_TPI_3;
+        buf[2] = 51;
+        if (stk600_xprog_command(pgm, buf, 3, 2) < 0) {
             fprintf(stderr,
-                    "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_EEPPAGESIZE) failed\n",
+            "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_TPI_3) failed\n",
                     progname);
             return -1;
+        }
+
+        buf[0] = XPRG_CMD_SET_PARAM;
+        buf[1] = XPRG_PARAM_TPI_4;
+        buf[2] = 50;
+        if (stk600_xprog_command(pgm, buf, 3, 2) < 0) {
+            fprintf(stderr,
+            "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_TPI_4) failed\n",
+                    progname);
+            return -1;
+        }
+    } else {
+        buf[0] = XPRG_CMD_SET_PARAM;
+        buf[1] = XPRG_PARAM_NVMBASE;
+        nvm_base = p->nvm_base;
+        /*
+         * The 0x01000000 appears to be an indication to the programmer
+         * that the respective address is located in IO (i.e., SRAM)
+         * memory address space rather than flash.  This is not documented
+         * anywhere in AVR079 but matches what AVR Studio does.
+         */
+        nvm_base |= 0x01000000;
+        buf[2] = nvm_base >> 24;
+        buf[3] = nvm_base >> 16;
+        buf[4] = nvm_base >> 8;
+        buf[5] = nvm_base;
+        if (stk600_xprog_command(pgm, buf, 6, 2) < 0) {
+            fprintf(stderr,
+            "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_NVMBASE) failed\n",
+                    progname);
+            return -1;
+        }
+
+        if (mem != NULL) {
+            buf[0] = XPRG_CMD_SET_PARAM;
+            buf[1] = XPRG_PARAM_EEPPAGESIZE;
+            buf[2] = eepagesize >> 8;
+            buf[3] = eepagesize;
+            if (stk600_xprog_command(pgm, buf, 4, 2) < 0) {
+                fprintf(stderr,
+                "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_EEPPAGESIZE) failed\n",
+                        progname);
+                return -1;
+            }
         }
     }
 
@@ -3058,7 +3159,7 @@ static void stk600_xprog_disable(PROGRAMMER * pgm)
     buf[0] = XPRG_CMD_LEAVE_PROGMODE;
     if (stk600_xprog_command(pgm, buf, 1, 2) < 0) {
         fprintf(stderr,
-                "%s: stk600_xprog_program_enable(): XPRG_CMD_LEAVE_PROGMODE failed\n",
+                "%s: stk600_xprog_program_disable(): XPRG_CMD_LEAVE_PROGMODE failed\n",
                 progname);
     }
 }
@@ -3066,31 +3167,31 @@ static void stk600_xprog_disable(PROGRAMMER * pgm)
 static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 				   unsigned long addr, unsigned char data)
 {
-    unsigned char b[10];
+    unsigned char b[9 + 256];
+    int need_erase = 0;
+    unsigned char write_size = 1;
+    unsigned char memcode;
 
-    /*
-     * Fancy offsets everywhere.
-     * This is probably what AVR079 means when writing about the
-     * "TIF address space".
-     */
+    memset(b, 0, sizeof(b));
+
     if (strcmp(mem->desc, "flash") == 0) {
-        b[1] = XPRG_MEM_TYPE_APPL;
-        addr += 0x00800000;
+        memcode = XPRG_MEM_TYPE_APPL;
     } else if (strcmp(mem->desc, "boot") == 0) {
-        b[1] = XPRG_MEM_TYPE_BOOT;
-        addr += 0x00800000;
+        memcode = XPRG_MEM_TYPE_BOOT;
     } else if (strcmp(mem->desc, "eeprom") == 0) {
-        b[1] = XPRG_MEM_TYPE_EEPROM;
-        addr += 0x008c0000;
+        memcode = XPRG_MEM_TYPE_EEPROM;
     } else if (strcmp(mem->desc, "lockbits") == 0) {
-        b[1] = XPRG_MEM_TYPE_LOCKBITS;
-        addr += 0x008f0000;
+        memcode = XPRG_MEM_TYPE_LOCKBITS;
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
-        b[1] = XPRG_MEM_TYPE_FUSE;
-        addr += 0x008f0000;
+        memcode = XPRG_MEM_TYPE_FUSE;
+        if (p->flags & AVRPART_HAS_TPI)
+            /*
+             * TPI devices need a mystic erase prior to writing their
+             * fuses.
+             */
+            need_erase = 1;
     } else if (strcmp(mem->desc, "usersig") == 0) {
-        b[1] = XPRG_MEM_TYPE_USERSIG;
-        addr += 0x008e0000;
+        memcode = XPRG_MEM_TYPE_USERSIG;
     } else {
         fprintf(stderr,
                 "%s: stk600_xprog_write_byte(): unknown memory \"%s\"\n",
@@ -3099,16 +3200,42 @@ static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     }
     addr += mem->offset;
 
+    if (need_erase) {
+        b[0] = XPRG_CMD_ERASE;
+        b[1] = XPRG_ERASE_CONFIG;
+        b[2] = mem->offset >> 24;
+        b[3] = mem->offset >> 16;
+        b[4] = mem->offset >> 8;
+        b[5] = mem->offset + 1;
+        if (stk600_xprog_command(pgm, b, 6, 2) < 0) {
+	    fprintf(stderr,
+	    "%s: stk600_xprog_chip_erase(): XPRG_CMD_ERASE(XPRG_ERASE_CONFIG) failed\n",
+		    progname);
+	    return -1;
+	}
+    }
+
+    if (p->flags & AVRPART_HAS_TPI) {
+        /*
+         * Some TPI memories (configuration aka. fuse) require a
+         * larger write block size.  We record that as a blocksize in
+         * avrdude.conf.
+         */
+        if (mem->blocksize != 0)
+            write_size = mem->blocksize;
+    }
+
     b[0] = XPRG_CMD_WRITE_MEM;
+    b[1] = memcode;
     b[2] = 0;			/* pagemode: non-paged write */
     b[3] = addr >> 24;
     b[4] = addr >> 16;
     b[5] = addr >> 8;
     b[6] = addr;
     b[7] = 0;
-    b[8] = 1;
+    b[8] = write_size;
     b[9] = data;
-    if (stk600_xprog_command(pgm, b, 10, 2) < 0) {
+    if (stk600_xprog_command(pgm, b, 9 + write_size, 2) < 0) {
         fprintf(stderr,
                 "%s: stk600_xprog_write_byte(): XPRG_CMD_WRITE_MEM failed\n",
                 progname);
@@ -3123,35 +3250,22 @@ static int stk600_xprog_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 {
     unsigned char b[8];
 
-    /*
-     * Fancy offsets everywhere.
-     * This is probably what AVR079 means when writing about the
-     * "TIF address space".
-     */
     if (strcmp(mem->desc, "flash") == 0) {
         b[1] = XPRG_MEM_TYPE_APPL;
-        addr += 0x00800000;
     } else if (strcmp(mem->desc, "boot") == 0) {
         b[1] = XPRG_MEM_TYPE_BOOT;
-        addr += 0x00800000;
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         b[1] = XPRG_MEM_TYPE_EEPROM;
-        addr += 0x008c0000;
     } else if (strcmp(mem->desc, "signature") == 0) {
         b[1] = XPRG_MEM_TYPE_APPL;
-        addr += 0x01000000;
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
         b[1] = XPRG_MEM_TYPE_FUSE;
-        addr += 0x008f0000;
     } else if (strcmp(mem->desc, "lockbits") == 0) {
         b[1] = XPRG_MEM_TYPE_LOCKBITS;
-        addr += 0x008f0000;
     } else if (strcmp(mem->desc, "calibration") == 0) {
         b[1] = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
-        addr += 0x008e0000;
     } else if (strcmp(mem->desc, "usersig") == 0) {
         b[1] = XPRG_MEM_TYPE_USERSIG;
-        addr += 0x008e0000;
     } else {
         fprintf(stderr,
                 "%s: stk600_xprog_read_byte(): unknown memory \"%s\"\n",
@@ -3186,6 +3300,7 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     unsigned int offset;
     unsigned char memtype;
     int n_bytes_orig = n_bytes;
+    unsigned long use_ext_addr = 0;
 
     /*
      * The XPROG read command supports at most 256 bytes in one
@@ -3201,19 +3316,23 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      */
     if (strcmp(mem->desc, "flash") == 0) {
         memtype = XPRG_MEM_TYPE_APPL;
-        addr = 0x00800000;
+        if (mem->size > 64 * 1024)
+            use_ext_addr = (1UL << 31);
     } else if (strcmp(mem->desc, "boot") == 0) {
         memtype = XPRG_MEM_TYPE_BOOT;
-        addr = 0x00800000;
+        // Do we have to consider the total amount of flash
+        // instead to decide whether to use extended addressing?
+        if (mem->size > 64 * 1024)
+            use_ext_addr = (1UL << 31);
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         memtype = XPRG_MEM_TYPE_EEPROM;
-        addr = 0x008c0000;
     } else {
         fprintf(stderr,
                 "%s: stk600_xprog_paged_load(): unknown paged memory \"%s\"\n",
                 progname, mem->desc);
         return -1;
     }
+    addr = mem->offset;
 
     if ((b = malloc(page_size + 2)) == NULL) {
 	fprintf(stderr,
@@ -3221,6 +3340,9 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                 progname);
         return -1;
     }
+
+    if (stk500v2_loadaddr(pgm, use_ext_addr) < 0)
+        return -1;
 
     offset = 0;
     while (n_bytes != 0) {
@@ -3261,6 +3383,8 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     unsigned char memtype;
     int n_bytes_orig = n_bytes;
     size_t writesize;
+    unsigned long use_ext_addr = 0;
+    unsigned char writemode;
 
     /*
      * The XPROG read command supports at most 256 bytes in one
@@ -3280,19 +3404,26 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      */
     if (strcmp(mem->desc, "flash") == 0) {
         memtype = XPRG_MEM_TYPE_APPL;
-        addr = 0x00800000;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
+        if (mem->size > 64 * 1024)
+            use_ext_addr = (1UL << 31);
     } else if (strcmp(mem->desc, "boot") == 0) {
         memtype = XPRG_MEM_TYPE_BOOT;
-        addr = 0x00800000;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
+        // Do we have to consider the total amount of flash
+        // instead to decide whether to use extended addressing?
+        if (mem->size > 64 * 1024)
+            use_ext_addr = (1UL << 31);
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         memtype = XPRG_MEM_TYPE_EEPROM;
-        addr = 0x008c0000;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE) | (1 << XPRG_MEM_WRITE_ERASE);
     } else {
         fprintf(stderr,
                 "%s: stk600_xprog_paged_write(): unknown paged memory \"%s\"\n",
                 progname, mem->desc);
         return -1;
     }
+    addr = mem->offset;
 
     if ((b = malloc(page_size + 9)) == NULL) {
 	fprintf(stderr,
@@ -3300,6 +3431,9 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                 progname);
         return -1;
     }
+
+    if (stk500v2_loadaddr(pgm, use_ext_addr) < 0)
+        return -1;
 
     offset = 0;
     while (n_bytes != 0) {
@@ -3332,7 +3466,7 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 		b[0] = XPRG_CMD_WRITE_MEM;
 		b[1] = memtype;
 		if (chunk + 256 == page_size) {
-		    b[2] = 3;	/* last chunk: erase page | write page */
+		    b[2] = writemode;	/* last chunk */
 		} else {
 		    b[2] = 0;	/* initial/intermediate chunk: just download */
 		}
@@ -3369,7 +3503,7 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
             }
 	    b[0] = XPRG_CMD_WRITE_MEM;
 	    b[1] = memtype;
-	    b[2] = 3;		/* erase page | write page */
+	    b[2] = writemode;
 	    b[3] = addr >> 24;
 	    b[4] = addr >> 16;
 	    b[5] = addr >> 8;
@@ -3399,10 +3533,25 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 static int stk600_xprog_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
     unsigned char b[6];
+    AVRMEM *mem;
+    unsigned int addr = 0;
+
+    if (p->flags & AVRPART_HAS_TPI) {
+        if ((mem = avr_locate_mem(p, "flash")) == NULL) {
+            fprintf(stderr,
+            "%s: stk600_xprog_chip_erase(): no FLASH definition found for TPI device\n",
+                    progname);
+            return -1;
+        }
+        addr = mem->offset + 1;
+    }
 
     b[0] = XPRG_CMD_ERASE;
     b[1] = XPRG_ERASE_CHIP;
-    b[2] = b[3] = b[4] = b[5] = 0;
+    b[2] = addr >> 24;
+    b[3] = addr >> 16;
+    b[4] = addr >> 8;
+    b[5] = addr;
     if (stk600_xprog_command(pgm, b, 6, 2) < 0) {
 	    fprintf(stderr,
 		    "%s: stk600_xprog_chip_erase(): XPRG_CMD_ERASE(XPRG_ERASE_CHIP) failed\n",
@@ -3424,6 +3573,21 @@ static void stk600_setup_xprog(PROGRAMMER * pgm)
     pgm->paged_load = stk600_xprog_paged_load;
     pgm->paged_write = stk600_xprog_paged_write;
     pgm->chip_erase = stk600_xprog_chip_erase;
+}
+
+
+/*
+ * Modify pgm's methods for ISP operation.
+ */
+static void stk600_setup_isp(PROGRAMMER * pgm)
+{
+    pgm->program_enable = stk500v2_program_enable;
+    pgm->disable = stk500v2_disable;
+    pgm->read_byte = avr_read_byte_default;
+    pgm->write_byte = avr_write_byte_default;
+    pgm->paged_load = stk500v2_paged_load;
+    pgm->paged_write = stk500v2_paged_write;
+    pgm->chip_erase = stk500v2_chip_erase;
 }
 
 
@@ -3543,7 +3707,7 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->chip_erase     = stk500v2_chip_erase;
   pgm->cmd            = stk500v2_cmd;
   pgm->open           = stk500v2_jtagmkII_open;
-  pgm->close          = jtagmkII_close;
+  pgm->close          = stk500v2_jtagmkII_close;
   pgm->read_byte      = avr_read_byte_default;
   pgm->write_byte     = avr_write_byte_default;
 
@@ -3575,7 +3739,7 @@ void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm)
   pgm->chip_erase     = stk500v2_chip_erase;
   pgm->cmd            = stk500v2_cmd;
   pgm->open           = stk500v2_dragon_isp_open;
-  pgm->close          = jtagmkII_close;
+  pgm->close          = stk500v2_jtagmkII_close;
   pgm->read_byte      = avr_read_byte_default;
   pgm->write_byte     = avr_write_byte_default;
 
@@ -3586,8 +3750,8 @@ void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm)
   pgm->paged_load     = stk500v2_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
-  pgm->setup          = jtagmkII_setup;
-  pgm->teardown       = jtagmkII_teardown;
+  pgm->setup          = stk500v2_jtagmkII_setup;
+  pgm->teardown       = stk500v2_jtagmkII_teardown;
   pgm->page_size      = 256;
 }
 
@@ -3605,7 +3769,7 @@ void stk500v2_dragon_pp_initpgm(PROGRAMMER * pgm)
   pgm->program_enable = stk500pp_program_enable;
   pgm->chip_erase     = stk500pp_chip_erase;
   pgm->open           = stk500v2_dragon_hv_open;
-  pgm->close          = jtagmkII_close;
+  pgm->close          = stk500v2_jtagmkII_close;
   pgm->read_byte      = stk500pp_read_byte;
   pgm->write_byte     = stk500pp_write_byte;
 
@@ -3638,7 +3802,7 @@ void stk500v2_dragon_hvsp_initpgm(PROGRAMMER * pgm)
   pgm->program_enable = stk500hvsp_program_enable;
   pgm->chip_erase     = stk500hvsp_chip_erase;
   pgm->open           = stk500v2_dragon_hv_open;
-  pgm->close          = jtagmkII_close;
+  pgm->close          = stk500v2_jtagmkII_close;
   pgm->read_byte      = stk500hvsp_read_byte;
   pgm->write_byte     = stk500hvsp_write_byte;
 
