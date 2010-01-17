@@ -1,0 +1,12 @@
+Index: avrdude/configure.ac
+===================================================================
+--- avrdude.orig/configure.ac	2010-01-17 02:48:52.510488037 +0100
++++ avrdude/configure.ac	2010-01-17 02:49:10.478483122 +0100
+@@ -33,6 +33,7 @@
+ AC_CONFIG_SRCDIR([main.c])
+ AM_INIT_AUTOMAKE
+ AM_CONFIG_HEADER(ac_cfg.h)
++AM_MAINTAINER_MODE
+ 
+ # Checks for programs.
+ AC_PROG_CC

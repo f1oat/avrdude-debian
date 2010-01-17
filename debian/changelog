@@ -8,6 +8,9 @@ avrdude (5.9-1) UNRELEASED; urgency=low
     - The serial port naming scheme has changed since FreeBSD 6.0 from cuaa?
       to cuad?. Update the configure check and the documentation to reflect
       this change.
+  * debian/patches/04-am_maintainer_mode.patch
+    - Set AM_MAINTAINER_MODE as it makes patching the build system less
+      painful.
 
  -- Michael Biebl <biebl@debian.org>  Sun, 17 Jan 2010 01:00:40 +0100
 
