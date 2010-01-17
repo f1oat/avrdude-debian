@@ -1,3 +1,7 @@
+Description: Fix paths in the man page
+ Update the man page to point to the correct location of the documentation
+ and config file when installed on a Debian system.
+Author: Michael Biebl <biebl@debian.org>
 Index: avrdude/avrdude.1
 ===================================================================
 --- avrdude.orig/avrdude.1	2009-03-03 16:58:52.000000000 +0100

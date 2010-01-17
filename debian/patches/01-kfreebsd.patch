@@ -1,3 +1,6 @@
+Description: fix build failure on GNU/kFreeBSD
+Author: Aurelien Jarno <aurel32@debian.org>
+Debian-Bug: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=329448
 Index: avrdude/ppi.c
 ===================================================================
 --- avrdude.orig/ppi.c	2008-06-10 12:51:44.000000000 +0200
