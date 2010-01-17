@@ -3,8 +3,8 @@ Author: Aurelien Jarno <aurel32@debian.org>
 Debian-Bug: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=329448
 Index: avrdude/ppi.c
 ===================================================================
---- avrdude.orig/ppi.c	2008-06-10 12:51:44.000000000 +0200
-+++ avrdude/ppi.c	2008-07-19 03:14:05.000000000 +0200
+--- avrdude.orig/ppi.c	2010-01-17 02:51:50.814484015 +0100
++++ avrdude/ppi.c	2010-01-17 13:10:29.833688002 +0100
 @@ -33,7 +33,7 @@
  #include <unistd.h>
  #include <errno.h>
@@ -16,8 +16,8 @@ Index: avrdude/ppi.c
  # include "linux_ppdev.h"
 Index: avrdude/par.c
 ===================================================================
---- avrdude.orig/par.c	2008-06-10 12:51:44.000000000 +0200
-+++ avrdude/par.c	2008-07-19 03:14:05.000000000 +0200
+--- avrdude.orig/par.c	2010-01-17 02:51:50.806489420 +0100
++++ avrdude/par.c	2010-01-17 13:10:29.833688002 +0100
 @@ -28,7 +28,7 @@
  #include <unistd.h>
  #include <errno.h>
