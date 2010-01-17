@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_posix.c 826 2009-07-02 10:31:13Z joerg_wunsch $ */
+/* $Id: ser_posix.c 890 2010-01-08 10:39:18Z joerg_wunsch $ */
 
 /*
  * Posix serial interface for avrdude.
@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/socket.h>
@@ -80,9 +81,15 @@ static speed_t serial_baud_lookup(long baud)
     map++;
   }
 
-  fprintf(stderr, "%s: serial_baud_lookup(): unknown baud rate: %ld\n",
-          progname, baud);
-  exit(1);
+  /*
+   * If a non-standard BAUD rate is used, issue
+   * a warning (if we are verbose) and return the raw rate
+   */
+  if (verbose > 0)
+      fprintf(stderr, "%s: serial_baud_lookup(): Using non-standard baud rate: %ld",
+              progname, baud);
+
+  return baud;
 }
 
 static int ser_setspeed(union filedescriptor *fd, long baud)
@@ -208,6 +215,36 @@ net_open(const char *port, union filedescriptor *fdp)
   }
 
   fdp->ifd = fd;
+}
+
+
+static int ser_set_dtr_rts(union filedescriptor *fdp, int is_on)
+{
+  unsigned int	ctl;
+  int           r;
+
+  r = ioctl(fdp->ifd, TIOCMGET, &ctl);
+  if (r < 0) {
+    perror("ioctl(\"TIOCMGET\")");
+    return -1;
+  }
+
+  if (is_on) {
+    /* Clear DTR and RTS */
+    ctl &= ~(TIOCM_DTR | TIOCM_RTS);
+  }
+  else {
+    /* Set DTR and RTS */
+    ctl |= (TIOCM_DTR | TIOCM_RTS);
+  }
+
+  r = ioctl(fdp->ifd, TIOCMSET, &ctl);
+  if (r < 0) {
+    perror("ioctl(\"TIOCMSET\")");
+    return -1;
+  }
+
+  return 0;
 }
 
 static void ser_open(char * port, long baud, union filedescriptor *fdp)
@@ -455,6 +492,7 @@ struct serial_device serial_serdev =
   .send = ser_send,
   .recv = ser_recv,
   .drain = ser_drain,
+  .set_dtr_rts = ser_set_dtr_rts,
   .flags = SERDEV_FL_CANSETSPEED,
 };
 

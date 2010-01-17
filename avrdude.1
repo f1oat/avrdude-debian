@@ -1,6 +1,6 @@
 .\"
 .\" avrdude - A Downloader/Uploader for AVR device programmers
-.\" Copyright (C) 2001, 2002, 2003, 2005 - 2009  Joerg Wunsch
+.\" Copyright (C) 2001, 2002, 2003, 2005 - 2010  Joerg Wunsch
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -17,9 +17,9 @@
 .\" Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 .\"
 .\"
-.\" $Id: avrdude.1 808 2009-02-25 09:39:04Z joerg_wunsch $
+.\" $Id: avrdude.1 916 2010-01-15 16:36:13Z joerg_wunsch $
 .\"
-.Dd DATE November 5, 2008
+.Dd DATE January 14, 2010
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -110,9 +110,16 @@ both parallel and serial
 The Arduino (which is very similar to the STK500 1.x) is supported via
 its own programmer type specification ``arduino''.
 .Pp
+The BusPirate is a versatile tool that can also be used as an AVR programmer.
+A single BusPirate can be connected to up to 3 independent AVRs. See
+the section on
+.Em extended parameters
+below for details.
+.Pp
 Atmel's STK600 programmer is supported in ISP and high-voltage
 programming modes, and connects through the USB.
 For ATxmega devices, the STK600 is supported in PDI mode.
+For ATtiny4/5/9/10 devices, the STK600 and AVRISP mkII are supported in TPI mode.
 .Pp
 The simple serial programmer described in Atmel's application note
 AVR910, and the bootloader described in Atmel's application note
@@ -121,8 +128,11 @@ supported on a serial port.
 .Pp
 Atmel's JTAG ICE (both mkI and mkII) is supported as well to up- or download memory
 areas from/to an AVR target (no support for on-chip debugging).
-For the JTAG ICE mkII, JTAG, debugWire and ISP mode are supported.
+For the JTAG ICE mkII, JTAG, debugWire and ISP mode are supported, provided
+it has a firmware revision of at least 4.14 (decimal).
 See below for the limitations of debugWire.
+For ATxmega devices, the JTAG ICE mkII is supported in PDI mode, provided it
+has a revision 1 hardware and firmware version of at least 5.37 (decimal).
 .Pp
 The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP, debugWire).
 When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
@@ -135,11 +145,13 @@ In particular, the Dragon starts out with a rather fast ISP clock
 frequency, so the
 .Fl B Ar bitclock
 option might be required to achieve a stable ISP communication.
+For ATxmega devices, the AVR Dragon is supported in PDI mode, provided it
+has a firmware version of at least 6.11 (decimal).
 .Pp
 The USBasp ISP and USBtinyISP adapters are also supported, provided
 .Nm avrdude
 has been compiled with libusb support.
-They both feature simple firwmare-only USB implementations, running on
+They both feature simple firmware-only USB implementations, running on
 an ATmega8 (or ATmega88), or ATtiny2313, respectively.
 .Pp
 Input files can be provided, and output files can be written in
@@ -190,9 +202,6 @@ the format.  Currently, the following MCU types are understood:
 .TS
 ll.
 \fBOption tag\fP	\fBOfficial part name\fP
-c128	AT90CAN128
-pwm2	AT90PWM2
-pwm3	AT90PWM3
 1200	AT90S1200
 2313	AT90S2313
 2333	AT90S2333
@@ -202,6 +211,9 @@ pwm3	AT90PWM3
 4434	AT90S4434
 8515	AT90S8515
 8535	AT90S8535
+c128	AT90CAN128
+c32	AT90CAN32
+c64	AT90CAN64
 m103	ATmega103
 m128	ATmega128
 m1280	ATmega1280
@@ -213,33 +225,77 @@ m161	ATmega161
 m162	ATmega162
 m163	ATmega163
 m164	ATmega164
+m164p	ATmega164P
+m168	ATmega168
 m169	ATmega169
 m2560	ATmega2560 (**)
 m2561	ATmega2561 (**)
 m32	ATmega32
-m324	ATmega324
+m324p	ATmega324P
+m325	ATmega325
+m3250	ATmega3250
+m328p	ATmega328P
 m329	ATmega329
 m3290	ATmega3290
+m329p	ATmega329P
+m3290p	ATmega3290P
+m32u4	ATmega32U4
 m48	ATmega48
 m64	ATmega64
 m640	ATmega640
+m644p	ATmega644P
 m644	ATmega644
+m645	ATmega645
+m6450	ATmega6450
 m649	ATmega649
 m6490	ATmega6490
 m8	ATmega8
 m8515	ATmega8515
 m8535	ATmega8535
 m88	ATmega88
-t12	ATtiny12
+pwm2	AT90PWM2
+pwm2b	AT90PWM2B
+pwm3	AT90PWM3
+pwm3b	AT90PWM3B
+t10	ATtiny10
+t12	ATtiny12 (***)
 t13	ATtiny13
 t15	ATtiny15
 t2313	ATtiny2313
 t25	ATtiny25
 t26	ATtiny26
+t261	ATtiny261
+t4	ATtiny4
+t44	ATtiny44
 t45	ATtiny45
+t461	ATtiny461
+t5	ATtiny5
+t84	ATtiny84
 t85	ATtiny85
+t861	ATtiny861
+t88	ATtiny88
+t9	ATtiny9
+ucr2	AT32uca0512
+usb1286	ATmega1286
+usb1287	ATmega1287
+usb162	ATmega162
+usb646	ATmega647
+usb647	ATmega647
+usb82	ATmega82
 x128a1	ATxmega128A1
 x128a1d	ATxmega128A1revD
+x128a3	ATxmega128A3
+x128a4	ATxmega128A4
+x16a4	ATxmega16A4
+x192a1	ATxmega192A1
+x192a3	ATxmega192A3
+x256a1	ATxmega256A1
+x256a3	ATxmega256A3
+x256a3b	ATxmega256A3B
+x32a4	ATxmega32A4
+x64a1	ATxmega64A1
+x64a3	ATxmega64A3
+x64a4	ATxmega64A4
 .TE
 .Bl -tag -width "(**) "
 .It "(*)"
@@ -248,6 +304,9 @@ The AT90S2323 and ATtiny22 use the same algorithm.
 Flash addressing above 128 KB is not supported by all
 programming hardware.  Known to work are jtag2, stk500v2,
 and bit-bang programmers.
+.It "(***)"
+The ATtiny11 uses the same algorithm, but can only be
+programmed in high-voltage serial mode.
 .El
 .It Fl b Ar baudrate
 Override the RS-232 connection baud rate specified in the respective
@@ -533,6 +592,21 @@ The low fuse byte.
 The lock byte.
 .It signature
 The three device signature bytes (device ID).
+.It fuse Ns Em N
+The fuse bytes of ATxmega devices,
+.Em N
+is an integer number
+for each fuse supported by the device.
+.It application
+The application flash area of ATxmega devices.
+.It apptable
+The application table flash area of ATxmega devices.
+.It boot
+The boot flash area of ATxmega devices.
+.It prodsig
+The production signature (calibration) area of ATxmega devices.
+.It usersig
+The user signature area of ATxmega devices.
 .El
 .Pp
 The
@@ -779,7 +853,7 @@ line.
 DebugWire mode is initiated by activating the
 .Ql DWEN
 fuse, and then power-cycling the target.
-While this mode is mainly intented for debugging/emulation, it
+While this mode is mainly intended for debugging/emulation, it
 also offers limited programming capabilities.
 Effectively, the only memory areas that can be read or programmed
 in this mode are flash ROM and EEPROM.
@@ -841,6 +915,48 @@ Use
 only if your
 .Ar AVR910
 programmer creates errors during initial sequence. 
+.El
+.It Ar buspirate
+.Bl -tag -offset indent -width indent
+.It Ar reset={cs,aux,aux2}
+The default setup assumes the BusPirate's CS output pin connected to 
+the RESET pin on AVR side. It is however possible to have multiple AVRs
+connected to the same BP with MISO, MOSI and SCK lines common for all of them.
+In such a case one AVR should have its RESET connected to BusPirate's
+.Pa CS
+pin, second AVR's RESET connected to BusPirate's
+.Pa AUX
+pin and if your BusPirate has an
+.Pa AUX2
+pin (only available on BusPirate version v1a with firmware 3.0 or newer)
+use that to activate RESET on the third AVR.
+.Pp
+It may be a good idea to decouple the BusPirate and the AVR's SPI buses from 
+each other using a 3-state bus buffer. For example 74HC125 or 74HC244 are some
+good candidates with the latches driven by the appropriate reset pin (cs, 
+aux or aux2). Otherwise the SPI traffic in one active circuit may interfere
+with programming the AVR in the other design.
+.It Ar speed=<0..7>
+BusPirate to AVR SPI speed:
+.Bd -literal
+0 ..  30 kHz   (default)
+1 .. 125 kHz
+2 .. 250 kHz
+3 ..   1 MHz
+4 ..   2 MHz
+5 ..   2.6 MHz
+6 ..   4 MHz
+7 ..   8 MHz
+.Ed
+.It Ar ascii
+Use ASCII mode even when the firmware supports BinMode (binary mode). 
+BinMode is supported in firmware 2.7 and newer, older FW's either don't
+have BinMode or their BinMode is buggy. ASCII mode is slower and makes 
+the above
+.Ar reset=
+and 
+.Ar speed=
+parameters unavailable. 
 .El
 .El
 .Sh FILES

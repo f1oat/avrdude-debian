@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: par.c 804 2009-02-23 22:04:57Z joerg_wunsch $ */
+/* $Id: par.c 888 2010-01-07 16:23:28Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -285,7 +285,7 @@ static void par_close(PROGRAMMER * pgm)
   ppi_setall(&pgm->fd, PPIDATA, pgm->ppidata);
   ppi_setall(&pgm->fd, PPICTRL, pgm->ppictrl);
 
-  par_setpin(pgm, pgm->pinno[PPI_AVR_BUFF], 1);
+  par_setmany(pgm, pgm->pinno[PPI_AVR_BUFF], 1);
 
   /*
    * Handle exit specs.

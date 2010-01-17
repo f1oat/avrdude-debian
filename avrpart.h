@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avrpart.h 777 2008-07-26 22:53:40Z joerg_wunsch $ */
+/* $Id: avrpart.h 916 2010-01-15 16:36:13Z joerg_wunsch $ */
 
 #ifndef avrpart_h
 #define avrpart_h
@@ -89,6 +89,10 @@ typedef struct opcode {
 #define AVRPART_ENABLEPAGEPROGRAMMING 0x0020 /* JTAG ICE mkII param. */
 #define AVRPART_HAS_DW         0x0040  /* part has a debugWire i/f */
 #define AVRPART_HAS_PDI        0x0080  /* part has PDI i/f rather than ISP (ATxmega) */
+#define AVRPART_AVR32          0x0100  /* part is in AVR32 family */
+#define AVRPART_INIT_SMC       0x0200  /* part will undergo chip erase */
+#define AVRPART_WRITE          0x0400  /* at least one write operation specified */
+#define AVRPART_HAS_TPI        0x0800  /* part has TPI i/f rather than ISP (ATtiny4/5/9/10) */
 
 #define AVR_DESCLEN 64
 #define AVR_IDLEN   32

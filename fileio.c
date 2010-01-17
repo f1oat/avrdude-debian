@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: fileio.c 816 2009-03-22 21:28:46Z joerg_wunsch $ */
+/* $Id: fileio.c 880 2009-11-29 20:19:15Z dhoerl $ */
 
 #include "ac_cfg.h"
 
@@ -261,23 +261,24 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
  * If an error occurs, return -1.
  *
  * */
-
 static int ihex2b(char * infile, FILE * inf,
              unsigned char * outbuf, int bufsize)
 {
   char buffer [ MAX_LINE_LEN ];
   unsigned char * buf;
-  unsigned int nextaddr, baseaddr, maxaddr;
+  unsigned int nextaddr, baseaddr, maxaddr, offsetaddr;
   int i;
   int lineno;
   int len;
   struct ihexrec ihex;
   int rc;
 
-  lineno   = 0;
-  buf      = outbuf;
-  baseaddr = 0;
-  maxaddr  = 0;
+  lineno      = 0;
+  buf         = outbuf;
+  baseaddr    = 0;
+  maxaddr     = 0;
+  offsetaddr  = 0;
+  nextaddr    = 0;
 
   while (fgets((char *)buffer,MAX_LINE_LEN,inf)!=NULL) {
     lineno++;
@@ -301,28 +302,28 @@ static int ihex2b(char * infile, FILE * inf,
     }
 
     switch (ihex.rectyp) {
-
       case 0: /* data record */
         nextaddr = ihex.loadofs + baseaddr;
-        if (nextaddr + ihex.reclen > bufsize) {
+        if ((nextaddr + ihex.reclen) > (bufsize+offsetaddr)) {
           fprintf(stderr, 
                   "%s: ERROR: address 0x%04x out of range at line %d of %s\n",
                   progname, nextaddr+ihex.reclen, lineno, infile);
           return -1;
         }
         for (i=0; i<ihex.reclen; i++) {
-          buf[nextaddr+i] = ihex.data[i];
+          buf[nextaddr+i-offsetaddr] = ihex.data[i];
         }
         if (nextaddr+ihex.reclen > maxaddr)
           maxaddr = nextaddr+ihex.reclen;
         break;
 
       case 1: /* end of file record */
-        return maxaddr;
+        return maxaddr-offsetaddr;
         break;
 
       case 2: /* extended segment address record */
-        baseaddr = (ihex.data[0] << 8 | ihex.data[1]) << 4;
+        // note: shift values use to be 8 and 4 - the first had to be wrong
+        baseaddr = (ihex.data[0] << 12 | ihex.data[1]) << 4;
         break;
 
       case 3: /* start segment address record */
@@ -330,7 +331,8 @@ static int ihex2b(char * infile, FILE * inf,
         break;
 
       case 4: /* extended linear address record */
-        baseaddr = (ihex.data[0] << 8 | ihex.data[1]) << 16;
+        baseaddr = (ihex.data[0] << 24 | ihex.data[1]) << 16;
+        if(nextaddr == 0) offsetaddr = baseaddr;	// if provided before any data, then remember it
         break;
 
       case 5: /* start linear address record */
@@ -353,9 +355,8 @@ static int ihex2b(char * infile, FILE * inf,
           "file \"%s\"\n",
           progname, infile);
 
-  return maxaddr;
+  return maxaddr-offsetaddr;
 }
-
 
 static int b2srec(unsigned char * inbuf, int bufsize, 
            int recsize, int startaddr,
@@ -1153,6 +1154,7 @@ int fileio(int op, char * filename, FILEFMT format,
   if (format != FMT_IMM && !using_stdio) {
     fclose(f);
   }
+
   return rc;
 }
 

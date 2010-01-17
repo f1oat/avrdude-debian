@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500.c 804 2009-02-23 22:04:57Z joerg_wunsch $ */
+/* $Id: stk500.c 845 2009-10-10 01:41:40Z mludvig $ */
 
 /*
  * avrdude interface for Atmel STK500 programmer
@@ -73,13 +73,13 @@ static int stk500_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 }
 
 
-static int stk500_drain(PROGRAMMER * pgm, int display)
+int stk500_drain(PROGRAMMER * pgm, int display)
 {
   return serial_drain(&pgm->fd, display);
 }
 
 
-static int stk500_getsync(PROGRAMMER * pgm)
+int stk500_getsync(PROGRAMMER * pgm)
 {
   unsigned char buf[32], resp[32];
 

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: serial.h 768 2008-03-14 13:00:08Z joerg_wunsch $ */
+/* $Id: serial.h 845 2009-10-10 01:41:40Z mludvig $ */
 
 /* This is the API for the generic serial interface. The implementations are
    actually provided by the target dependant files:
@@ -52,6 +52,8 @@ struct serial_device
   int (*recv)(union filedescriptor *fd, unsigned char * buf, size_t buflen);
   int (*drain)(union filedescriptor *fd, int display);
 
+  int (*set_dtr_rts)(union filedescriptor *fd, int is_on);
+
   int flags;
 #define SERDEV_FL_NONE         0x0000 /* no flags */
 #define SERDEV_FL_CANSETSPEED  0x0001 /* device can change speed */
@@ -69,5 +71,6 @@ extern struct serial_device avrdoper_serdev;
 #define serial_send (serdev->send)
 #define serial_recv (serdev->recv)
 #define serial_drain (serdev->drain)
+#define serial_set_dtr_rts (serdev->set_dtr_rts)
 
 #endif /* serial_h */

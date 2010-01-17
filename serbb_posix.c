@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: serbb_posix.c 725 2007-01-30 13:41:54Z joerg_wunsch $ */
+/* $Id: serbb_posix.c 917 2010-01-15 16:40:17Z joerg_wunsch $ */
 
 /*
  * Posix serial bitbanging interface for avrdude.
@@ -97,7 +97,7 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
 	       perror("ioctl(\"TIOCxBRK\")");
 	       return -1;
 	     }
-             return 0;
+             break;
 
     case 4:  /* dtr */
     case 7:  /* rts */
@@ -115,11 +115,16 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
 	       perror("ioctl(\"TIOCMSET\")");
 	       return -1;
  	     }
-             return 0;
+             break;
 
     default: /* impossible */
              return -1;
   }
+
+  if (pgm->ispdelay > 1)
+    bitbang_delay(pgm->ispdelay);
+
+  return 0;
 }
 
 static int serbb_getpin(PROGRAMMER * pgm, int pin)
@@ -174,16 +179,11 @@ static int serbb_getpin(PROGRAMMER * pgm, int pin)
 
 static int serbb_highpulsepin(PROGRAMMER * pgm, int pin)
 {
-  if ( pin < 1 || pin > DB9PINS )
+  if ( (pin & PIN_MASK) < 1 || (pin & PIN_MASK) > DB9PINS )
     return -1;
 
   serbb_setpin(pgm, pin, 1);
-  if (pgm->ispdelay > 1)
-    bitbang_delay(pgm->ispdelay);
-
   serbb_setpin(pgm, pin, 0);
-  if (pgm->ispdelay > 1)
-    bitbang_delay(pgm->ispdelay);
 
   return 0;
 }

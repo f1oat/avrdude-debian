@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: usb_libusb.c 798 2009-02-17 17:09:53Z joerg_wunsch $ */
+/* $Id: usb_libusb.c 880 2009-11-29 20:19:15Z dhoerl $ */
 
 /*
  * USB interface via libusb for avrdude.
@@ -239,7 +239,7 @@ static void usbdev_close(union filedescriptor *fd)
 
   (void)usb_release_interface(udev, usb_interface);
 
-#if defined(__FreeBSD__)
+#if !( defined(__FreeBSD__) ) // || ( defined(__APPLE__) && defined(__MACH__) ) )
   /*
    * Without this reset, the AVRISP mkII seems to stall the second
    * time we try to connect to it.  This is not necessary on
@@ -350,7 +350,7 @@ static int usbdev_recv(union filedescriptor *fd, unsigned char *buf, size_t nbyt
       i += amnt;
     }
 
-  if (verbose > 3)
+  if (verbose > 4)
   {
       fprintf(stderr, "%s: Recv: ", progname);
 

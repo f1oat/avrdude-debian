@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkII_private.h 821 2009-06-24 21:32:12Z joerg_wunsch $ */
+/* $Id: jtagmkII_private.h 912 2010-01-13 17:34:18Z joerg_wunsch $ */
 
 
 /*
@@ -103,7 +103,16 @@
 #define CMND_SPI_CMD 0x1D
 #define CMND_WRITE_MEMORY 0x04
 #define CMND_WRITE_PC 0x06
-#define CMND_0x34 0x34
+#define CMND_XMEGA_ERASE 0x34
+// AVR32 - DFH
+#define CMND_GET_IR 0x24
+#define CMND_GET_xxx 0x25
+#define CMND_WRITE_SAB 0x28
+#define CMND_READ_SAB 0x29
+#define CMND_RESET_AVR 0x2B
+#define CMND_READ_MEMORY32 0x2C
+#define CMND_WRITE_MEMORY32 0x2D
+
 
 /* ICE responses */
 #define RSP_DEBUGWIRE_SYNC_FAILED 0xAC
@@ -183,7 +192,9 @@
 # define EMULATOR_MODE_JTAG 0x01
 # define EMULATOR_MODE_HV 0x02	/* HVSP or PP mode of AVR Dragon */
 # define EMULATOR_MODE_SPI 0x03
+# define EMULATOR_MODE_JTAG_AVR32 0x04
 # define EMULATOR_MODE_JTAG_XMEGA 0x05
+# define EMULATOR_MODE_PDI 0x06
 #define PAR_IREG 0x04
 #define PAR_BAUD_RATE 0x05
 # define PAR_BAUD_2400 0x01
@@ -242,6 +253,50 @@
 #define PAR_ALLOW_PAGEPROGRAMMING_IN_SCANCHAIN 0x24
 # define PAGEPROG_NOT_ALLOWED 0x00
 # define PAGEPROG_ALLOWED 0x01
+
+/* Xmega erase memory types, for CMND_XMEGA_ERASE */
+#define XMEGA_ERASE_CHIP 0x00
+#define XMEGA_ERASE_APP 0x01
+#define XMEGA_ERASE_BOOT 0x02
+#define XMEGA_ERASE_EEPROM 0x03
+#define XMEGA_ERASE_APP_PAGE 0x04
+#define XMEGA_ERASE_BOOT_PAGE 0x05
+#define XMEGA_ERASE_EEPROM_PAGE 0x06
+#define XMEGA_ERASE_USERSIG 0x07
+
+/* AVR32 related definitions */
+#define AVR32_FLASHC_FCR                  0xFFFE1400
+#define AVR32_FLASHC_FCMD                 0xFFFE1404
+#define   AVR32_FLASHC_FCMD_KEY           0xA5000000
+#define   AVR32_FLASHC_FCMD_WRITE_PAGE             1
+#define   AVR32_FLASHC_FCMD_ERASE_PAGE             2
+#define   AVR32_FLASHC_FCMD_CLEAR_PAGE_BUFFER      3
+#define   AVR32_FLASHC_FCMD_LOCK                   4
+#define   AVR32_FLASHC_FCMD_UNLOCK                 5
+#define AVR32_FLASHC_FSR                  0xFFFE1408
+#define   AVR32_FLASHC_FSR_RDY            0x00000001
+#define   AVR32_FLASHC_FSR_ERR            0x00000008
+#define AVR32_FLASHC_FGPFRHI              0xFFFE140C
+#define AVR32_FLASHC_FGPFRLO              0xFFFE1410
+
+#define AVR32_DC                          0x00000008
+#define AVR32_DS                          0x00000010
+#define AVR32_DINST                       0x00000104
+#define AVR32_DCCPU                       0x00000110
+#define AVR32_DCEMU                       0x00000114
+#define AVR32_DCSR                        0x00000118
+
+#define AVR32_DC_ABORT                    0x80000000
+#define AVR32_DC_RESET                    0x40000000
+#define AVR32_DC_DBE                      0x00002000
+#define AVR32_DC_DBR                      0x00001000
+
+#define AVR32_RESET_READ             0x0001
+#define AVR32_RESET_WRITE            0x0002
+#define AVR32_RESET_CHIP_ERASE       0x0004
+#define AVR32_SET4RUNNING            0x0008
+//#define AVR32_RESET_COMMON           (AVR32_RESET_READ | AVR32_RESET_WRITE | AVR32_RESET_CHIP_ERASE )
+
 
 #if !defined(JTAGMKII_PRIVATE_EXPORTED)
 /*
