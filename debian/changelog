@@ -4,6 +4,10 @@ avrdude (5.9-1) UNRELEASED; urgency=low
   * debian/patches/01-kfreebsd.patch
     - Update configure check to correctly detect kfreebsd and set the
       default serial and parallel port accordingly.
+  * debian/patches/03-freebsd-serial-device.patch
+    - The serial port naming scheme has changed since FreeBSD 6.0 from cuaa?
+      to cuad?. Update the configure check and the documentation to reflect
+      this change.
 
  -- Michael Biebl <biebl@debian.org>  Sun, 17 Jan 2010 01:00:40 +0100
 
