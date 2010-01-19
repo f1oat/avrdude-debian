@@ -1,6 +1,2 @@
 # Debian patches for avrdude
-01-kfreebsd.patch
 02-manpage_fix.patch
-03-freebsd-serial-device.patch
-04-am_maintainer_mode.patch
-99-autoreconf.patch

@@ -1,6 +1,11 @@
 avrdude (5.10-1) UNRELEASED; urgency=low
 
   * New upstream release.
+  * Removed patches:
+    - debian/patches/01-kfreebsd.patch (merged upstream)
+    - debian/patches/03-freebsd-serial-device.patch (merged upstream)
+    - debian/patches/04-am_maintainer_mode.patch (obsolete)
+    - debian/patches/99-autoreconf.patch (obsolete)
 
  -- Michael Biebl <biebl@debian.org>  Tue, 19 Jan 2010 18:49:17 +0100
 
