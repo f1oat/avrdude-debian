@@ -1,4 +1,4 @@
-avrdude (5.10-1) UNRELEASED; urgency=low
+avrdude (5.10-1) unstable; urgency=low
 
   * New upstream release.
   * Removed patches:
@@ -7,7 +7,7 @@ avrdude (5.10-1) UNRELEASED; urgency=low
     - debian/patches/04-am_maintainer_mode.patch (obsolete)
     - debian/patches/99-autoreconf.patch (obsolete)
 
- -- Michael Biebl <biebl@debian.org>  Tue, 19 Jan 2010 18:49:17 +0100
+ -- Michael Biebl <biebl@debian.org>  Tue, 19 Jan 2010 18:57:14 +0100
 
 avrdude (5.9-1) unstable; urgency=low
 
