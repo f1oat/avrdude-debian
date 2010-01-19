@@ -18,13 +18,13 @@
 #
 
 #
-# $Id: configure.ac 918 2010-01-15 21:37:08Z joerg_wunsch $
+# $Id: configure.ac 931 2010-01-19 10:34:39Z joerg_wunsch $
 #
 
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(avrdude, 5.9, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 5.10, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -196,13 +196,13 @@ case $target in
 		DEFAULT_PAR_PORT="unknown"
 		DEFAULT_SER_PORT="/dev/ttyS0"
 		;;
-	i[[3456]]86-*-freebsd*|amd64-*-freebsd*)
+	i[[3456]]86-*-*freebsd*|amd64-*-*freebsd*)
 		DEFAULT_PAR_PORT="/dev/ppi0"
-		DEFAULT_SER_PORT="/dev/cuaa0"
+		DEFAULT_SER_PORT="/dev/cuad0"
 		;;
-	*-*-freebsd*)
+	*-*-*freebsd*)
 		DEFAULT_PAR_PORT="unknown"
-		DEFAULT_SER_PORT="/dev/cuaa0"
+		DEFAULT_SER_PORT="/dev/cuad0"
 		;;
 	*-*-solaris*)
 		DEFAULT_PAR_PORT="/dev/printers/0"
@@ -241,16 +241,6 @@ else
 fi
 export confsubst
 
-# See if we need to drop into the windows subdir.
-case $target in
-        *-*-mingw32* | *-*-cygwin* | *-*-windows*)
-		WINDOWS_DIRS="windows"
-		CFLAGS="${CFLAGS} -mno-cygwin -DWIN32NATIVE"
-		LDFLAGS="${LDFLAGS} -static"
-		;;
-esac
-AC_SUBST(WINDOWS_DIRS,$WINDOWS_DIRS)
-
 # If we are compiling with gcc, enable all warning and make warnings errors.
 if test "$GCC" = yes; then
     ENABLE_WARNINGS="-Wall"
@@ -275,6 +265,42 @@ if test "$GCC" = yes; then
 	fi
 fi
 AC_SUBST(ENABLE_WARNINGS,$ENABLE_WARNINGS)
+
+# See if we need to drop into the windows subdir.
+case $target in
+        *-*-mingw32* | *-*-cygwin* | *-*-windows*)
+		if test "$GCC" = yes -a \( "$CC" = "cc" -o "$CC" = "gcc" \); then
+			# does this compiler support -mno-cygwin?
+			AC_MSG_CHECKING([if $CC accepts -mno-cygwin])
+
+			safe_CFLAGS=$CFLAGS
+			CFLAGS="$ENABLE_WARNINGS -mno-cygwin"
+
+			AC_TRY_COMPILE(, [ int main () { return 0 ; } ], [
+				no_cygwin=yes
+				AC_MSG_RESULT([yes])
+				], [
+				no_cygwin=no
+				AC_MSG_RESULT([no])
+				])
+			CFLAGS=$safe_CFLAGS
+
+			if test x$no_cygwin = xyes; then
+				CFLAGS="${CFLAGS} -mno-cygwin"
+			else
+				AC_MSG_NOTICE([Your compiler does not understand the -mno-cygwin option.])
+				AC_MSG_NOTICE([You might want to select an alternative compiler, like])
+				AC_MSG_NOTICE([])
+				AC_MSG_NOTICE([CC=mingw32-gcc ./configure])
+				AC_MSG_NOTICE([])
+			fi
+		fi
+		WINDOWS_DIRS="windows"
+		CFLAGS="${CFLAGS} -DWIN32NATIVE"
+		LDFLAGS="${LDFLAGS} -static"
+		;;
+esac
+AC_SUBST(WINDOWS_DIRS,$WINDOWS_DIRS)
 
 AC_CONFIG_FILES([
        doc/Makefile

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ppi.c 804 2009-02-23 22:04:57Z joerg_wunsch $ */
+/* $Id: ppi.c 925 2010-01-17 16:58:06Z joerg_wunsch $ */
 
 
 #if !defined(WIN32NATIVE)
@@ -33,7 +33,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 # include "freebsd_ppi.h"
 #elif defined(__linux__)
 # include "linux_ppdev.h"

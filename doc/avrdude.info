@@ -7,7 +7,7 @@ END-INFO-DIR-ENTRY
 
    This file documents the avrdude program.
 
-   For avrdude version 5.9, 15 January 2010.
+   For avrdude version 5.10, 19 January 2010.
 
    Copyright (C) 2003, 2005 Brian Dean
 
@@ -33,7 +33,7 @@ File: avrdude.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
    This file documents the avrdude program for downloading/uploading
 programs to Atmel AVR microcontrollers.
 
-   For avrdude version 5.9, 15 January 2010.
+   For avrdude version 5.10, 19 January 2010.
 
    Send comments on AVRDUDE to <avrdude-dev@nongnu.org>.
 
@@ -1605,8 +1605,8 @@ A.1.1 Unix Installation
 
 To build and install from the source tarball on Unix like systems:
 
-     $ gunzip -c avrdude-5.9.tar.gz | tar xf -
-     $ cd avrdude-5.9
+     $ gunzip -c avrdude-5.10.tar.gz | tar xf -
+     $ cd avrdude-5.10
      $ ./configure
      $ make
      $ su root -c 'make install'
@@ -1618,8 +1618,8 @@ variable.
    If you do not have root access to your system, you can do the the
 following instead:
 
-     $ gunzip -c avrdude-5.9.tar.gz | tar xf -
-     $ cd avrdude-5.9
+     $ gunzip -c avrdude-5.10.tar.gz | tar xf -
+     $ cd avrdude-5.10
      $ ./configure --prefix=$HOME/local
      $ make
      $ make install
@@ -1661,8 +1661,8 @@ On rpm based Linux systems (such as RedHat, SUSE, Mandrake, etc), you
 can build and install the rpm binaries directly from the tarball:
 
      $ su - root
-     # rpmbuild -tb avrdude-5.9.tar.gz
-     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.9-1.i386.rpm
+     # rpmbuild -tb avrdude-5.10.tar.gz
+     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.10-1.i386.rpm
 
    Note that the path to the resulting rpm package, differs from system
 to system. The above example is specific to RedHat.
@@ -1714,7 +1714,7 @@ The following table lists the default names for a given system.
 
 *System*               *Default Parallel      *Default Serial Port*
                        Port*                  
-FreeBSD                `/dev/ppi0'            `/dev/cuaa0'
+FreeBSD                `/dev/ppi0'            `/dev/cuad0'
 Linux                  `/dev/parport0'        `/dev/ttyS0'
 Solaris                `/dev/printers/0'      `/dev/term/a'
 
@@ -1776,8 +1776,8 @@ Cygwin):
 
      $ set PREFIX=<your install directory path>
      $ export PREFIX
-     $ gunzip -c avrdude-5.9.tar.gz | tar xf -
-     $ cd avrdude-5.9
+     $ gunzip -c avrdude-5.10.tar.gz | tar xf -
+     $ cd avrdude-5.10
      $ ./configure LDFLAGS="-static" --prefix=$PREFIX --datadir=$PREFIX
      --sysconfdir=$PREFIX/bin --enable-versioned-doc=no
      $ make
@@ -2154,47 +2154,47 @@ In general, please report any bugs encountered via
 
 
 Tag Table:
-Node: Top1089
-Node: Introduction1729
-Node: History6902
-Node: Command Line Options8135
-Node: Option Descriptions8413
-Node: Programmers accepting extended parameters32581
-Node: Example Command Line Invocations35806
-Node: Terminal Mode Operation40511
-Node: Terminal Mode Commands41248
-Node: Terminal Mode Examples44315
-Node: Configuration File47499
-Node: AVRDUDE Defaults48918
-Node: Programmer Definitions49505
-Node: Part Definitions50666
-Node: Instruction Format52586
-Node: Other Notes53973
-Node: Programmer Specific Information56151
-Node: Atmel STK60056385
-Node: Platform Dependent Information64374
-Node: Unix64625
-Node: Unix Installation64875
-Node: FreeBSD Installation65671
-Node: Linux Installation66303
-Node: Unix Configuration Files66844
-Node: FreeBSD Configuration Files67478
-Node: Linux Configuration Files67837
-Node: Unix Port Names68152
-Node: Unix Documentation69143
-Node: Windows69670
-Node: Windows Installation69932
-Node: Windows Configuration Files70779
-Node: Configuration file names71046
-Node: How AVRDUDE finds the configuration files.71436
-Node: Windows Port Names72226
-Node: Serial Ports72438
-Node: Parallel Ports72725
-Node: Using the parallel port73494
-Node: Windows NT/2K/XP73721
-Node: Windows 95/9875227
-Node: Documentation75430
-Node: Credits.75986
-Node: Troubleshooting76319
+Node: Top1090
+Node: Introduction1731
+Node: History6904
+Node: Command Line Options8137
+Node: Option Descriptions8415
+Node: Programmers accepting extended parameters32583
+Node: Example Command Line Invocations35808
+Node: Terminal Mode Operation40513
+Node: Terminal Mode Commands41250
+Node: Terminal Mode Examples44317
+Node: Configuration File47501
+Node: AVRDUDE Defaults48920
+Node: Programmer Definitions49507
+Node: Part Definitions50668
+Node: Instruction Format52588
+Node: Other Notes53975
+Node: Programmer Specific Information56153
+Node: Atmel STK60056387
+Node: Platform Dependent Information64376
+Node: Unix64627
+Node: Unix Installation64877
+Node: FreeBSD Installation65677
+Node: Linux Installation66309
+Node: Unix Configuration Files66852
+Node: FreeBSD Configuration Files67486
+Node: Linux Configuration Files67845
+Node: Unix Port Names68160
+Node: Unix Documentation69151
+Node: Windows69678
+Node: Windows Installation69940
+Node: Windows Configuration Files70789
+Node: Configuration file names71056
+Node: How AVRDUDE finds the configuration files.71446
+Node: Windows Port Names72236
+Node: Serial Ports72448
+Node: Parallel Ports72735
+Node: Using the parallel port73504
+Node: Windows NT/2K/XP73731
+Node: Windows 95/9875237
+Node: Documentation75440
+Node: Credits.75996
+Node: Troubleshooting76329
 
 End Tag Table

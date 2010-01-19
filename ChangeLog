@@ -1,3 +1,43 @@
+2010-01-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Released version 5.10.
+
+2010-01-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #28677: Cygwin's GCC no longer supports -mno-cygwin option
+	* configure.ac: For Win32 environments, add a check whether the
+	compiler understands the -mno-cygwin option.  If not, don't use
+	it but suggest using a different compiler.
+
+2010-01-18  David Hoerl <dhoerl@mac.com>
+
+	bug #28660: Problem with loading intel hex rom files that exceed
+	0x10000 bytes
+	* fileio.c: Fix two byte shifts.
+
+2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Michael biebl:
+	* configure.ac: Fix FreeBSD default serial port name.
+	* doc/avrdude.texi: (Dito.)
+
+2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtagmkII.c: If entering JTAG mode fails with a bad JTAG ID
+	message, retry with external reset applied (in case the target
+	is in sleep mode or has asserted the JTD bit).
+
+2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Aurelien Jarno:
+	* configure.ac: Fix build for GNU/kFreeBSD.
+	* ppi.c: (Dito.)
+	* par.c: (Dito.)
+
+2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Bump version for post-5.8.
+
 2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac: Bump version for release 5.8.
