@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: par.c 888 2010-01-07 16:23:28Z joerg_wunsch $ */
+/* $Id: par.c 925 2010-01-17 16:58:06Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -28,7 +28,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 # include "freebsd_ppi.h"
 #elif defined(__linux__)
 # include "linux_ppdev.h"

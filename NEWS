@@ -1,10 +1,21 @@
-$Id: NEWS 918 2010-01-15 21:37:08Z joerg_wunsch $
+$Id: NEWS 931 2010-01-19 10:34:39Z joerg_wunsch $
 
 Approximate change log for AVRDUDE by version.
 
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
+Version 5.10:
+
+  * Bugfixes
+      - bug #28660: Problem with loading intel hex rom files that exceed
+        0x10000 bytes
+      - see ChangeLog for further details
+
+  * New Features
+      - (JTAG ICE / AVR Dragon) apply external reset if JTAG ID could
+        not be read
+
 Version 5.9:
 
   * New devices supported:

@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: fileio.c 880 2009-11-29 20:19:15Z dhoerl $ */
+/* $Id: fileio.c 929 2010-01-18 20:40:15Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -322,8 +322,7 @@ static int ihex2b(char * infile, FILE * inf,
         break;
 
       case 2: /* extended segment address record */
-        // note: shift values use to be 8 and 4 - the first had to be wrong
-        baseaddr = (ihex.data[0] << 12 | ihex.data[1]) << 4;
+        baseaddr = (ihex.data[0] << 8 | ihex.data[1]) << 4;
         break;
 
       case 3: /* start segment address record */
@@ -331,7 +330,7 @@ static int ihex2b(char * infile, FILE * inf,
         break;
 
       case 4: /* extended linear address record */
-        baseaddr = (ihex.data[0] << 24 | ihex.data[1]) << 16;
+        baseaddr = (ihex.data[0] << 8 | ihex.data[1]) << 16;
         if(nextaddr == 0) offsetaddr = baseaddr;	// if provided before any data, then remember it
         break;
 
