@@ -13,7 +13,7 @@ Build-Depends: cdbs,
  libncurses5-dev,
  libreadline-dev,
  libusb-dev
-Standards-Version: 3.8.3
+Standards-Version: 3.8.4
 Vcs-Git: git://git.debian.org/git/users/biebl/avrdude.git
 Vcs-Browser: http://git.debian.org/?p=users/biebl/avrdude.git;a=summary
 Homepage: http://savannah.nongnu.org/projects/avrdude/

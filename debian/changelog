@@ -5,6 +5,7 @@ avrdude (5.10-2) UNRELEASED; urgency=low
     - Remove patchsys-quilt.mk include from debian/rules.
     - Remove debian/README.source.
     - Add debian/source/format.
+  * Bump Standards-Version to 3.8.4. No further changes.
 
  -- Michael Biebl <biebl@debian.org>  Mon, 21 Jun 2010 05:21:53 +0200
 
