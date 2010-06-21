@@ -6,6 +6,12 @@ avrdude (5.10-2) UNRELEASED; urgency=low
     - Remove debian/README.source.
     - Add debian/source/format.
   * Bump Standards-Version to 3.8.4. No further changes.
+  * Switch from cdbs to dh v7.
+    - Drop Build-Depends on cdbs.
+    - Bump Build-Depends on debhelper to (>= 7.0.50).
+    - Bump Build-Depends on autotools-dev to (>= 20100122.1) for the
+      autotools_dev dh addon.
+    - Convert debian/rules to dh.
 
  -- Michael Biebl <biebl@debian.org>  Mon, 21 Jun 2010 05:21:53 +0200
 

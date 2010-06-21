@@ -1,8 +1,9 @@
 #!/usr/bin/make -f
 
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/autotools.mk
+%:
+	dh $@ --with autotools_dev
 
-DEB_CONFIGURE_EXTRA_FLAGS := --enable-versioned-doc=no --enable-doc
-DEB_INSTALL_DOCS_ALL := NEWS AUTHORS
+override_dh_auto_configure:
+	dh_auto_configure -- --enable-versioned-doc=no --enable-doc
+#DEB_INSTALL_DOCS_ALL := NEWS AUTHORS
 
