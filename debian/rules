@@ -5,5 +5,4 @@
 
 override_dh_auto_configure:
 	dh_auto_configure -- --enable-versioned-doc=no --enable-doc
-#DEB_INSTALL_DOCS_ALL := NEWS AUTHORS
 
