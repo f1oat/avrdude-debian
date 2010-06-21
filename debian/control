@@ -5,7 +5,6 @@ Maintainer: Michael Biebl <biebl@debian.org>
 Build-Depends: cdbs,
  debhelper (>= 7),
  autotools-dev,
- quilt,
  texi2html,
  texinfo,
  texlive-latex-base,
