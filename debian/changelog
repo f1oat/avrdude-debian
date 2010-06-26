@@ -1,10 +1,10 @@
-avrdude (5.10-3) UNRELEASED; urgency=low
+avrdude (5.10-3) unstable; urgency=low
 
   * debian/patches/01-arduino-auto-reset.patch
     - Fix DTR on/off to make Arduino auto-reset work. (Closes: #587280)
       Patch cherry-picked from upstream.
 
- -- Michael Biebl <biebl@debian.org>  Sun, 27 Jun 2010 01:55:10 +0200
+ -- Michael Biebl <biebl@debian.org>  Sun, 27 Jun 2010 01:57:37 +0200
 
 avrdude (5.10-2) unstable; urgency=low
 
