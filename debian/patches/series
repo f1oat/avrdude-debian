@@ -1,2 +1,3 @@
 # Debian patches for avrdude
+01-arduino-auto-reset.patch
 02-manpage_fix.patch
