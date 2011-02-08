@@ -1,3 +1,10 @@
+avrdude (5.10-4) UNRELEASED; urgency=low
+
+  * Bump debhelper compatibility level to 8 and update build dependency
+    accordingly.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 08 Feb 2011 02:52:05 +0100
+
 avrdude (5.10-3) unstable; urgency=low
 
   * debian/patches/01-arduino-auto-reset.patch
