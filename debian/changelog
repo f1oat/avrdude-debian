@@ -3,7 +3,7 @@ avrdude (5.11-1) UNRELEASED; urgency=low
   * New upstream release.
   * Bump debhelper compatibility level to 8 and update build dependency
     accordingly.
-  * Bump Standards-Version to 3.9.1. No further changes.
+  * Bump Standards-Version to 3.9.2. No further changes.
   * Remove debian/patches/01-arduino-auto-reset.patch, merged upstream.
   * Refresh debian/patches/02-manpage_fix.patch.
 
