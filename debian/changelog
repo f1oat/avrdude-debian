@@ -5,6 +5,7 @@ avrdude (5.11-1) UNRELEASED; urgency=low
     accordingly.
   * Bump Standards-Version to 3.9.1. No further changes.
   * Remove debian/patches/01-arduino-auto-reset.patch, merged upstream.
+  * Refresh debian/patches/02-manpage_fix.patch.
 
  -- Michael Biebl <biebl@debian.org>  Sun, 28 Aug 2011 14:06:53 +0200
 
