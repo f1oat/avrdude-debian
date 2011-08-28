@@ -1,3 +1,9 @@
+avrdude (5.11-2) UNRELEASED; urgency=low
+
+  * Install ChangeLog files for 2007-2009.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 28 Aug 2011 17:39:15 +0200
+
 avrdude (5.11-1) unstable; urgency=low
 
   * New upstream release.
