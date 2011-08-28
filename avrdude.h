@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avrdude.h 788 2008-11-19 23:32:30Z joerg_wunsch $ */
+/* $Id: avrdude.h 936 2010-01-22 16:40:17Z joerg_wunsch $ */
 
 #ifndef avrdude_h
 #define avrdude_h
@@ -39,14 +39,9 @@ extern int quell_progress;	/* quiteness level (-q, -qq) */
 extern "C" {
 #endif
 
-/* usleep replacements */
-/* sleep Windows in ms, Unix usleep in us
- #define usleep(us) Sleep((us)<20000?20:us/1000)
- #define usleep(us) Sleep(us/1000)
- #define ANTIWARP 3
- #define usleep(us) Sleep(us/1000*ANTIWARP)
-*/
+#if !defined(HAVE_USLEEP)
 int usleep(unsigned int us);
+#endif
 
 #if !defined(HAVE_GETTIMEOFDAY)
 struct timezone;

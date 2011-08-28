@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config.h 725 2007-01-30 13:41:54Z joerg_wunsch $ */
+/* $Id: config.h 988 2011-08-26 20:30:26Z joerg_wunsch $ */
 
 #ifndef config_h
 #define config_h
@@ -57,6 +57,7 @@ extern LISTID       programmers;
 extern char         default_programmer[];
 extern char         default_parallel[];
 extern char         default_serial[];
+extern double       default_bitclock;
 
 
 

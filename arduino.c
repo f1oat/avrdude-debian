@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: arduino.c 874 2009-11-02 23:52:52Z mludvig $ */
+/* $Id: arduino.c 948 2010-10-22 14:29:56Z springob $ */
 
 /*
  * avrdude interface for Arduino programmer
@@ -86,7 +86,9 @@ static int arduino_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 static int arduino_open(PROGRAMMER * pgm, char * port)
 {
   strcpy(pgm->port, port);
-  serial_open(port, pgm->baudrate? pgm->baudrate: 115200, &pgm->fd);
+  if (serial_open(port, pgm->baudrate? pgm->baudrate: 115200, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /* Clear DTR and RTS to unload the RESET capacitor 
    * (for example in Arduino) */

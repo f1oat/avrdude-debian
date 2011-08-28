@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: pgm.h 797 2009-02-17 15:31:27Z joerg_wunsch $ */
+/* $Id: pgm.h 985 2011-08-26 12:35:08Z joerg_wunsch $ */
 
 #ifndef pgm_h
 #define pgm_h
@@ -36,6 +36,7 @@
 #define PGM_DESCLEN 80
 #define PGM_PORTLEN PATH_MAX
 #define PGM_TYPELEN 32
+#define PGM_USBSTRINGLEN 256
 
 typedef enum {
   EXIT_VCC_UNSPEC,
@@ -49,6 +50,12 @@ typedef enum {
   EXIT_RESET_DISABLED
 } exit_reset_t;
 
+typedef enum {
+  EXIT_DATAHIGH_UNSPEC,
+  EXIT_DATAHIGH_ENABLED,
+  EXIT_DATAHIGH_DISABLED
+} exit_datahigh_t;
+
 typedef struct programmer_t {
   LISTID id;
   char desc[PGM_DESCLEN];
@@ -57,9 +64,13 @@ typedef struct programmer_t {
   unsigned int pinno[N_PINS];
   exit_vcc_t exit_vcc;
   exit_reset_t exit_reset;
+  exit_datahigh_t exit_datahigh;
   int ppidata;
   int ppictrl;
   int baudrate;
+  int usbvid, usbpid;
+  char usbdev[PGM_USBSTRINGLEN], usbsn[PGM_USBSTRINGLEN];
+  char usbvendor[PGM_USBSTRINGLEN], usbproduct[PGM_USBSTRINGLEN];
   double bitclock;    /* JTAG ICE clock period in microseconds */
   int ispdelay;    /* ISP clock delay */
   union filedescriptor fd;
@@ -78,6 +89,8 @@ typedef struct programmer_t {
   int  (*chip_erase)     (struct programmer_t * pgm, AVRPART * p);
   int  (*cmd)            (struct programmer_t * pgm, unsigned char cmd[4], 
                           unsigned char res[4]);
+  int  (*cmd_tpi)        (struct programmer_t * pgm, unsigned char cmd[], 
+                          int cmd_len, unsigned char res[], int res_len);
   int  (*spi)            (struct programmer_t * pgm, unsigned char cmd[], 
                           unsigned char res[], int count);
   int  (*open)           (struct programmer_t * pgm, char * port);

@@ -9,6 +9,8 @@
 //*
 //**************************************************************************
 
+#include "pgm.h"
+
 // *****************[ STK message constants ]***************************
 
 #define MESSAGE_START                       0x1B        //= ESC = 27 decimal
@@ -137,11 +139,11 @@
 #define STATUS_CMD_ILLEGAL_PARAMETER        0xCA
 
 // Status
+#define STATUS_ISP_READY                    0x00
 #define STATUS_CONN_FAIL_MOSI               0x01
 #define STATUS_CONN_FAIL_RST                0x02
 #define STATUS_CONN_FAIL_SCK                0x04
-#define STATUS_TGT_NOT_DETECTED             0x00
-#define STATUS_ISP_READY                    0x10
+#define STATUS_TGT_NOT_DETECTED             0x10
 #define STATUS_TGT_REVERSE_INSERTED         0x20
 
 // hw_status
@@ -277,4 +279,44 @@
 // *****************[ STK answer constants ]***************************
 
 #define ANSWER_CKSUM_ERROR                  0xB0
+
+/*
+ * Private data for this programmer.
+ */
+struct pdata
+{
+  /*
+   * See stk500pp_read_byte() for an explanation of the flash and
+   * EEPROM page caches.
+   */
+  unsigned char *flash_pagecache;
+  unsigned long flash_pageaddr;
+  unsigned int flash_pagesize;
+
+  unsigned char *eeprom_pagecache;
+  unsigned long eeprom_pageaddr;
+  unsigned int eeprom_pagesize;
+
+  unsigned char command_sequence;
+
+    enum
+    {
+        PGMTYPE_UNKNOWN,
+        PGMTYPE_STK500,
+        PGMTYPE_AVRISP,
+        PGMTYPE_AVRISP_MKII,
+        PGMTYPE_JTAGICE_MKII,
+        PGMTYPE_STK600,
+    }
+        pgmtype;
+
+  AVRPART *lastpart;
+
+  /*
+   * Chained pdata for the JTAG ICE mkII backend.  This is used when
+   * calling the backend functions for ISP/HVSP/PP programming
+   * functionality of the JTAG ICE mkII and AVR Dragon.
+   */
+  void *chained_pdata;
+};
 

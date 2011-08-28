@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr910.c 814 2009-02-28 10:07:01Z joerg_wunsch $ */
+/* $Id: avr910.c 948 2010-10-22 14:29:56Z springob $ */
 
 /*
  * avrdude interface for Atmel Low Cost Serial programmers which adher to the
@@ -383,7 +383,9 @@ static int avr910_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, pgm->baudrate, &pgm->fd);
+  if (serial_open(port, pgm->baudrate, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -624,7 +626,7 @@ static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd = malloc(4 + blocksize);
     if (!cmd) rval = -1;
     cmd[0] = 'B';
-    cmd[3] = toupper(m->desc[0]);
+    cmd[3] = toupper((int)(m->desc[0]));
 
     while (addr < max_addr) {
       if ((max_addr - addr) < blocksize) {
@@ -714,7 +716,7 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     int blocksize = PDATA(pgm)->buffersize;
 
     cmd[0] = 'g';
-    cmd[3] = toupper(m->desc[0]);
+    cmd[3] = toupper((int)(m->desc[0]));
 
     avr910_set_addr(pgm, addr);
 

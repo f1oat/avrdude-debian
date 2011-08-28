@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: main.c 916 2010-01-15 16:36:13Z joerg_wunsch $ */
+/* $Id: main.c 988 2011-08-26 20:30:26Z joerg_wunsch $ */
 
 /*
  * Code to program an Atmel AVR device through one of the supported
@@ -314,6 +314,7 @@ int main(int argc, char * argv [])
 
   default_parallel[0] = 0;
   default_serial[0]   = 0;
+  default_bitclock    = 0.0;
 
   init_config();
 
@@ -606,6 +607,10 @@ int main(int argc, char * argv [])
         exit(1);
       }
     }
+  }
+  // set bitclock from configuration files unless changed by command line
+  if (default_bitclock > 0 && bitclock == 0.0) {
+    bitclock = default_bitclock;
   }
 
   if (verbose) {
@@ -1131,7 +1136,7 @@ int main(int argc, char * argv [])
        else
             safemode_response = yes;
        
-       if (tolower(safemode_response[0]) == 'y') {
+       if (tolower((int)(safemode_response[0])) == 'y') {
               
             /* Enough chit-chat, time to program some fuses and check them */
             if (safemode_writefuse (safemode_fuse, "fuse", pgm, p,
@@ -1159,7 +1164,7 @@ int main(int argc, char * argv [])
        else
             safemode_response = yes;
        
-       if (tolower(safemode_response[0]) == 'y') {
+       if (tolower((int)(safemode_response[0])) == 'y') {
               
             /* Enough chit-chat, time to program some fuses and check them */
             if (safemode_writefuse (safemode_lfuse, "lfuse", pgm, p,
@@ -1184,7 +1189,7 @@ int main(int argc, char * argv [])
             safemode_response = terminal_get_input("Would you like this fuse to be changed back? [y/n] ");
        else
             safemode_response = yes;
-       if (tolower(safemode_response[0]) == 'y') {
+       if (tolower((int)(safemode_response[0])) == 'y') {
 
             /* Enough chit-chat, time to program some fuses and check them */
             if (safemode_writefuse(safemode_hfuse, "hfuse", pgm, p,
@@ -1209,7 +1214,7 @@ int main(int argc, char * argv [])
             safemode_response = terminal_get_input("Would you like this fuse to be changed back? [y/n] ");
        else
             safemode_response = yes;
-       if (tolower(safemode_response[0]) == 'y') {
+       if (tolower((int)(safemode_response[0])) == 'y') {
               
             /* Enough chit-chat, time to program some fuses and check them */
             if (safemode_writefuse (safemode_efuse, "efuse", pgm, p,

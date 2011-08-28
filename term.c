@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: term.c 797 2009-02-17 15:31:27Z joerg_wunsch $ */
+/* $Id: term.c 936 2010-01-22 16:40:17Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -125,12 +125,12 @@ static int nexttok(char * buf, char ** tok, char ** next)
   char * q, * n;
 
   q = buf;
-  while (isspace(*q))
+  while (isspace((int)*q))
     q++;
-  
+
   /* isolate first token */
   n = q+1;
-  while (*n && !isspace(*n))
+  while (*n && !isspace((int)*n))
     n++;
 
   if (*n) {
@@ -139,7 +139,7 @@ static int nexttok(char * buf, char ** tok, char ** next)
   }
 
   /* find start of next token */
-  while (isspace(*n))
+  while (isspace((int)*n))
     n++;
 
   *tok  = q;
@@ -189,9 +189,9 @@ static int chardump_line(char * buffer, unsigned char * p, int n, int pad)
   for (i=0; i<n; i++) {
     memcpy(b, p, n);
     buffer[i] = '.';
-    if (isalpha(b[i]) || isdigit(b[i]) || ispunct(b[i]))
+    if (isalpha((int)(b[i])) || isdigit((int)(b[i])) || ispunct((int)(b[i])))
       buffer[i] = b[i];
-    else if (isspace(b[i]))
+    else if (isspace((int)(b[i])))
       buffer[i] = ' ';
   }
 
@@ -909,7 +909,7 @@ int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
      * find the start of the command, skipping any white space
      */
     q = cmdbuf;
-    while (*q && isspace(*q))
+    while (*q && isspace((int)*q))
       q++;
 
     /* skip blank lines and comments */

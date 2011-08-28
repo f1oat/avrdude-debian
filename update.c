@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: update.c 819 2009-04-28 18:35:14Z joerg_wunsch $ */
+/* $Id: update.c 985 2011-08-26 12:35:08Z joerg_wunsch $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -259,7 +259,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
     }
     rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
     if (rc < 0) {
-      fprintf(stderr, "%s: write to file '%s' failed\n",
+      fprintf(stderr, "%s: read from file '%s' failed\n",
               progname, upd->filename);
       return -1;
     }

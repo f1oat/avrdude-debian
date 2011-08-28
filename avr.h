@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr.h 804 2009-02-23 22:04:57Z joerg_wunsch $ */
+/* $Id: avr.h 976 2011-08-23 21:03:36Z joerg_wunsch $ */
 
 #ifndef __avr_h__
 #define __avr_h__
@@ -37,6 +37,7 @@ extern FP_UpdateProgress update_progress;
 extern "C" {
 #endif
 
+int avr_tpi_poll_nvmbsy(PROGRAMMER *pgm);
 int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			  unsigned long addr, unsigned char * value);
 

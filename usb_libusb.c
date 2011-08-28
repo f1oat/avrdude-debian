@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: usb_libusb.c 880 2009-11-29 20:19:15Z dhoerl $ */
+/* $Id: usb_libusb.c 954 2011-05-11 20:42:27Z joerg_wunsch $ */
 
 /*
  * USB interface via libusb for avrdude.
@@ -56,7 +56,7 @@ static int usb_interface;
  * The "baud" parameter is meaningless for USB devices, so we reuse it
  * to pass the desired USB device ID.
  */
-static void usbdev_open(char * port, long baud, union filedescriptor *fd)
+static int usbdev_open(char * port, long baud, union filedescriptor *fd)
 {
   char string[256];
   char product[256];
@@ -220,7 +220,7 @@ static void usbdev_open(char * port, long baud, union filedescriptor *fd)
 			      progname, USBDEV_BULK_EP_READ);
 		      fd->usb.ep = USBDEV_BULK_EP_READ;
 		    }
-                  return;
+                  return 0;
 		}
 	      trynext:
 	      usb_close(udev);
@@ -269,7 +269,7 @@ static int usbdev_send(union filedescriptor *fd, unsigned char *bp, size_t mlen)
    */
   do {
     tx_size = (mlen < USBDEV_MAX_XFER)? mlen: USBDEV_MAX_XFER;
-    rv = usb_bulk_write(udev, USBDEV_BULK_EP_WRITE, (char *)bp, tx_size, 5000);
+    rv = usb_bulk_write(udev, USBDEV_BULK_EP_WRITE, (char *)bp, tx_size, 100000);
     if (rv != tx_size)
     {
         fprintf(stderr, "%s: usbdev_send(): wrote %d out of %d bytes, err = %s\n",
@@ -315,7 +315,7 @@ usb_fill_buf(usb_dev_handle *udev, int ep)
 {
   int rv;
 
-  rv = usb_bulk_read(udev, ep, usbbuf, USBDEV_MAX_XFER, 5000);
+  rv = usb_bulk_read(udev, ep, usbbuf, USBDEV_MAX_XFER, 100000);
   if (rv < 0)
     {
       if (verbose > 1)
@@ -393,7 +393,7 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
   do
     {
       rv = usb_bulk_read(udev, fd->usb.ep, usbbuf,
-			 USBDEV_MAX_XFER, 10000);
+			 USBDEV_MAX_XFER, 100000);
       if (rv < 0)
 	{
 	  if (verbose > 1)

@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: butterfly.c 772 2008-06-07 21:03:41Z joerg_wunsch $ */
+/* $Id: butterfly.c 991 2011-08-26 20:50:32Z joerg_wunsch $ */
 
 /*
  * avrdude interface for the serial programming mode of the Atmel butterfly
@@ -43,6 +43,7 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <unistd.h>
 
 #include "avrdude.h"
 #include "avr.h"
@@ -205,6 +206,7 @@ static void butterfly_powerdown(PROGRAMMER * pgm)
   return;
 }
 
+#define IS_BUTTERFLY_MK 0x0001
 
 /*
  * initialize the AVR device and prepare it to accept commands
@@ -223,26 +225,61 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
    * for plain avr109 bootloaders but does not harm there either.
    */
   fprintf(stderr, "Connecting to programmer: ");
-  do {
-    putc('.', stderr);
-    butterfly_send(pgm, "\033", 1);
-    butterfly_drain(pgm, 0);
-    butterfly_send(pgm, "S", 1);
-    butterfly_recv(pgm, &c, 1);
-    if (c != '?') {
-        putc('\n', stderr);
-        /*
-         * Got a useful response, continue getting the programmer
-         * identifier. Programmer returns exactly 7 chars _without_
-         * the null.
-         */
-      id[0] = c;
-      butterfly_recv(pgm, &id[1], sizeof(id)-2);
-      id[sizeof(id)-1] = '\0';
+  if (pgm->flag & IS_BUTTERFLY_MK)
+    {
+      char mk_reset_cmd[6] = {"#aR@S\r"};
+      unsigned char mk_timeout = 0;
+
+      putc('.', stderr);
+      butterfly_send(pgm, mk_reset_cmd, sizeof(mk_reset_cmd));
+      usleep(20000); 
+
+      do
+	{
+	  c = 27; 
+	  butterfly_send(pgm, &c, 1);
+	  usleep(20000);
+	  c = 0xaa;
+	  usleep(80000);
+	  butterfly_send(pgm, &c, 1);
+	  if (mk_timeout % 10 == 0) putc('.', stderr);
+	} while (mk_timeout++ < 10);
+
+      butterfly_recv(pgm, &c, 1);
+      if ( c != 'M' && c != '?') 
+        { 
+          fprintf(stderr, "\nConnection FAILED.");
+          exit(1);
+        }
+      else
+        {
+	  id[0] = 'M'; id[1] = 'K'; id[2] = '2'; id[3] = 0;
+	}
     }
-  } while (c == '?');
+  else
+    {
+      do {
+	putc('.', stderr);
+	butterfly_send(pgm, "\033", 1);
+	butterfly_drain(pgm, 0);
+	butterfly_send(pgm, "S", 1);
+	butterfly_recv(pgm, &c, 1);
+	if (c != '?') {
+	    putc('\n', stderr);
+	    /*
+	     * Got a useful response, continue getting the programmer
+	     * identifier. Programmer returns exactly 7 chars _without_
+	     * the null.
+	     */
+	  id[0] = c;
+	  butterfly_recv(pgm, &id[1], sizeof(id)-2);
+	  id[sizeof(id)-1] = '\0';
+	}
+      } while (c == '?');
+    }
 
   /* Get the HW and SW versions to see if the programmer is present. */
+  butterfly_drain(pgm, 0);
 
   butterfly_send(pgm, "V", 1);
   butterfly_recv(pgm, sw, sizeof(sw));
@@ -327,6 +364,7 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
 	    progname, (unsigned)buf[1]);
 
   butterfly_enter_prog_mode(pgm);
+  butterfly_drain(pgm, 0);
 
   return 0;
 }
@@ -356,7 +394,9 @@ static int butterfly_open(PROGRAMMER * pgm, char * port)
   if(pgm->baudrate == 0) {
     pgm->baudrate = 19200;
   }
-  serial_open(port, pgm->baudrate, &pgm->fd);
+  if (serial_open(port, pgm->baudrate, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -423,7 +463,7 @@ static int butterfly_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   {
     cmd[0] = 'B';
     cmd[1] = 0;
-    if ((cmd[3] = toupper(m->desc[0])) == 'E') {	/* write to eeprom */
+    if ((cmd[3] = toupper((int)(m->desc[0]))) == 'E') {	/* write to eeprom */
       cmd[2] = 1;
       cmd[4] = value;
       size = 5;
@@ -572,7 +612,7 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   cmd = malloc(4+blocksize);
   if (!cmd) return -1;
   cmd[0] = 'B';
-  cmd[3] = toupper(m->desc[0]);
+  cmd[3] = toupper((int)(m->desc[0]));
 
   while (addr < max_addr) {
     if ((max_addr - addr) < blocksize) {
@@ -613,7 +653,7 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     int blocksize = PDATA(pgm)->buffersize;
 
     cmd[0] = 'g';
-    cmd[3] = toupper(m->desc[0]);
+    cmd[3] = toupper((int)(m->desc[0]));
 
     if (use_ext_addr) {
       butterfly_set_extaddr(pgm, addr);
@@ -663,7 +703,7 @@ static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 
 void butterfly_initpgm(PROGRAMMER * pgm)
 {
-  strcpy(pgm->type, "avr910");
+  strcpy(pgm->type, "butterfly");
 
   /*
    * mandatory functions
@@ -696,4 +736,12 @@ void butterfly_initpgm(PROGRAMMER * pgm)
 
   pgm->setup          = butterfly_setup;
   pgm->teardown       = butterfly_teardown;
+  pgm->flag = 0;
+}
+
+void butterfly_mk_initpgm(PROGRAMMER * pgm)
+{
+  butterfly_initpgm(pgm);
+  strcpy(pgm->type, "butterfly_mk");
+  pgm->flag = IS_BUTTERFLY_MK;
 }

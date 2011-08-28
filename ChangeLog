@@ -1,271 +1,272 @@
-2010-01-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* configure.ac: Released version 5.10.
+	* configure.ac: Bump version for releasing AVRDUDE 5.11.
 
-2010-01-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	bug #28677: Cygwin's GCC no longer supports -mno-cygwin option
-	* configure.ac: For Win32 environments, add a check whether the
-	compiler understands the -mno-cygwin option.  If not, don't use
-	it but suggest using a different compiler.
+	* avrdude.1: Update the list of supported AVR devices.
+	* doc/avrdude.texi: (Ditto).
 
-2010-01-18  David Hoerl <dhoerl@mac.com>
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	bug #28660: Problem with loading intel hex rom files that exceed
-	0x10000 bytes
-	* fileio.c: Fix two byte shifts.
+	* configure.ac: add -lusb as "other libraries" when checking
+	for libftdi.
 
-2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	Submitted by Michael biebl:
-	* configure.ac: Fix FreeBSD default serial port name.
-	* doc/avrdude.texi: (Dito.)
+	Submitted by Juergen Weigert:
+	patch #7056: adding support for mikrokopter bootloader to butterfly
+	* butterfly.c: Add some specific logic to handle the
+	mikrokopter.de butterfly bootloader.
+	* butterfly.h: Add one related function declaration.
+	* config_gram.y: Add butterfly_mk keyword.
+	* lexer.l: (Ditto.)
+	* avrdude.conf.in: Add entry for butterfly_mk.
 
-2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* jtagmkII.c: If entering JTAG mode fails with a bad JTAG ID
-	message, retry with external reset applied (in case the target
-	is in sleep mode or has asserted the JTD bit).
-
-2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
-
-	Submitted by Aurelien Jarno:
-	* configure.ac: Fix build for GNU/kFreeBSD.
-	* ppi.c: (Dito.)
-	* par.c: (Dito.)
-
-2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
-
-	* configure.ac: Bump version for post-5.8.
-
-2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
-
-	* configure.ac: Bump version for release 5.8.
-
-2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
-
-	Submitted by Soren Jorvang:
-	bug #28611: -i delay not being applied to all serial port
-	bit banging state transitions
-	* serbb_win32.c: Apply ispdelay everywhere.
-	* serbb_posix.c: (Dito.)
-
-2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
-
-	* stk500v2_private.h: Implement TPI mode for AVRISPmkII/STK600
-	* config_gram.y: (Dito.)
-	* avrpart.h: (Dito.)
-	* stk500v2.c: (Dito.)
-	* main.c: (Dito.)
-	* lexer.l: (Dito.)
-	* avrdude.conf.in: Add ATtiny4/5/9/10
-	* avrdude.1: Document TPI and new device support.
-	* doc/avrdude.texi: (Dito.)
-
-2010-01-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
-
-	Submitted by clint fisher:
-	patch #7038: Adding Atmega32U4 Device to avrdude.conf.in
-	* avrdude.conf.in (atmega32u4): New device.
-	* avrdude.1: Document the new device support.
-	* doc/avrdude.texi: (Dito.)
-
-2010-01-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
-
-	Submitted by Thomas Pircher:
-	patch #6927: Documentation patches
-	* doc/avrdude.texi: Fix various typos, and remove the last
-	remnants of obsoleted options -i/-o/-m/-f.
-	* avrdude.1: Merge typo fixes from avrdude.texi where
-	applicable.
-
-2010-01-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
-
-	* avrdude.1: Update documentation to match the reality (device
-	support, memory areas).
-	* doc/avrdude.texi: Update documentation to match the
-	reality (device support, programmer support, memory areas).
-	Merge buspirate-specific comments from avrdude.1.
-	* jtagmkII.c: Add some firmware feature checks.
-
-2010-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
-
-	* jtagmkII.c: Implement PDI mode support for the JTAG ICE mkII
-	and the AVR Dragon.
-	* jtagmkII.h: (Dito.)
-	* config_gram.y: (Dito.)
-	* jtagmkII_private.h: (Dito.)
-	* avrdude.conf.in: (Dito.)
-	* lexer.l: (Dito.)
-
-2010-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
-
-	* stk500v2.c: Update STK600 routing and socket card data from XML
-	file.
-
-2010-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
-
-	* stk500v2.c: Cleanup the open/close handling to avoid accessing
-	unallocated memory (in the atexit handler) in case of bailing out.
+	Submitted by Stefan Tomanek:
+	patch #7542: add default_bitclock to configuration files
+	* config.c: Add the new keyword and its handling.
+	* config.h: (Ditto.)
+	* config_gram.y: (Ditto.)
+	* avrdude.conf.in: (Ditto.)
 	* main.c: (Ditto.)
+	* lexer.l: (Ditto.)
+	* avrdude.1: Document the change.
+	* doc/avrdude.texi: (Ditto.)
 
-2010-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* jtagmkII.c: Stylistic changes: move #defines out into
-	jtagmkII_private.h, drop all #if 0 blocks, fold overly long lines,
-	move the *_initpgm() functions to the end of the file; while being
-	here, remove all trailing whitespace.
-	* jtagmkII_private.h: move AVR32 #defines here.
+	Submitted by Brett Hagman:
+	patch #7603: wiring - programmer type for Wiring boards
+	(based on STK500v2)
+	* wiring.c: New file.
+	* wiring.h: (Ditto.)
+	* Makefile.am: Add new files.
+	* stk500v2_private.h: Reorganize so some functions and struct
+	pdata are globally known.
+	* stk500v2.c: (Ditto.)
+	* stk500v2.h: (Ditto.)
+	* lexer.l: Add new programmer keywords.
+	* config_gram.y: (Ditto.)
+	* avrdude.conf.in: Add "wiring" programmer entry.
+	* avrdude.1: Document the new programmer.
+	* doc/avrdude.texi: (Ditto.)
+	* AUTHORS: Add Brett Hagman.
 
-2010-01-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* bootstrap: autoconf 2.62 works well.
+	Submitted by an anonymous contributor on the mailinglist:
+	* avrdude.conf (jtagkey): Add a definition for the Amontec
+	JTAGKey
 
-2010-01-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	Various fixes for Xmega devices.
-	* avrdude.conf.in: Correctly declare EEPROM page sizes for
-	all Xmega devices (0x20 instead of 0x100).
-	* avr.c: If a memory region has a page size declared, try
-	using the paged IO routines regardless of the target memory
-	name.  Xmega EEPROM requires to be written in paged mode.
-	Correctly use a long (rather than unsigned long) variable to
-	evaluate the success status of the paged mode write attempt.
-	* stk500v2.c: Don't apply TIF space offsets twice (bug #27995:
-	AVRDUDE 5.8svn fails to program and read XMEGA); use
-	stk500v2_loadaddr() prior to paged mode (EEPROM and flash) writes,
-	otherwise programming of flash areas will fail; while being there,
-	check the return value of stk500v2_loadaddr() everywhere; use the
-	correct write/erase mode bits (same as AVR Studio does).
+	Submitted by Juergen Weigert:
+	bug #22720: avrdude-5.5 ignores buff settings in avrdude.conf
+	(Note that the actual bug the subject is about has been fixed
+	long ago.)
+	* update.c (do_op): fix a diagnostic message
+	* pgm.h: add exit_datahigh field
+	* par.c: set and act upon the exit_datahigh field
+	* avrdude.1: document the new -E options
+	* doc/avrdude.texi: (Ditto.)
 
-2010-01-12  Michal Ludvig  <mludvig@logix.net.nz>
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* buspirate.c: Initialise firmware version to v0.0
-	prior to parsing the buspirate banner.
+	bug #33811: Parallel make fails
+	* Makefile.am (BUILT_SOURCES): Add this macro.
 
-2010-01-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	Clean-up the Xmega erase functions.
-	* jtagmkII_private.h: Add CMND_XMEGA_ERASE as well as
-	the various XMEGA_ERASE_* definitions (from updated
-	appnote AVR067)
-	* jtagmkII.c (jtagmkII_chip_erase): Correctly implement Xmega chip
-	erase based on CMND_XMEGA_ERASE.  After erasing an Xmega part, do
-	*not* reinitialize the world, as a subsequent programming
-	operation will fail (for unknown reasons).  Actually, this was
-	really only required for ancient AVRs, but doesn't hurt on mega
-	and tiny devices.
-	* jtagmkII.c (jtagmkII_pre_write): Remove, this turned out
-	to be just a chip erase.
-	* jtagmkII.c (jtagmkII_program_disable): Don't try reading
-	"hfuse" for Xmega parts; they don't have it.
-	* main.c (main): Re-enable auto-erase.  It's been done
-	before (as "jtagmkII_pre_write") in jtagmkII_paged_write()
-	anyway.  Xmega boot and application flash areas should be
-	handled separately in the future, so auto_erase can only
-	affect the area just being programmed.
+	bug #33114: Segfault after setting the DWEN fuse with Dragon
+	* jtagII.c (jtagmkII_getsync): Instead of exit()ing from
+	deep within the tree when detecting the "need debugWIRE"
+	situation, properly pass this up as a return code.
+	* jtagII_private.h (JTAGII_GETSYNC_FAIL_GRACEFUL): New constant.
+	* stk500v2.c (stk500v2_jtagmkII_open): Don't tell anything
+	anymore when receiving a JTAGII_GETSYNC_FAIL_GRACEFUL from
+	jtagmkII_getsync(); silently give up (all necessary has been
+	said already).
 
-2010-01-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* main.c (main): disable safemode for Xmega parts.
+	Reported by Jason Hecker:
+	* usbasp.c (libusb_to_errno): Conditionalize some error codes
+	that apparently are lacking on MinGW.
 
-2010-01-12  Michal Ludvig  <mludvig@logix.net.nz>
+2011-08-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* buspirate.c: If the BusPirate doesn't respond
-	to a standard a reset command assume it was in binmode
-	and attempt to exit to text mode first.
+	Fix warnings.
+	* ser_avrdoper.c: add <stdlib.h> so exit() is declared.
+	* usbtiny.c (usbtiny_open): provide an initializer to a
+	"may be used uninitialized" variable (since GCC could not
+	fully detect the logic behind).
 
-2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* bitbang.c: Fix Win32 build error: move freq up to the file
-	level.
-	* buspirate.c: Fix Win32 build warning: include <malloc.h> to
-	to get a declaration for alloca().
+	* configure.ac: Add a check for FreeBSD's libusb-1.0
+	compatible library that is found in libusb.a/.so on
+	FreeBSD 8+.
 
-2010-01-08  Thomas Fischl <tfischl@gmx.de>
+2011-08-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	bug #28520: Programming with USBasp with low clock speed fails
-	* usbasp.c: Change blocksize depending on sck frequency to
-	avoid usb transmition timeouts.
+	Submitted by Doug Springer, based on work by
+	Wolfgang Moser, Ville Voipio, Hannes Weisbach
+	patch #7486: Patch to add FT2232C/D, FT2232H, FT4232H,
+	usbvid, usbpid, usbdev for USB support - Based on #7062
+	* avrftdi.c: New file.
+	* avrftdi.h: (Ditto.)
+	* configure.ac: Add check for libftdi.
+	* config_gram.y: Add AVRFTDI and per-programmer USB string
+	keywords.
+	* lexer.l: (Ditto.)
+	* avrdude.conf.in: Add avrftdi and 2232HIO programmers.
+	* pgm.h: Add USB parameters.
+	* Makefile.am: Add avrftdi.c and avrftdi.h.
+	* AUTHORS: Mention the new authors.
+	* avrdude.1: Document the changes.
+	* doc/avrdude.texi: (Ditto.)
 
-2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	bug #27505: serbb_posix does not cope with inverted pins
-	* serbb_posix (serbb_highpulsepin): apply PIN_MASK when
-	checking pin numbers.
-	* serbb_win32 (serbb_highpulsepin): (Dito.)
+	bug #29585: Fix license
+	* doc/avrdude.texi: Add FDL as an option to the licensing
+	statement, as the savannah administration would like it
+	that way.
 
-2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	bug #28516: Linux/Dragon: Error message on exit
-	* stk500v2.c: Fix the "bad response to GO command:
-	RSP_ILLEGAL_EMULATOR_MODE" message.  jtagmkII_close()
-	has been called with the wrong pgm->cookie.  Wrap it
-	inside stk500v2_jtagmkII_close(), adjusting the cookie
-	data appropriately.
+	Submitted by Darell Tan:
+	patch #7244: TPI bitbang implementation
+	* bitbang.c: Add TPI bitbang stuff.
+	* bitbang.h: (Ditto.)
+	* avr.c: (Ditto.)
+	* avr.h: (Ditto.)
+	* pgm.c: (Ditto.)
+	* pgm.h: (Ditto.)
+	* serbb_posix.c: Wire bitbang_cmd_tpi into the struct pgm.
+	* serbb_win32.c: (Ditto.)
+	* par.c: (Ditto.)
+	* doc/avrdude.texi: Document the TPI bitbang support.
 
-2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	Submitted by Doug:
-	patch #7010: Win32 enhanced bitbang_delay
-	* bitbang.c (bitbang_calibrate_delay, bitbang_delay): On Win32,
-	use the high-resolution performance counter rather than the
-	uneducated delay loop guess if it is available on the target
-	hardware.
+	Submitted by Grygoriy Fuchedzhy:
+	bug #31779: Add support for addressing usbtinyisp with -P option
+	* usbtiny.c (usbtiny_open): Add logic to distinguish multiple USBtinyISP
+	programmers by their bus:device tuple.
+	* doc/avrdude.texi: Document the new functionality.
+	* avrdude.1: (Ditto.)
 
-2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	Submitted by Gerard:
-	patch #6828: Using arbitrary BAUD rates
-	* ser_posix.c (serial_baud_lookup): Allow non-standard baud
-	rates.
-	* ser_win32.c (serial_baud_lookup): (Dito.)
+	Submitted by Timon Van Overveldt:
+	bug #30268: Debugwire broken in avrdude-5.10
+	* jtagmkII.c (jtagmkII_initialize): only try setting up a JTAG chain when
+	the programmer is using JTAG.
 
-2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	Submitted by Eric Trein:
-	bug #27596: AT90s2333 is not correctly supported in avrdude.conf
-	* avrdude.conf.in (at90s2333): add various STK500v2 parameters.
+	bug #29636: AVRDude issues invalid CMD_CHECK_TARGET_CONNECTION
+	on the AVRISP-MKII
+	* stk500v2.c (stk500v2_program_enable): Rewrite the logic to
+	explain ISP activation failures.
+	* stk500v2_private.h: Fix the various STATUS_* constants;
+	AVR069 and AVR079 disagreed in their values, even though they
+	are apparently implementing the same logic behind.
 
-2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	Submitted by Gyorgy Szekely:
-	bug #28458: Buffer line is incorrectly released for PP programmers
-	* par.c (par_close): use par_setmany() rather than par_setpin()
-	for PPI_AVR_BUFF.
+	bug #29650: Programming timeouts in ATmega128RFA1 are too slow
+	* avrdude.conf.in (ATmega128RFA1): Bump write delay values for flash and
+	EEPROM to 50 ms.
 
-2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	Submitted by Lukasz Goralczyk:
-	bug #27507: SIGSEGV when using avrdragon (avrdude 5.8)
-	* stk500v2.c (stk500v2_dragon_isp_initpgm): Use
-	stk500v2_jtagmkII_setup/stk500v2_jtagmkII_rather than their
-	jtagII counterparts, to get the private data properly
-	initialized.
+	* avrdude.conf.in (ATmega8515, ATmega8535, ATmega48, ATmega88, ATmega88P,
+	ATtiny88, ATmega168, ATmega168P, ATmega328P): Bump delay value for STK500v2
+	EEPROM write operation to 5, according to the respective XML files.
 
-2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* buspirate.c: Cosmetics: remove UTF-8 dashes, adjust for 8-column
-	hard tabs.
+	Submitted by Darcy Houlahan:
+	bug #29694: error in avrdude.conf for attiny84 eeprom
+	* avrdude.conf.in (ATtiny84, ATtiny85): fix A7 bit in EEPROM write
+	command.
 
-2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* buspirate.c: add $ Id $ line.
-	* buspirate.h: add $ Id $ line.
+	Submitted by Durant Gilles:
+	* avrdude.conf.in (ATtiny4313): Fix flash addressing bits for manual ISP
+	algorithm.
 
-2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	Fix a few warnings that came up recently (some of them only triggered
-	by recent GCC versions).
-	* config_gram.y (parse_cmdbits): "brkt possibly used uninitialized"
-	(GCC errs here)
-	* jtagmkII.c (jtagmkII_reset32): "status possibly used uninitialized"
-	(I think GCC errs, too)
-	* buspirate.c: "pointers differ in signedness" (mismatch between
-	string processing and the use of "unsigned char" throughought the
-	AVRDUDE API)
+	Submitted by Philip:
+	bug #31386: A "BUILD.svn" or similar "how to get started" doc would be helpful
+	* BUILD-FROM-SVN: New file.
 
-2010-01-01  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2011-08-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* jtagmkII.c (jtagmkII_smc_init32): replace sleep() by usleep() for
-	win32 compatibility.
+	Submitted by Nic Jones:
+	bug #32539: [Documentation][Patch] Man page is misleading
+	re: Dragon & PDI
+	* doc/avrdude.texi: Update information about PDI connections
+	on AVR Dragon
+
+2011-08-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usbasp.c: Add <stdint.h> so this actually compiles
+	again.
+
+2011-08-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Contributed by tixiv@gmx.net:
+	bug #33345: File auto detection as binary doesn't open
+	file in binary mode on Windows
+	* fileio.c: Move the decision about opening files in
+	binary mode until before the fopen() call.
+
+2011-06-16  Thomas Fischl <tfischl@gmx.de>
+
+	* avrdude.conf.in: Fix part id of ATtiny9.
+
+2011-05-28  Thomas Fischl <tfischl@gmx.de>
+
+	Based on patch #7440 commited by Slawomir Fraś:
+	* usbasp.c: added TPI support for USBasp
+	* usbasp.h: (Ditto.)
+
+2011-05-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Add support for ATmega168P.
+
+2011-05-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Fix abbreviated name for ATmega324PA.
+
+2011-05-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Lech Perczak:
+	bug #30946: Added support for ATmega8/16/32U2
+	* avrdude.conf.in: Add ATmega8/16/32U2 entries.
+
+2011-05-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by David A Lyons:
+	patch #7393: Adding ATtiny4313 Device to avrdude.conf.in
+	* avrdude.conf.in: Add ATtiny4313 data.
+
+2011-05-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usb_libusb.c: Bump timeout values to allow for slow clock
+	speeds.
+	* jtagmkII.c: (Ditto.)
+
+2011-03-04  Eric B. Weddington  <eric.weddington@atmel.com>
+
+	Thanks to Vitaly Chernookiy for the patch.
+	* avrdude.conf.in: Add support for atmega324pa.
+	* ChangeLog-2010: New file, rotate ChangeLog for new year.

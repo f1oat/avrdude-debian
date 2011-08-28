@@ -22,7 +22,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkII.c 926 2010-01-17 17:31:10Z joerg_wunsch $ */
+/* $Id: jtagmkII.c 983 2011-08-26 10:05:09Z joerg_wunsch $ */
 
 /*
  * avrdude interface for Atmel JTAG ICE mkII programmer
@@ -483,7 +483,7 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
   unsigned short checksum = 0;
 
   struct timeval tv;
-  double timeoutval = 5;	/* seconds */
+  double timeoutval = 100;	/* seconds */
   double tstart, tnow;
 
   if (verbose >= 4)
@@ -843,12 +843,11 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
 	 * program.
 	 */
 	(void)jtagmkII_reset(pgm, 0x04);
-	jtagmkII_close(pgm);
 	fprintf(stderr,
 		"%s: Target prepared for ISP, signed off.\n"
 		"%s: Please restart %s without power-cycling the target.\n",
 		progname, progname, progname);
-	exit(0);
+        return JTAGII_GETSYNC_FAIL_GRACEFUL;
       }
     } else {
       return -1;
@@ -1270,7 +1269,8 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
       return -1;
   }
 
-  if (jtagmkII_setparm(pgm, PAR_DAISY_CHAIN_INFO, PDATA(pgm)->jtagchain) < 0) {
+  if ((pgm->flag & PGM_FL_IS_JTAG) &&
+      jtagmkII_setparm(pgm, PAR_DAISY_CHAIN_INFO, PDATA(pgm)->jtagchain) < 0) {
     fprintf(stderr, "%s: jtagmkII_initialize(): Failed to setup JTAG chain\n",
             progname);
     return -1;
@@ -1420,7 +1420,9 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -1465,7 +1467,9 @@ static int jtagmkII_open_dw(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -1510,7 +1514,9 @@ static int jtagmkII_open_pdi(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -1556,7 +1562,9 @@ static int jtagmkII_dragon_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -1602,7 +1610,9 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -1648,7 +1658,9 @@ static int jtagmkII_dragon_open_pdi(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -3118,7 +3130,9 @@ static int jtagmkII_open32(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input

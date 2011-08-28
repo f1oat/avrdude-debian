@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: fileio.c 929 2010-01-18 20:40:15Z joerg_wunsch $ */
+/* $Id: fileio.c 964 2011-08-12 15:53:53Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -1034,21 +1034,6 @@ int fileio(int op, char * filename, FILEFMT format,
   if (rc < 0)
     return -1;
 
-#if defined(WIN32NATIVE)
-  /* Open Raw Binary format in binary mode on Windows.*/
-  if(format == FMT_RBIN)
-  {
-      if(fio.op == FIO_READ)
-      {
-          fio.mode = "rb";
-      }
-      if(fio.op == FIO_WRITE)
-      {
-          fio.mode = "wb";
-      }
-  }
-#endif
-
   /* point at the requested memory buffer */
   buf = mem->buf;
   if (fio.op == FIO_READ)
@@ -1099,6 +1084,21 @@ int fileio(int op, char * filename, FILEFMT format,
               progname, fio.iodesc, fname, fmtstr(format));
     }
   }
+
+#if defined(WIN32NATIVE)
+  /* Open Raw Binary format in binary mode on Windows.*/
+  if(format == FMT_RBIN)
+  {
+      if(fio.op == FIO_READ)
+      {
+          fio.mode = "rb";
+      }
+      if(fio.op == FIO_WRITE)
+      {
+          fio.mode = "wb";
+      }
+  }
+#endif
 
   if (format != FMT_IMM) {
     if (!using_stdio) {

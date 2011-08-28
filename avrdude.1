@@ -1,6 +1,6 @@
 .\"
 .\" avrdude - A Downloader/Uploader for AVR device programmers
-.\" Copyright (C) 2001, 2002, 2003, 2005 - 2010  Joerg Wunsch
+.\" Copyright (C) 2001, 2002, 2003, 2005 - 2011  Joerg Wunsch
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -17,9 +17,9 @@
 .\" Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 .\"
 .\"
-.\" $Id: avrdude.1 916 2010-01-15 16:36:13Z joerg_wunsch $
+.\" $Id: avrdude.1 994 2011-08-26 21:12:33Z joerg_wunsch $
 .\"
-.Dd DATE January 14, 2010
+.Dd DATE August 17, 2011
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -107,6 +107,10 @@ Using firmware version 2, high-voltage programming is also supported,
 both parallel and serial
 (programmer types stk500pp and stk500hvsp).
 .Pp
+Wiring boards are supported, utilizing STK500 V2.x protocol, but
+a simple DTR/RTS toggle is used to set the boards into programming mode.
+The programmer type is ``wiring''.
+.Pp
 The Arduino (which is very similar to the STK500 1.x) is supported via
 its own programmer type specification ``arduino''.
 .Pp
@@ -148,11 +152,16 @@ option might be required to achieve a stable ISP communication.
 For ATxmega devices, the AVR Dragon is supported in PDI mode, provided it
 has a firmware version of at least 6.11 (decimal).
 .Pp
-The USBasp ISP and USBtinyISP adapters are also supported, provided
+The avrftdi, USBasp ISP and USBtinyISP adapters are also supported, provided
 .Nm avrdude
 has been compiled with libusb support.
-They both feature simple firmware-only USB implementations, running on
-an ATmega8 (or ATmega88), or ATtiny2313, respectively.
+USBasp ISP and USBtinyISP both feature simple firmware-only USB implementations, 
+running on an ATmega8 (or ATmega88), or ATtiny2313, respectively. If libftdi has 
+has been compiled in 
+.Nm avrdude ,
+the avrftdi device adds support for many programmers using FTDI's 2232C/D/H 
+and 4232H parts running in MPSSE mode, which hard-codes (in the chip) 
+SCK to bit 1, MOSI to bit 2, and MISO to bit 3. Reset is usually bit 4.
 .Pp
 Input files can be provided, and output files can be written in
 different file formats, such as raw binary files containing the data
@@ -227,7 +236,9 @@ m163	ATmega163
 m164	ATmega164
 m164p	ATmega164P
 m168	ATmega168
+m168p	ATmega168P
 m169	ATmega169
+m16u2	ATmega16U2
 m2560	ATmega2560 (**)
 m2561	ATmega2561 (**)
 m32	ATmega32
@@ -239,6 +250,7 @@ m329	ATmega329
 m3290	ATmega3290
 m329p	ATmega329P
 m3290p	ATmega3290P
+m32u2	ATmega32U2
 m32u4	ATmega32U4
 m48	ATmega48
 m64	ATmega64
@@ -253,6 +265,8 @@ m8	ATmega8
 m8515	ATmega8515
 m8535	ATmega8535
 m88	ATmega88
+m88p	ATmega88P
+m8u2	ATmega8U2
 pwm2	AT90PWM2
 pwm2b	AT90PWM2B
 pwm3	AT90PWM3
@@ -266,6 +280,7 @@ t25	ATtiny25
 t26	ATtiny26
 t261	ATtiny261
 t4	ATtiny4
+t4313	ATtiny4313
 t44	ATtiny44
 t45	ATtiny45
 t461	ATtiny461
@@ -321,6 +336,10 @@ Unlike certain parameters in the STK500, the JTAG ICE resets all its
 parameters to default values when the programming software signs
 off from the ICE, so for MCUs running at lower clock speeds, this
 parameter must be specified on the command-line.
+You can use the 'default_bitclock' keyword in your
+.Pa ${HOME}/.avrduderc
+file to assign a default value to keep from having to specify this
+option on every invocation.
 .It Fl c Ar programmer-id
 Use the pin configuration specified by the argument.  Pin
 configurations are read from the config file (see the
@@ -418,6 +437,12 @@ power to the MCU.
 This option will pull the
 .Ql Vcc
 pins of the parallel port down at program exit.
+.It Ar d_high
+This option will leave the 8 data pins on the parallel port active.
+.Pq \&i. \&e. Em high
+.It Ar d_low
+This option will leave the 8 data pins on the parallel port inactive.
+.Pq \&i. \&e. Em low
 .El
 .Pp
 Multiple
@@ -510,6 +535,12 @@ be specified as
 .Ar avrdoper.
 Libusb support is required on Unix but not on Windows. For more
 information about AVR-Doper see http://www.obdev.at/avrusb/avrdoper.html.
+.Pp
+For the USBtinyISP, which is a simplicistic device not implementing
+serial numbers, multiple devices can be distinguished by their
+location in the USB hierarchy.  See the the respective
+.Em Troubleshooting
+entry in the detailed documentation for examples.
 .Pp
 For programmers that attach to a serial port using some kind of
 higher level protocol (as opposed to bit-bang style programmers),
@@ -958,6 +989,18 @@ and
 .Ar speed=
 parameters unavailable. 
 .El
+.It Ar Wiring
+When using the Wiring programmer type, the
+following optional extended parameter is accepted:
+.Bl -tag -offset indent -width indent
+.It Ar snooze=<0..32767>
+After performing the port open phase, AVRDUDE will wait/snooze for
+.Ar snooze
+milliseconds before continuing to the protocol sync phase.
+No toggling of DTR/RTS is performed if
+.Ar snooze
+is greater than 0.
+.El
 .El
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX
@@ -1035,3 +1078,9 @@ This also applies to the STK500 and STK600 in parallel programming mode.
 The USBasp and USBtinyISP drivers do not offer any option to distinguish multiple
 devices connected simultaneously, so effectively only a single device
 is supported.
+.Pp
+The avrftdi driver allows to select specific devices using any combination of vid,pid
+serial number (usbsn) vendor description (usbvendoror part description (usbproduct)
+as seen with lsusb or whatever tool used to view USB device information. Multiple 
+devices can be on the bus at the same time. For the H parts, which have multiple MPSSE
+interfaces, the interface can also be selected.  It defaults to interface 'A'.

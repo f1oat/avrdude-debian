@@ -7,11 +7,11 @@ END-INFO-DIR-ENTRY
 
    This file documents the avrdude program.
 
-   For avrdude version 5.10, 19 January 2010.
+   For avrdude version 5.11, 26 August 2011.
 
    Copyright (C) 2003, 2005 Brian Dean
 
-   Copyright (C) 2006 - 2010 Jo"rg Wunsch
+   Copyright (C) 2006 - 2011 Jo"rg Wunsch
 
    Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -27,13 +27,16 @@ manual into another language, under the above conditions for modified
 versions, except that this permission notice may be stated in a
 translation approved by the Free Software Foundation.
 
+   Alternatively, this documentation may be copied and distributed under
+the terms of the GNU Free Documentation License (FDL), version 1.3.
+
 
 File: avrdude.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
 
    This file documents the avrdude program for downloading/uploading
 programs to Atmel AVR microcontrollers.
 
-   For avrdude version 5.10, 19 January 2010.
+   For avrdude version 5.11, 26 August 2011.
 
    Send comments on AVRDUDE to <avrdude-dev@nongnu.org>.
 
@@ -98,39 +101,50 @@ abysmally slow.
 
    The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial
 port to communicate with the PC.  The STK600, JTAG ICE mkII, AVRISP
-mkII, USBasp, and USBtinyISP programmers communicate through the USB,
-using `libusb' as a platform abstraction layer.  The STK500, STK600,
-JTAG ICE, and avr910 contain on-board logic to control the programming
-of the target device.  The avr109 bootloader implements a protocol
-similar to avr910, but is actually implemented in the boot area of the
-target's flash ROM, as opposed to being an external device.  The
-fundamental difference between the two types lies in the protocol used
-to control the programmer. The avr910 protocol is very simplistic and
-can easily be used as the basis for a simple, home made programmer
-since the firmware is available online. On the other hand, the STK500
-protocol is more robust and complicated and the firmware is not openly
-available.  The JTAG ICE also uses a serial communication protocol
-which is similar to the STK500 firmware version 2 one.  However, as the
-JTAG ICE is intended to allow on-chip debugging as well as memory
-programming, the protocol is more sophisticated.  (The JTAG ICE mkII
-protocol can also be run on top of USB.)  Only the memory programming
-functionality of the JTAG ICE is supported by AVRDUDE.  For the JTAG
-ICE mkII, JTAG, debugWire and ISP mode are supported, provided it has a
-firmware revision of at least 4.14 (decimal).  See below for the
-limitations of debugWire.  For ATxmega devices, the JTAG ICE mkII is
-supported in PDI mode, provided it has a revision 1 hardware and
-firmware version of at least 5.37 (decimal).
+mkII, USBasp, avrftdi (and derivitives), and USBtinyISP programmers
+communicate through the USB, using `libusb' as a platform abstraction
+layer.  The avrftdi adds support for the FT2232C/D, FT2232H, and
+FT4232H devices. These all use the MPSSE mode, which has a specific pin
+mapping. Bit 1 (the lsb of the byte in the config file) is SCK. Bit 2
+is MOSI, and Bit 3 is MISO. Bit 4 usually reset. The 2232C/D parts are
+only supported on interface A, but the H parts can be either A or B
+(specified by the usbdev config parameter).  The STK500, STK600, JTAG
+ICE, and avr910 contain on-board logic to control the programming of
+the target device.  The avr109 bootloader implements a protocol similar
+to avr910, but is actually implemented in the boot area of the target's
+flash ROM, as opposed to being an external device.  The fundamental
+difference between the two types lies in the protocol used to control
+the programmer. The avr910 protocol is very simplistic and can easily
+be used as the basis for a simple, home made programmer since the
+firmware is available online. On the other hand, the STK500 protocol is
+more robust and complicated and the firmware is not openly available.
+The JTAG ICE also uses a serial communication protocol which is similar
+to the STK500 firmware version 2 one.  However, as the JTAG ICE is
+intended to allow on-chip debugging as well as memory programming, the
+protocol is more sophisticated.  (The JTAG ICE mkII protocol can also
+be run on top of USB.)  Only the memory programming functionality of
+the JTAG ICE is supported by AVRDUDE.  For the JTAG ICE mkII, JTAG,
+debugWire and ISP mode are supported, provided it has a firmware
+revision of at least 4.14 (decimal).  See below for the limitations of
+debugWire.  For ATxmega devices, the JTAG ICE mkII is supported in PDI
+mode, provided it has a revision 1 hardware and firmware version of at
+least 5.37 (decimal).
 
-   The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP,
+   The AVR Dragon is supported in all modes (ISP, JTAG, PDI, HVSP, PP,
 debugWire).  When used in JTAG and debugWire mode, the AVR Dragon
 behaves similar to a JTAG ICE mkII, so all device-specific comments for
-that device will apply as well.  When used in ISP mode, the AVR Dragon
-behaves similar to an AVRISP mkII (or JTAG ICE mkII in ISP mode), so
-all device-specific comments will apply there.  In particular, the
-Dragon starts out with a rather fast ISP clock frequency, so the `-B
-BITCLOCK' option might be required to achieve a stable ISP
-communication.  For ATxmega devices, the AVR Dragon is supported in PDI
-mode, provided it has a firmware version of at least 6.11 (decimal).
+that device will apply as well.  When used in ISP and PDI mode, the AVR
+Dragon behaves similar to an AVRISP mkII (or JTAG ICE mkII in ISP
+mode), so all device-specific comments will apply there.  In
+particular, the Dragon starts out with a rather fast ISP clock
+frequency, so the `-B BITCLOCK' option might be required to achieve a
+stable ISP communication.  For ATxmega devices, the AVR Dragon is
+supported in PDI mode, provided it has a firmware version of at least
+6.11 (decimal).
+
+   Wiring boards are supported, utilizing STK500 V2.x protocol, but a
+simple DTR/RTS toggle to set the boards into programming mode.  The
+programmer type is "wiring".
 
    The Arduino (which is very similar to the STK500 1.x) is supported
 via its own programmer type specification "arduino".
@@ -236,7 +250,9 @@ following options are recognized:
      `m164'     ATmega164
      `m164p'    ATmega164P
      `m168'     ATmega168
+     `m168p'    ATmega168P
      `m169'     ATmega169
+     `m16u2'    ATmega16U2
      `m2560'    ATmega2560 (**)
      `m2561'    ATmega2561 (**)
      `m32'      ATmega32
@@ -248,6 +264,7 @@ following options are recognized:
      `m3290'    ATmega3290
      `m329p'    ATmega329P
      `m3290p'   ATmega3290P
+     `m32u2'    ATmega32U2
      `m32u4'    ATmega32U4
      `m48'      ATmega48
      `m64'      ATmega64
@@ -262,6 +279,8 @@ following options are recognized:
      `m8515'    ATmega8515
      `m8535'    ATmega8535
      `m88'      ATmega88
+     `m88p'     ATmega88P
+     `m8u2'     ATmega8U2
      `pwm2'     AT90PWM2
      `pwm2b'    AT90PWM2B
      `pwm3'     AT90PWM3
@@ -275,6 +294,7 @@ following options are recognized:
      `t26'      ATtiny26
      `t261'     ATtiny261
      `t4'       ATtiny4
+     `t4313'    ATtiny4313
      `t44'      ATtiny44
      `t45'      ATtiny45
      `t461'     ATtiny461
@@ -328,7 +348,8 @@ following options are recognized:
      STK500, the JTAG ICE resets all its parameters to default values
      when the programming software signs off from the ICE, so for MCUs
      running at lower clock speeds, this parameter must be specified on
-     the command-line.
+     the command-line.  It can also be set in the configuration file by
+     using the 'default_bitclock' keyword.
 
 `-c PROGRAMMER-ID'
      Specify the programmer to be used.  AVRDUDE knows about several
@@ -343,6 +364,8 @@ following options are recognized:
      that of the unknown programmer.  Currently, the following
      programmer ids are understood and supported:
 
+     `2232HIO'      FT2232H based generic programmer
+     `89isp'        Atmel at89isp cable
      `abcmini'      ABCmini Board, aka Dick Smith HOTCHIP
      `alf'          Nightshade ALF-PgmAVR,
                    `http://nightshade.homeip.net/'
@@ -359,6 +382,7 @@ following options are recognized:
      `avr910'       Atmel Low Cost Serial Programmer
      `avr911'       Atmel AppNote AVR911 AVROSP (an alias
                    for avr109)
+     `avrftdi'      FT2232D based generic programmer
      `avrisp'       Atmel AVR ISP (an alias for stk500)
      `avrisp2'      Atmel AVR ISP mkII in ISP mode, in PDI
                    mode for ATxmega devices, or in TPI
@@ -445,6 +469,9 @@ following options are recognized:
                    `http://www.fischl.de/usbasp/'
      `usbtiny'      USBtiny simple USB programmer,
                    `http://www.ladyada.net/make/usbtinyisp/'
+     `wiring'       Wiring board, utilizing STK500 V2.x
+                   protocol,
+                   `http://wiring.org.co/'
      `xil'          Xilinx JTAG cable
 
 `-C CONFIG-FILE'
@@ -508,6 +535,14 @@ following options are recognized:
     `novcc'
           This option will pull the `Vcc' pins of the parallel port
           down at program exit.
+
+    `d_high'
+          This option will leave the 8 data pins on the parallel port
+          active (i. e. high).
+
+    `d_low'
+          This option will leave the 8 data pins on the parallel port
+          inactive (i. e. low).
 
 
      Multiple EXITSPEC arguments can be separated with commas.
@@ -582,6 +617,11 @@ following options are recognized:
      must be specified as AVRDOPER. Libusb support is required on Unix
      but not on Windows. For more information about AVR-Doper see
      `http://www.obdev.at/avrusb/avrdoper.html'.
+
+     For the USBtinyISP, which is a simplicistic device not implementing
+     serial numbers, multiple devices can be distinguished by their
+     location in the USB hierarchy.  *Note Troubleshooting:: for
+     examples.
 
      For programmers that attach to a serial port using some kind of
      higher level protocol (as opposed to bit-bang style programmers),
@@ -864,6 +904,15 @@ File: avrdude.info,  Node: Programmers accepting extended parameters,  Next: Exa
           newer, older FW's either don't have BinMode or their BinMode
           is buggy. ASCII mode is slower and makes the above `reset='
           and `speed=' parameters unavailable.
+
+`Wiring'
+     When using the Wiring programmer type, the following optional
+     extended parameter is accepted:
+    ``snooze=0..32767''
+          After performing the port open phase, AVRDUDE will
+          wait/snooze for SNOOZE milliseconds before continuing to the
+          protocol sync phase.  No toggling of DTR/RTS is performed if
+          SNOOZE > 0.
 
 
 
@@ -1260,6 +1309,10 @@ File: avrdude.info,  Node: AVRDUDE Defaults,  Next: Programmer Definitions,  Pre
      Assign the default programmer id.  Can be overridden using the `-c'
      option.
 
+`default_bitclock = "DEFAULT-BITCLOCK";'
+     Assign the default bitclock value.  Can be overridden using the
+     `-B' option.
+
 
 
 File: avrdude.info,  Node: Programmer Definitions,  Next: Part Definitions,  Prev: AVRDUDE Defaults,  Up: Configuration File
@@ -1605,8 +1658,8 @@ A.1.1 Unix Installation
 
 To build and install from the source tarball on Unix like systems:
 
-     $ gunzip -c avrdude-5.10.tar.gz | tar xf -
-     $ cd avrdude-5.10
+     $ gunzip -c avrdude-5.11.tar.gz | tar xf -
+     $ cd avrdude-5.11
      $ ./configure
      $ make
      $ su root -c 'make install'
@@ -1618,8 +1671,8 @@ variable.
    If you do not have root access to your system, you can do the the
 following instead:
 
-     $ gunzip -c avrdude-5.10.tar.gz | tar xf -
-     $ cd avrdude-5.10
+     $ gunzip -c avrdude-5.11.tar.gz | tar xf -
+     $ cd avrdude-5.11
      $ ./configure --prefix=$HOME/local
      $ make
      $ make install
@@ -1661,8 +1714,8 @@ On rpm based Linux systems (such as RedHat, SUSE, Mandrake, etc), you
 can build and install the rpm binaries directly from the tarball:
 
      $ su - root
-     # rpmbuild -tb avrdude-5.10.tar.gz
-     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.10-1.i386.rpm
+     # rpmbuild -tb avrdude-5.11.tar.gz
+     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.11-1.i386.rpm
 
    Note that the path to the resulting rpm package, differs from system
 to system. The above example is specific to RedHat.
@@ -1768,20 +1821,27 @@ found at `http://sourceforge.net/projects/winavr'. WinAVR is a suite of
 executable, open source software development tools for the AVR for the
 Windows platform.
 
-   To build avrdude from the source You must have Cygwin
-(`http://www.cygwin.com/').
+   There are two options to build avrdude from source under Windows.
+The first one is to use Cygwin (`http://www.cygwin.com/').
 
    To build and install from the source tarball for Windows (using
 Cygwin):
 
      $ set PREFIX=<your install directory path>
      $ export PREFIX
-     $ gunzip -c avrdude-5.10.tar.gz | tar xf -
-     $ cd avrdude-5.10
+     $ gunzip -c avrdude-5.11.tar.gz | tar xf -
+     $ cd avrdude-5.11
      $ ./configure LDFLAGS="-static" --prefix=$PREFIX --datadir=$PREFIX
      --sysconfdir=$PREFIX/bin --enable-versioned-doc=no
      $ make
      $ make install
+
+   Note that recent versions of Cygwin (starting with 1.7) removed the
+MinGW support from the compiler that is needed in order to build a
+native Win32 API binary that does not require to install the Cygwin
+library `cygwin1.dll' at run-time.  Either try using an older compiler
+version that still supports MinGW builds, or use MinGW
+(`http://www.mingw.org/') directly.
 
 
 File: avrdude.info,  Node: Windows Configuration Files,  Next: Windows Port Names,  Prev: Windows Installation,  Up: Windows
@@ -2068,10 +2128,24 @@ In general, please report any bugs encountered via
    * Problem: Multiple USBasp or USBtinyISP programmers connected
      simultaneously are not found.
 
-     Solution: none at this time.  The simplicity of these programmers
-     doesn't offer a method to distinguish multiple programmers that are
-     connected simultaneously, so effectively only one of them is
-     supported.
+     Solution: The USBtinyISP code supports distinguishing multiple
+     programmers based on their bus:device connection tuple that
+     describes their place in the USB hierarchy on a specific host.
+     This tuple can be added to the -P USB option, similar to adding a
+     serial number on other USB-based programmers.
+
+     The actual naming convention for the bus and device names is
+     operating-system dependant; AVRDUDE will print out what it found
+     on the bus when running it with (at least) one -V option.  By
+     specifying a string that cannot match any existing device (for
+     example, -P USB:XXX), the scan will list all possible candidate
+     devices found on the bus.
+
+     Examples:
+          avrdude -c usbtiny -p atmega8 -P usb:003:025 (Linux)
+          avrdude -c usbtiny -p atmega8 -P usb:/dev/usb:/dev/ugen1.3 (FreeBSD 8+)
+          avrdude -c usbtiny -p atmega8 \
+            -P usb:bus-0:\\.\libusb0-0001--0x1781-0x0c9f (Windows)
 
    * Problem: I cannot do ... when the target is in debugWire mode.
 
@@ -2097,10 +2171,10 @@ In general, please report any bugs encountered via
      AVR Dragon in ISP mode, when they detect that ISP mode cannot be
      entered.
 
-   * Problem: I want to use my JTAG ICE mkII or AVR Dragon to program an
-     Xmega device through PDI.  The documentation tells me to use the
-     _XMEGA PDI adapter for JTAGICE mkII_ that is supposed to ship with
-     the kit, yet I don't have it.
+   * Problem: I want to use my JTAG ICE mkII to program an Xmega device
+     through PDI.  The documentation tells me to use the _XMEGA PDI
+     adapter for JTAGICE mkII_ that is supposed to ship with the kit,
+     yet I don't have it.
 
      Solution: Use the following pin mapping:
 
@@ -2117,6 +2191,21 @@ In general, please report any bugs encountered via
      9 (TDI)       PDI_DATA      Red           1
      10 (GND)                    Brown         
 
+   * Problem: I want to use my AVR Dragon to program an Xmega device
+     through PDI.
+
+     Solution: Use the 6 pin ISP header on the Dragon and the following
+     pin mapping:
+
+     *Dragon*      *Target*
+     *ISP Header*  *pins*
+     1 (MISO)      PDI_DATA
+     2 (VCC)       VCC
+     3 (SCK)       
+     4 (MOSI)      
+     5 (RESET)     PDI_CLK / RST
+     6 (GND)       GND
+
    * Problem: I want to use my AVRISP mkII to program an ATtiny4/5/9/10
      device through TPI.  How to connect the pins?
 
@@ -2130,6 +2219,41 @@ In general, please report any bugs encountered via
      4 (MOSI)                    
      5 (RESET)     /RESET        6
      6 (GND)       GND           2
+
+   * Problem: I want to program an ATtiny4/5/9/10 device using a
+     serial/parallel bitbang programmer.  How to connect the pins?
+
+     Solution: Since TPI has only 1 pin for bi-directional data
+     transfer, both MISO and MOSI pins should be connected to the
+     TPIDATA pin on the ATtiny device.  However, a 1K resistor should
+     be placed between the MOSI and TPIDATA.  The MISO pin connects to
+     TPIDATA directly.  The SCK pin is connected to TPICLK.
+
+     In addition, the VCC, /RESET and GND pins should be connected to
+     their respective ports on the ATtiny device.
+
+   * Problem: How can I use a FTDI FT232R USB-to-Serial device for
+     bitbang programming?
+
+     Solution: When connecting the FT232 directly to the pins of the
+     target Atmel device, the polarity of the pins defined in the
+     `programmer' definition should be inverted by prefixing a tilde.
+     For example, the DASA programmer would look like this when
+     connected via a FT232R device (notice the tildes in front of pins
+     7, 4, 3 and 8):
+
+          programmer
+            id    = "dasa_ftdi";
+            desc  = "serial port banging, reset=rts sck=dtr mosi=txd miso=cts";
+            type  = serbb;
+            reset = ~7;
+            sck   = ~4;
+            mosi  = ~3;
+            miso  = ~8;
+          ;
+
+     Note that this uses the FT232 device as a normal serial port, not
+     using the FTDI drivers in the special bitbang mode.
 
    * Problem: My ATtiny4/5/9/10 reads out fine, but any attempt to
      program it (through TPI) fails.  Instead, the memory retains the
@@ -2150,51 +2274,63 @@ In general, please report any bugs encountered via
      It is said that the AVR Dragon can only program devices from the A4
      Xmega sub-family.
 
+   * Problem: when programming with an AVRISPmkII or STK600, AVRDUDE
+     hangs when programming files of a certain size (e.g. 246 bytes).
+     Other (larger or smaller) sizes work though.
+
+     Solution: This is a bug caused by an incorrect handling of
+     zero-length packets (ZLPs) in some versions of the libusb 0.1 API
+     wrapper that ships with libusb 1.x in certain Linux distributions.
+     All Linux systems with kernel versions < 2.6.31 and libusb >=
+     1.0.0 < 1.0.3 are reported to be affected by this.
+
+     See also: `http://www.libusb.org/ticket/6'
+
 
 
 
 Tag Table:
-Node: Top1090
-Node: Introduction1731
-Node: History6904
-Node: Command Line Options8137
-Node: Option Descriptions8415
-Node: Programmers accepting extended parameters32583
-Node: Example Command Line Invocations35808
-Node: Terminal Mode Operation40513
-Node: Terminal Mode Commands41250
-Node: Terminal Mode Examples44317
-Node: Configuration File47501
-Node: AVRDUDE Defaults48920
-Node: Programmer Definitions49507
-Node: Part Definitions50668
-Node: Instruction Format52588
-Node: Other Notes53975
-Node: Programmer Specific Information56153
-Node: Atmel STK60056387
-Node: Platform Dependent Information64376
-Node: Unix64627
-Node: Unix Installation64877
-Node: FreeBSD Installation65677
-Node: Linux Installation66309
-Node: Unix Configuration Files66852
-Node: FreeBSD Configuration Files67486
-Node: Linux Configuration Files67845
-Node: Unix Port Names68160
-Node: Unix Documentation69151
-Node: Windows69678
-Node: Windows Installation69940
-Node: Windows Configuration Files70789
-Node: Configuration file names71056
-Node: How AVRDUDE finds the configuration files.71446
-Node: Windows Port Names72236
-Node: Serial Ports72448
-Node: Parallel Ports72735
-Node: Using the parallel port73504
-Node: Windows NT/2K/XP73731
-Node: Windows 95/9875237
-Node: Documentation75440
-Node: Credits.75996
-Node: Troubleshooting76329
+Node: Top1231
+Node: Introduction1871
+Node: History7634
+Node: Command Line Options8867
+Node: Option Descriptions9145
+Node: Programmers accepting extended parameters34291
+Node: Example Command Line Invocations37879
+Node: Terminal Mode Operation42584
+Node: Terminal Mode Commands43321
+Node: Terminal Mode Examples46388
+Node: Configuration File49572
+Node: AVRDUDE Defaults50991
+Node: Programmer Definitions51707
+Node: Part Definitions52868
+Node: Instruction Format54788
+Node: Other Notes56175
+Node: Programmer Specific Information58353
+Node: Atmel STK60058587
+Node: Platform Dependent Information66576
+Node: Unix66827
+Node: Unix Installation67077
+Node: FreeBSD Installation67877
+Node: Linux Installation68509
+Node: Unix Configuration Files69052
+Node: FreeBSD Configuration Files69686
+Node: Linux Configuration Files70045
+Node: Unix Port Names70360
+Node: Unix Documentation71351
+Node: Windows71878
+Node: Windows Installation72140
+Node: Windows Configuration Files73401
+Node: Configuration file names73668
+Node: How AVRDUDE finds the configuration files.74058
+Node: Windows Port Names74848
+Node: Serial Ports75060
+Node: Parallel Ports75347
+Node: Using the parallel port76116
+Node: Windows NT/2K/XP76343
+Node: Windows 95/9877849
+Node: Documentation78052
+Node: Credits.78608
+Node: Troubleshooting78941
 
 End Tag Table
