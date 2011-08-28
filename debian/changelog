@@ -1,4 +1,4 @@
-avrdude (5.11-1) UNRELEASED; urgency=low
+avrdude (5.11-1) unstable; urgency=low
 
   * New upstream release.
   * Bump debhelper compatibility level to 8 and update build dependency
@@ -8,7 +8,7 @@ avrdude (5.11-1) UNRELEASED; urgency=low
   * Refresh debian/patches/02-manpage_fix.patch.
   * Add support for FT2232 based programmers by building against libftdi.
 
- -- Michael Biebl <biebl@debian.org>  Sun, 28 Aug 2011 14:06:53 +0200
+ -- Michael Biebl <biebl@debian.org>  Sun, 28 Aug 2011 14:30:26 +0200
 
 avrdude (5.10-3) unstable; urgency=low
 
