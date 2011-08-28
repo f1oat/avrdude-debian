@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: serial.h 845 2009-10-10 01:41:40Z mludvig $ */
+/* $Id: serial.h 948 2010-10-22 14:29:56Z springob $ */
 
 /* This is the API for the generic serial interface. The implementations are
    actually provided by the target dependant files:
@@ -44,7 +44,8 @@ union filedescriptor
 
 struct serial_device
 {
-  void (*open)(char * port, long baud, union filedescriptor *fd);
+  // open should return -1 on error, other values on success
+  int (*open)(char * port, long baud, union filedescriptor *fd); 
   int (*setspeed)(union filedescriptor *fd, long baud);
   void (*close)(union filedescriptor *fd);
 

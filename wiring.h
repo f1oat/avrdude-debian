@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2011 Brett Hagman
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,20 +17,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: butterfly.h 991 2011-08-26 20:50:32Z joerg_wunsch $ */
+/* $Id: wiring.h 987 2011-08-26 20:22:09Z joerg_wunsch $ */
 
-#ifndef butterfly_h
-#define butterfly_h
+#ifndef wiring_h__
+#define wiring_h__
 
-#ifdef __cplusplus
-extern "C" {
+void wiring_initpgm(PROGRAMMER * pgm);
+
 #endif
 
-void butterfly_initpgm (PROGRAMMER * pgm);
-void butterfly_mk_initpgm (PROGRAMMER * pgm);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* butterfly_h */

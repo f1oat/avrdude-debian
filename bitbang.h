@@ -2,6 +2,7 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
  * Copyright (C) 2005 Michael Holzt <kju-avr@fqdn.org>
+ * Copyright (C) 2011 Darell Tan <darell.tan@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: bitbang.h 797 2009-02-17 15:31:27Z joerg_wunsch $ */
+/* $Id: bitbang.h 978 2011-08-24 07:40:48Z joerg_wunsch $ */
 
 #ifndef bitbang_h
 #define bitbang_h
@@ -39,6 +40,8 @@ int  bitbang_pgm_led        (PROGRAMMER * pgm, int value);
 int  bitbang_vfy_led        (PROGRAMMER * pgm, int value);
 int  bitbang_cmd            (PROGRAMMER * pgm, unsigned char cmd[4],
                                 unsigned char res[4]);
+int  bitbang_cmd_tpi        (PROGRAMMER * pgm, unsigned char cmd[], 
+                                int cmd_len, unsigned char res[], int res_len);
 int  bitbang_spi            (PROGRAMMER * pgm, unsigned char cmd[],
                                 unsigned char res[], int count);
 int  bitbang_chip_erase     (PROGRAMMER * pgm, AVRPART * p);

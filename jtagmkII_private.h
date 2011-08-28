@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkII_private.h 912 2010-01-13 17:34:18Z joerg_wunsch $ */
+/* $Id: jtagmkII_private.h 983 2011-08-26 10:05:09Z joerg_wunsch $ */
 
 
 /*
@@ -356,3 +356,8 @@ struct device_descriptor
   unsigned char EECRAddress[2]; /* EECR memory-mapped IO address */
 };
 #endif /* JTAGMKII_PRIVATE_EXPORTED */
+
+/* return code from jtagmkII_getsync() to indicate a "graceful"
+ * failure, i.e. an attempt to enable ISP failed and should be
+ * eventually retried */
+#define JTAGII_GETSYNC_FAIL_GRACEFUL (-2)

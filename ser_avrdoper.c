@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_avrdoper.c 845 2009-10-10 01:41:40Z mludvig $ */
+/* $Id: ser_avrdoper.c 981 2011-08-25 19:03:10Z joerg_wunsch $ */
 
 /*
  * Serial Interface emulation for USB programmer "AVR-Doper" in HID mode.
@@ -31,6 +31,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "avrdude.h"
 #include "serial.h"
@@ -504,7 +505,7 @@ static char *usbErrorText(int usbErrno)
 
 /* ------------------------------------------------------------------------- */
 
-static void avrdoper_open(char *port, long baud, union filedescriptor *fdp)
+static int avrdoper_open(char *port, long baud, union filedescriptor *fdp)
 {
     int rval;
     char *vname = "obdev.at";
@@ -514,7 +515,9 @@ static void avrdoper_open(char *port, long baud, union filedescriptor *fdp)
     if(rval != 0){
         fprintf(stderr, "%s: avrdoper_open(): %s\n", progname, usbErrorText(rval));
         exit(1);
+	//return -1;
     }
+    return 0;
 }
 
 /* ------------------------------------------------------------------------- */

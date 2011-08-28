@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config.c 725 2007-01-30 13:41:54Z joerg_wunsch $ */
+/* $Id: config.c 988 2011-08-26 20:30:26Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -35,6 +35,7 @@
 char default_programmer[MAX_STR_CONST];
 char default_parallel[PATH_MAX];
 char default_serial[PATH_MAX];
+double default_bitclock;
 
 char string_buf[MAX_STR_CONST];
 char *string_buf_ptr;

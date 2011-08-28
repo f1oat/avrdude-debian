@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: pgm.c 797 2009-02-17 15:31:27Z joerg_wunsch $ */
+/* $Id: pgm.c 976 2011-08-23 21:03:36Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -118,6 +118,7 @@ PROGRAMMER * pgm_new(void)
    * assigned before they are called
    */
   pgm->cmd            = NULL;
+  pgm->cmd_tpi        = NULL;
   pgm->spi            = NULL;
   pgm->paged_write    = NULL;
   pgm->paged_load     = NULL;

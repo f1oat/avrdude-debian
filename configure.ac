@@ -18,13 +18,13 @@
 #
 
 #
-# $Id: configure.ac 931 2010-01-19 10:34:39Z joerg_wunsch $
+# $Id: configure.ac 995 2011-08-27 19:49:39Z joerg_wunsch $
 #
 
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(avrdude, 5.10, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 5.11, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -66,18 +66,64 @@ if test x$have_libusb = xyes; then
 fi
 AC_SUBST(LIBUSB, $LIBUSB)
 
+AH_TEMPLATE([HAVE_LIBUSB_1_0],
+            [Define if USB support is enabled via libusb 1.0])
+AC_CHECK_LIB([usb-1.0], [libusb_init], [have_libusb_1_0=yes])
+if test x$have_libusb_1_0 = xyes; then
+   case $target in
+       *-*-darwin*)
+               LIBUSB_1_0="-lusb-1.0 -framework CoreFoundation -framework IOKit"
+               ;;
+       *)
+               LIBUSB_1_0="-lusb-1.0"
+               ;;
+   esac
+   AC_DEFINE([HAVE_LIBUSB_1_0])
+   AC_CHECK_HEADERS([libusb-1.0/libusb.h])
+   AC_CHECK_HEADERS([libusb.h])
+fi
+AH_TEMPLATE([HAVE_LIBUSB_1_0],
+            [Define if USB support is enabled via a libusb-1.0 compatible libusb])
+AC_CHECK_LIB([usb], [libusb_init], [have_libusb_1_0=yes])
+if test x$have_libusb_1_0 = xyes; then
+   case $target in
+       *-*-freebsd*)
+               # FreeBSD 8+ has a native libusb-1.0 API compatible
+               # library offered by -lusb (which is also libusb-0.1
+               # compatible).  FreeBSD <8 does not have a libusb-1.0
+               # at all so probing will fail but we do not have to
+               # special-case that.
+               LIBUSB_1_0="-lusb"
+               ;;
+       *)
+               LIBUSB_1_0="-lusb-1.0"
+               ;;
+   esac
+   AC_DEFINE([HAVE_LIBUSB_1_0])
+   AC_CHECK_HEADERS([libusb.h])
+fi
+AC_SUBST(LIBUSB_1_0, $LIBUSB_1_0)
+AH_TEMPLATE([HAVE_LIBFTDI],
+            [Define if FTDI support is enabled via libftdi])
+AC_CHECK_LIB([ftdi], [ftdi_init], [have_libftdi=yes], [], [-lusb])
+if test x$have_libftdi = xyes; then
+   LIBFTDI="-lftdi -lusb"
+   AC_DEFINE([HAVE_LIBFTDI])
+fi
+AC_SUBST(LIBFTDI, $LIBFTDI)
 # Checks for header files.
 AC_CHECK_HEADERS([limits.h stdlib.h string.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])
 AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
 #include <setupapi.h>])
 
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_HEADER_TIME
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday])
+AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday usleep])
 
 AC_MSG_CHECKING([for a Win32 HID libray])
 SAVED_LIBS="${LIBS}"
@@ -273,7 +319,7 @@ case $target in
 			# does this compiler support -mno-cygwin?
 			AC_MSG_CHECKING([if $CC accepts -mno-cygwin])
 
-			safe_CFLAGS=$CFLAGS
+			safe_CFLAGS="$CFLAGS"
 			CFLAGS="$ENABLE_WARNINGS -mno-cygwin"
 
 			AC_TRY_COMPILE(, [ int main () { return 0 ; } ], [
@@ -283,7 +329,7 @@ case $target in
 				no_cygwin=no
 				AC_MSG_RESULT([no])
 				])
-			CFLAGS=$safe_CFLAGS
+			CFLAGS="$safe_CFLAGS"
 
 			if test x$no_cygwin = xyes; then
 				CFLAGS="${CFLAGS} -mno-cygwin"
@@ -295,9 +341,26 @@ case $target in
 				AC_MSG_NOTICE([])
 			fi
 		fi
+
+		AC_MSG_CHECKING([if linker accepts -static])
+
+		safe_LDFLAGS="$LDFLAGS"
+		LDFLAGS="${LDFLAGS} -static"
+		AC_TRY_LINK(, [ int main () { return 0 ; } ], [
+			can_link_static=yes
+			AC_MSG_RESULT([yes])
+			], [
+			can_link_static_cygwin=no
+			AC_MSG_RESULT([no])
+			])
+		LDFLAGS="$safe_LDFLAGS"
+
+		if test x$can_link_static = xyes; then
+			LDFLAGS="${LDFLAGS} -static"
+		fi
+
 		WINDOWS_DIRS="windows"
 		CFLAGS="${CFLAGS} -DWIN32NATIVE"
-		LDFLAGS="${LDFLAGS} -static"
 		;;
 esac
 AC_SUBST(WINDOWS_DIRS,$WINDOWS_DIRS)

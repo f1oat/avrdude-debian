@@ -18,7 +18,7 @@
 #
 
 #
-# $Id: Makefile.am 371 2003-09-22 21:13:57Z arcanum $
+# $Id: Makefile.am 936 2010-01-22 16:40:17Z joerg_wunsch $
 #
 
 #
@@ -36,8 +36,6 @@ EXTRA_DIST   = \
 	$(local_install_list)
 
 bin_PROGRAMS = loaddrv
-
-loaddrv_LDFLAGS = -mno-cygwin
 
 loaddrv_SOURCES = \
 	loaddrv.c \

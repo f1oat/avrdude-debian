@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500v2.c 916 2010-01-15 16:36:13Z joerg_wunsch $ */
+/* $Id: stk500v2.c 987 2011-08-26 20:22:09Z joerg_wunsch $ */
 /* Based on Id: stk500.c,v 1.46 2004/12/22 01:52:45 bdean Exp */
 
 /*
@@ -69,6 +69,12 @@
 
 #define STK500V2_XTAL 7372800U
 
+// Timeout (in seconds) for waiting for serial response
+#define SERIAL_TIMEOUT 2
+
+// Retry count
+#define RETRIES 5
+
 #if 0
 #define DEBUG(...) fprintf(stderr, __VA_ARGS__)
 #else
@@ -86,46 +92,6 @@ enum hvmode
   PPMODE, HVSPMODE
 };
 
-
-/*
- * Private data for this programmer.
- */
-struct pdata
-{
-  /*
-   * See stk500pp_read_byte() for an explanation of the flash and
-   * EEPROM page caches.
-   */
-  unsigned char *flash_pagecache;
-  unsigned long flash_pageaddr;
-  unsigned int flash_pagesize;
-
-  unsigned char *eeprom_pagecache;
-  unsigned long eeprom_pageaddr;
-  unsigned int eeprom_pagesize;
-
-  unsigned char command_sequence;
-
-    enum
-    {
-        PGMTYPE_UNKNOWN,
-        PGMTYPE_STK500,
-        PGMTYPE_AVRISP,
-        PGMTYPE_AVRISP_MKII,
-        PGMTYPE_JTAGICE_MKII,
-        PGMTYPE_STK600,
-    }
-        pgmtype;
-
-  AVRPART *lastpart;
-
-  /*
-   * Chained pdata for the JTAG ICE mkII backend.  This is used when
-   * calling the backend functions for ISP/HVSP/PP programming
-   * functionality of the JTAG ICE mkII and AVR Dragon.
-   */
-  void *chained_pdata;
-};
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
@@ -314,7 +280,7 @@ static void stk600_setup_xprog(PROGRAMMER * pgm);
 static void stk600_setup_isp(PROGRAMMER * pgm);
 static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p);
 
-static void stk500v2_setup(PROGRAMMER * pgm)
+void stk500v2_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
     fprintf(stderr,
@@ -350,7 +316,7 @@ static void stk500v2_jtagmkII_setup(PROGRAMMER * pgm)
   PDATA(pgm)->chained_pdata = theircookie;
 }
 
-static void stk500v2_teardown(PROGRAMMER * pgm)
+void stk500v2_teardown(PROGRAMMER * pgm)
 {
   free(pgm->cookie);
 }
@@ -486,7 +452,7 @@ static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 }
 
 
-static int stk500v2_drain(PROGRAMMER * pgm, int display)
+int stk500v2_drain(PROGRAMMER * pgm, int display)
 {
   return serial_drain(&pgm->fd, display);
 }
@@ -554,7 +520,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
   int timeout = 0;
   unsigned char c, checksum = 0;
 
-  long timeoutval = 5;		// seconds
+  long timeoutval = SERIAL_TIMEOUT;		// seconds
   struct timeval tv;
   double tstart, tnow;
 
@@ -647,7 +613,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
      tnow = tv.tv_sec;
      if (tnow-tstart > timeoutval) {			// wuff - signed/unsigned/overflow
       timedout:
-       fprintf(stderr, "%s: stk500_2_ReceiveMessage(): timeout\n",
+       fprintf(stderr, "%s: stk500v2_ReceiveMessage(): timeout\n",
                progname);
        return -1;
      }
@@ -660,7 +626,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
 
 
 
-static int stk500v2_getsync(PROGRAMMER * pgm) {
+int stk500v2_getsync(PROGRAMMER * pgm) {
   int tries = 0;
   unsigned char buf[1], resp[32];
   int status;
@@ -713,7 +679,7 @@ retry:
 		progname, pgmname[PDATA(pgm)->pgmtype]);
       return 0;
     } else {
-      if (tries > 33) {
+      if (tries > RETRIES) {
         fprintf(stderr,
                 "%s: stk500v2_getsync(): can't communicate with device: resp=0x%02x\n",
                 progname, resp[0]);
@@ -724,7 +690,7 @@ retry:
 
   // or if we got a timeout
   } else if (status == -1) {
-    if (tries > 33) {
+    if (tries > RETRIES) {
       fprintf(stderr,"%s: stk500v2_getsync(): timeout communicating with programmer\n",
               progname);
       return -1;
@@ -733,7 +699,7 @@ retry:
 
   // or any other error
   } else {
-    if (tries > 33) {
+    if (tries > RETRIES) {
       fprintf(stderr,"%s: stk500v2_getsync(): error communicating with programmer: (%d)\n",
               progname,status);
     } else
@@ -750,7 +716,7 @@ static int stk500v2_command(PROGRAMMER * pgm, unsigned char * buf,
   int status;
 
   DEBUG("STK500V2: stk500v2_command(");
-  for (i=0;i<len;i++) DEBUG("0x%02hhx ",buf[i]);
+  for (i=0;i<len;i++) DEBUG("0x%02x ",buf[i]);
   DEBUG(", %d)\n",len);
 
 retry:
@@ -800,6 +766,32 @@ retry:
         /*
          * Decode STK500v2 errors.
          */
+        if (buf[1] >= STATUS_CMD_TOUT && buf[1] < 0xa0) {
+            const char *msg;
+            char msgbuf[30];
+            switch (buf[1]) {
+            case STATUS_CMD_TOUT:
+                msg = "Command timed out";
+                break;
+
+            case STATUS_RDY_BSY_TOUT:
+                msg = "Sampling of the RDY/nBSY pin timed out";
+                break;
+
+            case STATUS_SET_PARAM_MISSING:
+                msg = "The `Set Device Parameters' have not been "
+                    "executed in advance of this command";
+
+            default:
+                sprintf(msgbuf, "unknown, code 0x%02x", buf[1]);
+                msg = msgbuf;
+                break;
+            }
+            if (quell_progress < 2)
+                fprintf(stderr, "%s: stk500v2_command(): warning: %s\n",
+                        progname, msg);
+            buf[1] = STATUS_CMD_OK; /* pretend success */
+        }
         if (buf[1] == STATUS_CMD_OK)
             return status;
         if (buf[1] == STATUS_CMD_FAILED)
@@ -814,7 +806,7 @@ retry:
   // otherwise try to sync up again
   status = stk500v2_getsync(pgm);
   if (status != 0) {
-    if (tries > 33) {
+    if (tries > RETRIES) {
       fprintf(stderr,"%s: stk500v2_command(): failed miserably to execute command 0x%02x\n",
               progname,buf[0]);
       return -1;
@@ -947,15 +939,38 @@ static struct
   { STATUS_CONN_FAIL_SCK, "SCK fail" },
   { STATUS_TGT_NOT_DETECTED, "Target not detected" },
   { STATUS_TGT_REVERSE_INSERTED, "Target reverse inserted" },
-  { STATUS_CONN_FAIL_MOSI | STATUS_CONN_FAIL_RST,
-    "MOSI and RST fail" },
-  { STATUS_CONN_FAIL_MOSI | STATUS_CONN_FAIL_RST | STATUS_CONN_FAIL_SCK,
-    "MOSI, RST, and SCK fail" },
-  { STATUS_CONN_FAIL_RST | STATUS_CONN_FAIL_SCK,
-    "RST and SCK fail" },
-  { STATUS_CONN_FAIL_MOSI | STATUS_CONN_FAIL_SCK,
-    "MOSI and SCK fail" },
 };
+
+/*
+ * Max length of returned message is the sum of all the description
+ * strings in the table above, plus 2 characters for separation.
+ * Currently, this is 76 chars.
+ */
+static void
+stk500v2_translate_conn_status(unsigned char status, char *msg)
+{
+    size_t i;
+    int need_comma;
+
+    *msg = 0;
+    need_comma = 0;
+
+    for (i = 0;
+         i < sizeof connection_status / sizeof connection_status[0];
+         i++)
+    {
+        if ((status & connection_status[i].state) != 0)
+        {
+            if (need_comma)
+                strcat(msg, ", ");
+            strcat(msg, connection_status[i].description);
+            need_comma = 1;
+        }
+    }
+    if (*msg == 0)
+        sprintf(msg, "Unknown status 0x%02x", status);
+}
+
 
 /*
  * issue the 'program enable' command to the AVR device
@@ -963,8 +978,7 @@ static struct
 static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char buf[16];
-  size_t i;
-  const char *msg;
+  char msg[100];             /* see remarks above about size needed */
   int rv;
 
   PDATA(pgm)->lastpart = p;
@@ -980,31 +994,6 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
       /* Activate AVR-style (low active) RESET */
       stk500v2_setparm_real(pgm, PARAM_RESET_POLARITY, 0x01);
 
-  if (PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
-    buf[0] = CMD_CHECK_TARGET_CONNECTION;
-    if (stk500v2_command(pgm, buf, 1, sizeof(buf)) < 0) {
-      fprintf(stderr, "%s: stk500v2_program_enable(): cannot get connection status\n",
-            progname);
-      return -1;
-    }
-    if (buf[2] != STATUS_ISP_READY) {
-      msg = "Unknown";
-
-      for (i = 0;
-           i < sizeof connection_status / sizeof connection_status[0];
-           i++)
-        if (connection_status[i].state == (unsigned)buf[2]) {
-          msg = connection_status[i].description;
-          break;
-        }
-
-      fprintf(stderr, "%s: stk500v2_program_enable():"
-              " bad STK600 connection status: %s (0x%02x)\n",
-            progname, msg, buf[2]);
-      return -1;
-    }
-  }
-
   buf[0] = CMD_ENTER_PROGMODE_ISP;
   buf[1] = p->timeout;
   buf[2] = p->stabdelay;
@@ -1019,26 +1008,26 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
   rv = stk500v2_command(pgm, buf, 12, sizeof(buf));
 
   if (rv < 0) {
-    buf[0] = CMD_CHECK_TARGET_CONNECTION;
-    if (stk500v2_command(pgm, buf, 1, sizeof(buf)) < 0) {
-      fprintf(stderr, "%s: stk500v2_program_enable(): cannot get connection status\n",
-            progname);
-      return -1;
+    switch (PDATA(pgm)->pgmtype)
+    {
+    case PGMTYPE_STK600:
+    case PGMTYPE_AVRISP_MKII:
+        if (stk500v2_getparm(pgm, PARAM_STATUS_TGT_CONN, &buf[0]) != 0) {
+            fprintf(stderr,
+                    "%s: stk500v2_program_enable(): cannot get connection status\n",
+                    progname);
+        } else {
+            stk500v2_translate_conn_status(buf[0], msg);
+            fprintf(stderr, "%s: stk500v2_program_enable():"
+                    " bad AVRISPmkII connection status: %s\n",
+                    progname, msg);
+        }
+        break;
+
+    default:
+        /* cannot report anything for other pgmtypes */
+        break;
     }
-
-    msg = "Unknown";
-
-    for (i = 0;
-	 i < sizeof connection_status / sizeof connection_status[0];
-	 i++)
-      if (connection_status[i].state == (unsigned)buf[2]) {
-	msg = connection_status[i].description;
-	break;
-      }
-
-    fprintf(stderr, "%s: stk500v2_program_enable():"
-	    " bad STK600 connection status: %s (0x%02x)\n",
-            progname, msg, buf[2]);
   }
 
   return rv;
@@ -1285,7 +1274,7 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
   PDATA(pgm)->pgmtype = PGMTYPE_UNKNOWN;
 
   if(strcasecmp(port, "avrdoper") == 0){
-#if defined(HAVE_LIBUSB) || defined(WIN32NATIVE)
+#if defined(HAVE_LIBUSB) || (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
     serdev = &avrdoper_serdev;
     PDATA(pgm)->pgmtype = PGMTYPE_STK500;
 #else
@@ -1313,7 +1302,9 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -1363,7 +1354,9 @@ static int stk600_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -2789,6 +2782,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
 {
   long baud;
   void *mycookie;
+  int rv;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: stk500v2_jtagmkII_open()\n", progname);
@@ -2818,7 +2812,9 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -2827,9 +2823,11 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
 
   mycookie = pgm->cookie;
   pgm->cookie = PDATA(pgm)->chained_pdata;
-  if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
-    fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
-            progname);
+  if ((rv = jtagmkII_getsync(pgm, EMULATOR_MODE_SPI)) != 0) {
+    if (rv != JTAGII_GETSYNC_FAIL_GRACEFUL)
+        fprintf(stderr,
+                "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
+                progname);
     pgm->cookie = mycookie;
     return -1;
   }
@@ -2906,7 +2904,9 @@ static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -2977,7 +2977,9 @@ static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input

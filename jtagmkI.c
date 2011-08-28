@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: jtagmkI.c 859 2009-10-10 22:10:46Z dhoerl $ */
+/* $Id: jtagmkI.c 948 2010-10-22 14:29:56Z springob $ */
 
 /*
  * avrdude interface for Atmel JTAG ICE (mkI) programmer
@@ -673,7 +673,9 @@ static int jtagmkI_open(PROGRAMMER * pgm, char * port)
       fprintf(stderr,
               "%s: jtagmkI_open(): trying to sync at baud rate %ld:\n",
               progname, baudtab[i].baud);
-    serial_open(port, baudtab[i].baud, &pgm->fd);
+    if (serial_open(port, baudtab[i].baud, &pgm->fd)==-1) {
+      return -1;
+    }
 
     /*
      * drain any extraneous input

@@ -36,6 +36,7 @@
 #include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
+#include "config.h"
 #include "usbtiny.h"
 
 #if defined(HAVE_LIBUSB)      // we use LIBUSB to talk to the board
@@ -135,7 +136,7 @@ static int usb_in (PROGRAMMER * pgm,
 static void check_retries (PROGRAMMER * pgm, const char* operation)
 {
   if (PDATA(pgm)->retries > 0 && quell_progress < 2) {
-    printf("%s: %d retries during %s\n", progname,
+    fprintf(stderr, "%s: %d retries during %s\n", progname,
            PDATA(pgm)->retries, operation);
   }
   PDATA(pgm)->retries = 0;
@@ -196,6 +197,22 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
 {
   struct usb_bus      *bus;
   struct usb_device   *dev = 0;
+  char *bus_name = NULL;
+  char *dev_name = NULL;
+
+  // if no -P was given or '-P usb' was given
+  if(name == default_parallel || strcmp(name, "usb") == 0)
+    name = NULL;
+  else {
+    // calculate bus and device names from -P option
+    const size_t usb_len = strlen("usb");
+    if(strncmp(name, "usb", usb_len) == 0 && ':' == name[usb_len]) {
+        bus_name = name + usb_len + 1;
+        dev_name = strchr(bus_name, ':');
+        if(NULL != dev_name)
+          *dev_name++ = '\0';
+    }
+  }
 
   usb_init();                    // initialize the libusb system
   usb_find_busses();             // have libusb scan all the usb busses available
@@ -208,7 +225,14 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
     for	( dev = bus->devices; dev; dev = dev->next ) {
       if (dev->descriptor.idVendor == USBTINY_VENDOR
 	  && dev->descriptor.idProduct == USBTINY_PRODUCT ) {   // found match?
-
+    if(verbose)
+      printf("avrdude: usbdev_open(): Found USBtinyISP, bus:device: %s:%s\n", bus->dirname, dev->filename);
+    // if -P was given, match device by device name and bus name
+    if(name != NULL &&
+      (NULL == dev_name ||
+       strcmp(bus->dirname, bus_name) ||
+       strcmp(dev->filename, dev_name)))
+      continue;
 	PDATA(pgm)->usb_handle = usb_open(dev);           // attempt to connect to device
 
 	// wrong permissions or something?
@@ -221,6 +245,11 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
     }
   }
 
+  if(NULL != name && NULL == dev_name) {
+    fprintf(stderr, "%s: Error: Invalid -P value: '%s'\n", progname, name);
+    fprintf(stderr, "%sUse -P usb:bus:device\n", progbuf);
+    return -1;
+  }
   if (!PDATA(pgm)->usb_handle) {
     fprintf( stderr, "%s: Error: Could not find USBtiny device (0x%x/0x%x)\n",
 	     progname, USBTINY_VENDOR, USBTINY_PRODUCT );
@@ -268,7 +297,7 @@ static int usbtiny_set_sck_period (PROGRAMMER *pgm, double v)
     PDATA(pgm)->sck_period = SCK_MAX;
 
   if (verbose) {
-    printf( "%s: Setting SCK period to %d usec\n", progname,
+    fprintf(stderr, "%s: Setting SCK period to %d usec\n", progname,
 	    PDATA(pgm)->sck_period );
   }
 
@@ -295,7 +324,7 @@ static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
     // -B option not specified: use default
     PDATA(pgm)->sck_period = SCK_DEFAULT;
     if	(verbose) {
-      printf( "%s: Using SCK period of %d usec\n",
+      fprintf(stderr, "%s: Using SCK period of %d usec\n",
 	      progname, PDATA(pgm)->sck_period );
     }
     if (usb_control(pgm,  USBTINY_POWERUP,
@@ -351,7 +380,7 @@ static int usbtiny_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res
   check_retries(pgm, "SPI command");
   if (verbose > 1) {
     // print out the data we sent and received
-    printf( "CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
+    fprintf(stderr, "CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
 	    cmd[0], cmd[1], cmd[2], cmd[3],
 	    res[0], res[1], res[2], res[3] );
   }

@@ -1,10 +1,27 @@
-$Id: NEWS 931 2010-01-19 10:34:39Z joerg_wunsch $
+$Id: NEWS 991 2011-08-26 20:50:32Z joerg_wunsch $
 
 Approximate change log for AVRDUDE by version.
 
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
+Current:
+
+  * New devices supported:
+      - ATmega88P/168P
+      - ATmega8U2/16U2/32U2
+      - ATtiny4313
+
+  * New programmers supported:
+      - TPI programming through bitbang programmers (both, serial
+        and parallel ones)
+      - FT2232 (and relatives) based programmers (MPSSE bitbang mode)
+      - Wiring environment (http://wiring.org.co/)
+      - butterfly-style bootloader of the Mikrokopter.de device
+
+  * Bugfixes
+
+
 Version 5.10:
 
   * Bugfixes

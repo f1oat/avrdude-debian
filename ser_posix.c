@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: ser_posix.c 890 2010-01-08 10:39:18Z joerg_wunsch $ */
+/* $Id: ser_posix.c 949 2010-10-22 14:44:53Z springob $ */
 
 /*
  * Posix serial interface for avrdude.
@@ -152,7 +152,7 @@ static int ser_setspeed(union filedescriptor *fd, long baud)
  * terminal/console server with serial parameters configured
  * appropriately (e. g. 115200-8-N-1 for a STK500.)
  */
-static void
+static int
 net_open(const char *port, union filedescriptor *fdp)
 {
   char *hstr, *pstr, *end;
@@ -164,14 +164,14 @@ net_open(const char *port, union filedescriptor *fdp)
   if ((hstr = strdup(port)) == NULL) {
     fprintf(stderr, "%s: net_open(): Out of memory!\n",
 	    progname);
-    exit(1);
+    return -1;
   }
 
   if (((pstr = strchr(hstr, ':')) == NULL) || (pstr == hstr)) {
     fprintf(stderr, "%s: net_open(): Mangled host:port string \"%s\"\n",
 	    progname, hstr);
     free(hstr);
-    exit(1);
+    return -1;
   }
 
   /*
@@ -185,14 +185,14 @@ net_open(const char *port, union filedescriptor *fdp)
     fprintf(stderr, "%s: net_open(): Bad port number \"%s\"\n",
 	    progname, pstr);
     free(hstr);
-    exit(1);
+    return -1;
   }
 
   if ((hp = gethostbyname(hstr)) == NULL) {
     fprintf(stderr, "%s: net_open(): unknown host \"%s\"\n",
 	    progname, hstr);
     free(hstr);
-    exit(1);
+    return -1;
   }
 
   free(hstr);
@@ -200,7 +200,7 @@ net_open(const char *port, union filedescriptor *fdp)
   if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
     fprintf(stderr, "%s: net_open(): Cannot open socket: %s\n",
 	    progname, strerror(errno));
-    exit(1);
+    return -1;
   }
 
   memset(&sockaddr, 0, sizeof(struct sockaddr_in));
@@ -211,10 +211,11 @@ net_open(const char *port, union filedescriptor *fdp)
   if (connect(fd, (struct sockaddr *)&sockaddr, sizeof(sockaddr))) {
     fprintf(stderr, "%s: net_open(): Connect failed: %s\n",
 	    progname, strerror(errno));
-    exit(1);
+    return -1;
   }
 
   fdp->ifd = fd;
+  return 0;
 }
 
 
@@ -230,12 +231,12 @@ static int ser_set_dtr_rts(union filedescriptor *fdp, int is_on)
   }
 
   if (is_on) {
-    /* Clear DTR and RTS */
-    ctl &= ~(TIOCM_DTR | TIOCM_RTS);
-  }
-  else {
     /* Set DTR and RTS */
     ctl |= (TIOCM_DTR | TIOCM_RTS);
+  }
+  else {
+    /* Clear DTR and RTS */
+    ctl &= ~(TIOCM_DTR | TIOCM_RTS);
   }
 
   r = ioctl(fdp->ifd, TIOCMSET, &ctl);
@@ -247,7 +248,7 @@ static int ser_set_dtr_rts(union filedescriptor *fdp, int is_on)
   return 0;
 }
 
-static void ser_open(char * port, long baud, union filedescriptor *fdp)
+static int ser_open(char * port, long baud, union filedescriptor *fdp)
 {
   int rc;
   int fd;
@@ -257,8 +258,7 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
    * handle it as a TCP connection to a terminal server.
    */
   if (strncmp(port, "net:", strlen("net:")) == 0) {
-    net_open(port + strlen("net:"), fdp);
-    return;
+    return net_open(port + strlen("net:"), fdp);
   }
 
   /*
@@ -268,7 +268,7 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
   if (fd < 0) {
     fprintf(stderr, "%s: ser_open(): can't open device \"%s\": %s\n",
             progname, port, strerror(errno));
-    exit(1);
+    return -1;
   }
 
   fdp->ifd = fd;
@@ -281,8 +281,10 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
     fprintf(stderr, 
             "%s: ser_open(): can't set attributes for device \"%s\": %s\n",
             progname, port, strerror(-rc));
-    exit(1);
+    close(fd);
+    return -1;
   }
+  return 0;
 }
 
 

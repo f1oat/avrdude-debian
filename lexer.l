@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: lexer.l 916 2010-01-15 16:36:13Z joerg_wunsch $ */
+/* $Id: lexer.l 991 2011-08-26 20:50:32Z joerg_wunsch $ */
 
 %{
 /* need this for the call to atof() below */
@@ -120,6 +120,7 @@ allowfullpagebitstream { yylval=NULL; return K_ALLOWFULLPAGEBITSTREAM; }
 arduino          { yylval=NULL; return K_ARDUINO; }
 avr910           { yylval=NULL; return K_AVR910; }
 avr910_devcode   { yylval=NULL; return K_AVR910_DEVCODE; }
+avrftdi          { yylval=NULL; return K_AVRFTDI; }
 usbasp           { yylval=NULL; return K_USBASP; }
 usbtiny          { yylval=NULL; return K_USBTINY; }
 bank_size        { yylval=NULL; return K_PAGE_SIZE; }
@@ -129,11 +130,13 @@ bs2              { yylval=NULL; return K_BS2; }
 buff             { yylval=NULL; return K_BUFF; }
 buspirate        { yylval=NULL; return K_BUSPIRATE; }
 butterfly        { yylval=NULL; return K_BUTTERFLY; }
+butterfly_mk     { yylval=NULL; return K_BUTTERFLY_MK; }
 chip_erase_delay { yylval=NULL; return K_CHIP_ERASE_DELAY; }
 desc             { yylval=NULL; return K_DESC; }
 default_parallel { yylval=NULL; return K_DEFAULT_PARALLEL; }
 default_programmer { yylval=NULL; return K_DEFAULT_PROGRAMMER; }
 default_serial   { yylval=NULL; return K_DEFAULT_SERIAL; }
+default_bitclock { yylval=NULL; return K_DEFAULT_BITCLOCK; }
 devicecode       { yylval=NULL; return K_DEVICECODE; }
 dragon_dw        { yylval=NULL; return K_DRAGON_DW; }
 dragon_hvsp      { yylval=NULL; return K_DRAGON_HVSP; }
@@ -197,8 +200,15 @@ stk600           { yylval=NULL; return K_STK600; }
 stk600hvsp       { yylval=NULL; return K_STK600HVSP; }
 stk600pp         { yylval=NULL; return K_STK600PP; }
 type             { yylval=NULL; return K_TYPE; }
+usbdev           { yylval=NULL; return K_USBDEV; }
+usbpid           { yylval=NULL; return K_USBPID; }
+usbproduct       { yylval=NULL; return K_USBPRODUCT; }
+usbsn            { yylval=NULL; return K_USBSN; }
+usbvendor        { yylval=NULL; return K_USBVENDOR; }
+usbvid           { yylval=NULL; return K_USBVID; }
 vcc              { yylval=NULL; return K_VCC; }
 vfyled           { yylval=NULL; return K_VFYLED; }
+wiring           { yylval=NULL; return K_WIRING; }
 
 timeout          { yylval=NULL; return K_TIMEOUT; }
 stabdelay        { yylval=NULL; return K_STABDELAY; }

@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: serbb_posix.c 917 2010-01-15 16:40:17Z joerg_wunsch $ */
+/* $Id: serbb_posix.c 976 2011-08-23 21:03:36Z joerg_wunsch $ */
 
 /*
  * Posix serial bitbanging interface for avrdude.
@@ -300,6 +300,7 @@ void serbb_initpgm(PROGRAMMER *pgm)
   pgm->program_enable = bitbang_program_enable;
   pgm->chip_erase     = bitbang_chip_erase;
   pgm->cmd            = bitbang_cmd;
+  pgm->cmd_tpi        = bitbang_cmd_tpi;
   pgm->open           = serbb_open;
   pgm->close          = serbb_close;
   pgm->setpin         = serbb_setpin;

@@ -18,7 +18,7 @@
 #
 
 #
-# $Id: Makefile.am 878 2009-11-04 23:42:16Z mludvig $
+# $Id: Makefile.am 987 2011-08-26 20:22:09Z joerg_wunsch $
 #
 
 EXTRA_DIST   = \
@@ -27,6 +27,9 @@ EXTRA_DIST   = \
 	ChangeLog-2002 \
 	ChangeLog-2003 \
 	ChangeLog-2004-2006 \
+	ChangeLog-2007 \
+	ChangeLog-2008 \
+	ChangeLog-2009 \
 	avrdude.1 \
 	avrdude.spec \
 	bootstrap
@@ -35,6 +38,8 @@ CLEANFILES = \
 	config_gram.c \
 	config_gram.h \
 	lexer.c
+
+BUILT_SOURCES = $(CLEANFILES)
 
 #SUBDIRS      = doc @WINDOWS_DIRS@
 #DIST_SUBDIRS = doc windows
@@ -53,7 +58,7 @@ avrdude_CFLAGS   = @ENABLE_WARNINGS@
 
 libavrdude_a_CFLAGS   = @ENABLE_WARNINGS@
 
-avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB@ @LIBHID@ -lm
+avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB@ @LIBUSB_1_0@ @LIBFTDI@ @LIBHID@ -lm
 
 bin_PROGRAMS = avrdude
 
@@ -84,6 +89,8 @@ libavrdude_a_SOURCES = \
 	avr910.c \
 	avr910.h \
 	avrdude.h \
+	avrftdi.c \
+	avrftdi.h \
 	avrpart.c \
 	avrpart.h \
 	bitbang.c \
@@ -137,6 +144,7 @@ libavrdude_a_SOURCES = \
 	stk500v2_private.h \
 	stk500generic.c \
 	stk500generic.h \
+	tpi.h \
 	usbasp.c \
 	usbasp.h \
 	usbdevs.h \
@@ -144,7 +152,9 @@ libavrdude_a_SOURCES = \
 	usbtiny.h \
 	usbtiny.c \
 	update.h \
-	update.c
+	update.c \
+	wiring.h \
+	wiring.c
 
 avrdude_SOURCES = \
 	main.c \

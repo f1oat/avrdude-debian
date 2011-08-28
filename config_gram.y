@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: config_gram.y 916 2010-01-15 16:36:13Z joerg_wunsch $ */
+/* $Id: config_gram.y 991 2011-08-26 20:50:32Z joerg_wunsch $ */
 %{
 
 #include "ac_cfg.h"
@@ -40,6 +40,7 @@
 #include "arduino.h"
 #include "buspirate.h"
 #include "stk500v2.h"
+#include "wiring.h"
 #include "stk500generic.h"
 #include "avr910.h"
 #include "butterfly.h"
@@ -48,6 +49,7 @@
 #include "avr.h"
 #include "jtagmkI.h"
 #include "jtagmkII.h"
+#include "avrftdi.h"
 
 #if defined(WIN32NATIVE)
 #define strtok_r( _s, _sep, _lasts ) \
@@ -82,6 +84,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_PAGED
 
 %token K_ARDUINO
+%token K_AVRFTDI
 %token K_BAUDRATE
 %token K_BS2
 %token K_BUFF
@@ -91,6 +94,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_DEFAULT_PARALLEL
 %token K_DEFAULT_PROGRAMMER
 %token K_DEFAULT_SERIAL
+%token K_DEFAULT_BITCLOCK
 %token K_DESC
 %token K_DEVICECODE
 %token K_DRAGON_DW
@@ -149,11 +153,19 @@ static int parse_cmdbits(OPCODE * op);
 %token K_STK600PP
 %token K_AVR910
 %token K_USBASP
+%token K_USBDEV
+%token K_USBSN
 %token K_USBTINY
+%token K_USBPID
+%token K_USBPRODUCT
+%token K_USBVENDOR
+%token K_USBVID
 %token K_BUTTERFLY
+%token K_BUTTERFLY_MK
 %token K_TYPE
 %token K_VCC
 %token K_VFYLED
+%token K_WIRING
 
 %token K_NO
 %token K_YES
@@ -262,6 +274,11 @@ def :
   K_DEFAULT_SERIAL TKN_EQUAL TKN_STRING TKN_SEMI {
     strncpy(default_serial, $3->value.string, PATH_MAX);
     default_serial[PATH_MAX-1] = 0;
+    free_token($3);
+  } |
+
+  K_DEFAULT_BITCLOCK TKN_EQUAL TKN_NUMBER TKN_SEMI {
+    default_bitclock = $3->value.number;
     free_token($3);
   }
 ;
@@ -408,6 +425,12 @@ prog_parm :
     }
   } |
 
+  K_TYPE TKN_EQUAL K_WIRING {
+    {
+      wiring_initpgm(current_prog);
+    }
+  } |
+
   K_TYPE TKN_EQUAL K_STK500HVSP {
     {
       stk500hvsp_initpgm(current_prog);
@@ -429,6 +452,12 @@ prog_parm :
   K_TYPE TKN_EQUAL K_ARDUINO {
     { 
       arduino_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_AVRFTDI {
+    {
+      avrftdi_initpgm(current_prog);
     }
   } |
 
@@ -477,6 +506,12 @@ prog_parm :
   K_TYPE TKN_EQUAL K_BUTTERFLY {
     { 
       butterfly_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_BUTTERFLY_MK {
+    { 
+      butterfly_mk_initpgm(current_prog);
     }
   } |
 
@@ -590,7 +625,49 @@ prog_parm :
       }
     }
   } |
+  K_USBDEV TKN_EQUAL TKN_STRING {
+    {
+      strncpy(current_prog->usbdev, $3->value.string, PGM_USBSTRINGLEN);
+      current_prog->usbdev[PGM_USBSTRINGLEN-1] = 0;
+      free_token($3);
+    }
+  } |
+  K_USBVID TKN_EQUAL TKN_NUMBER {
+    {
+      current_prog->usbvid = $3->value.number;
+    }
+  } |
 
+  K_USBPID TKN_EQUAL TKN_NUMBER {
+    {
+      current_prog->usbpid = $3->value.number;
+    }
+  } |
+
+  K_USBSN TKN_EQUAL TKN_STRING {
+    {
+      strncpy(current_prog->usbsn, $3->value.string, PGM_USBSTRINGLEN);
+      current_prog->usbsn[PGM_USBSTRINGLEN-1] = 0;
+      free_token($3);
+    }
+  } |
+  
+  K_USBVENDOR TKN_EQUAL TKN_STRING {
+    {
+      strncpy(current_prog->usbvendor, $3->value.string, PGM_USBSTRINGLEN);
+      current_prog->usbvendor[PGM_USBSTRINGLEN-1] = 0;
+      free_token($3);
+    }
+  } |
+
+  K_USBPRODUCT TKN_EQUAL TKN_STRING {
+    {
+      strncpy(current_prog->usbproduct, $3->value.string, PGM_USBSTRINGLEN);
+      current_prog->usbproduct[PGM_USBSTRINGLEN-1] = 0;
+      free_token($3);
+    }
+  } |
+  
   K_BAUDRATE TKN_EQUAL TKN_NUMBER {
     {
       current_prog->baudrate = $3->value.number;

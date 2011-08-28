@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: stk500.c 845 2009-10-10 01:41:40Z mludvig $ */
+/* $Id: stk500.c 948 2010-10-22 14:29:56Z springob $ */
 
 /*
  * avrdude interface for Atmel STK500 programmer
@@ -657,7 +657,9 @@ static void stk500_enable(PROGRAMMER * pgm)
 static int stk500_open(PROGRAMMER * pgm, char * port)
 {
   strcpy(pgm->port, port);
-  serial_open(port, pgm->baudrate? pgm->baudrate: 115200, &pgm->fd);
+  if (serial_open(port, pgm->baudrate? pgm->baudrate: 115200, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
