@@ -12,7 +12,8 @@ Build-Depends:
  bison,
  libncurses5-dev,
  libreadline-dev,
- libusb-dev
+ libusb-dev,
+ libftdi-dev
 Standards-Version: 3.9.2
 Vcs-Git: git://git.debian.org/git/users/biebl/avrdude.git
 Vcs-Browser: http://git.debian.org/?p=users/biebl/avrdude.git;a=summary
