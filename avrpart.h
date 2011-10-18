@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avrpart.h 916 2010-01-15 16:36:13Z joerg_wunsch $ */
+/* $Id: avrpart.h 1012 2011-09-15 14:57:51Z joerg_wunsch $ */
 
 #ifndef avrpart_h
 #define avrpart_h
@@ -93,6 +93,7 @@ typedef struct opcode {
 #define AVRPART_INIT_SMC       0x0200  /* part will undergo chip erase */
 #define AVRPART_WRITE          0x0400  /* at least one write operation specified */
 #define AVRPART_HAS_TPI        0x0800  /* part has TPI i/f rather than ISP (ATtiny4/5/9/10) */
+#define AVRPART_IS_AT90S1200   0x1000  /* part is an AT90S1200 (needs special treatment) */
 
 #define AVR_DESCLEN 64
 #define AVR_IDLEN   32

@@ -7,7 +7,7 @@ END-INFO-DIR-ENTRY
 
    This file documents the avrdude program.
 
-   For avrdude version 5.11, 26 August 2011.
+   For avrdude version 5.11.1, 15 September 2011.
 
    Copyright (C) 2003, 2005 Brian Dean
 
@@ -36,7 +36,7 @@ File: avrdude.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
    This file documents the avrdude program for downloading/uploading
 programs to Atmel AVR microcontrollers.
 
-   For avrdude version 5.11, 26 August 2011.
+   For avrdude version 5.11.1, 15 September 2011.
 
    Send comments on AVRDUDE to <avrdude-dev@nongnu.org>.
 
@@ -225,7 +225,7 @@ following options are recognized:
      programming specifications.  Currently, the following MCU types
      are understood:
 
-     `1200'     AT90S1200
+     `1200'     AT90S1200 (****)
      `2313'     AT90S2313
      `2333'     AT90S2333
      `2343'     AT90S2343 (*)
@@ -334,6 +334,11 @@ following options are recognized:
 
      (***) The ATtiny11 uses the same algorithm, but can only be
      programmed in high-voltage serial mode.
+
+     (****) The ISP programming protocol of the AT90S1200 differs in
+     subtle ways from that of other AVRs.  Thus, not all programmers
+     support this device.  Known to work are all direct bitbang
+     programmers, and all programmers talking the STK500v2 protocol.
 
 `-b BAUDRATE'
      Override the RS-232 connection baud rate specified in the
@@ -1658,8 +1663,8 @@ A.1.1 Unix Installation
 
 To build and install from the source tarball on Unix like systems:
 
-     $ gunzip -c avrdude-5.11.tar.gz | tar xf -
-     $ cd avrdude-5.11
+     $ gunzip -c avrdude-5.11.1.tar.gz | tar xf -
+     $ cd avrdude-5.11.1
      $ ./configure
      $ make
      $ su root -c 'make install'
@@ -1671,8 +1676,8 @@ variable.
    If you do not have root access to your system, you can do the the
 following instead:
 
-     $ gunzip -c avrdude-5.11.tar.gz | tar xf -
-     $ cd avrdude-5.11
+     $ gunzip -c avrdude-5.11.1.tar.gz | tar xf -
+     $ cd avrdude-5.11.1
      $ ./configure --prefix=$HOME/local
      $ make
      $ make install
@@ -1714,8 +1719,8 @@ On rpm based Linux systems (such as RedHat, SUSE, Mandrake, etc), you
 can build and install the rpm binaries directly from the tarball:
 
      $ su - root
-     # rpmbuild -tb avrdude-5.11.tar.gz
-     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.11-1.i386.rpm
+     # rpmbuild -tb avrdude-5.11.1.tar.gz
+     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-5.11.1-1.i386.rpm
 
    Note that the path to the resulting rpm package, differs from system
 to system. The above example is specific to RedHat.
@@ -1829,8 +1834,8 @@ Cygwin):
 
      $ set PREFIX=<your install directory path>
      $ export PREFIX
-     $ gunzip -c avrdude-5.11.tar.gz | tar xf -
-     $ cd avrdude-5.11
+     $ gunzip -c avrdude-5.11.1.tar.gz | tar xf -
+     $ cd avrdude-5.11.1
      $ ./configure LDFLAGS="-static" --prefix=$PREFIX --datadir=$PREFIX
      --sysconfdir=$PREFIX/bin --enable-versioned-doc=no
      $ make
@@ -2290,47 +2295,47 @@ In general, please report any bugs encountered via
 
 
 Tag Table:
-Node: Top1231
-Node: Introduction1871
-Node: History7634
-Node: Command Line Options8867
-Node: Option Descriptions9145
-Node: Programmers accepting extended parameters34291
-Node: Example Command Line Invocations37879
-Node: Terminal Mode Operation42584
-Node: Terminal Mode Commands43321
-Node: Terminal Mode Examples46388
-Node: Configuration File49572
-Node: AVRDUDE Defaults50991
-Node: Programmer Definitions51707
-Node: Part Definitions52868
-Node: Instruction Format54788
-Node: Other Notes56175
-Node: Programmer Specific Information58353
-Node: Atmel STK60058587
-Node: Platform Dependent Information66576
-Node: Unix66827
-Node: Unix Installation67077
-Node: FreeBSD Installation67877
-Node: Linux Installation68509
-Node: Unix Configuration Files69052
-Node: FreeBSD Configuration Files69686
-Node: Linux Configuration Files70045
-Node: Unix Port Names70360
-Node: Unix Documentation71351
-Node: Windows71878
-Node: Windows Installation72140
-Node: Windows Configuration Files73401
-Node: Configuration file names73668
-Node: How AVRDUDE finds the configuration files.74058
-Node: Windows Port Names74848
-Node: Serial Ports75060
-Node: Parallel Ports75347
-Node: Using the parallel port76116
-Node: Windows NT/2K/XP76343
-Node: Windows 95/9877849
-Node: Documentation78052
-Node: Credits.78608
-Node: Troubleshooting78941
+Node: Top1236
+Node: Introduction1881
+Node: History7644
+Node: Command Line Options8877
+Node: Option Descriptions9155
+Node: Programmers accepting extended parameters34580
+Node: Example Command Line Invocations38168
+Node: Terminal Mode Operation42873
+Node: Terminal Mode Commands43610
+Node: Terminal Mode Examples46677
+Node: Configuration File49861
+Node: AVRDUDE Defaults51280
+Node: Programmer Definitions51996
+Node: Part Definitions53157
+Node: Instruction Format55077
+Node: Other Notes56464
+Node: Programmer Specific Information58642
+Node: Atmel STK60058876
+Node: Platform Dependent Information66865
+Node: Unix67116
+Node: Unix Installation67366
+Node: FreeBSD Installation68174
+Node: Linux Installation68806
+Node: Unix Configuration Files69353
+Node: FreeBSD Configuration Files69987
+Node: Linux Configuration Files70346
+Node: Unix Port Names70661
+Node: Unix Documentation71652
+Node: Windows72179
+Node: Windows Installation72441
+Node: Windows Configuration Files73706
+Node: Configuration file names73973
+Node: How AVRDUDE finds the configuration files.74363
+Node: Windows Port Names75153
+Node: Serial Ports75365
+Node: Parallel Ports75652
+Node: Using the parallel port76421
+Node: Windows NT/2K/XP76648
+Node: Windows 95/9878154
+Node: Documentation78357
+Node: Credits.78913
+Node: Troubleshooting79246
 
 End Tag Table
