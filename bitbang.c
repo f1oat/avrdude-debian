@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* $Id: bitbang.c 978 2011-08-24 07:40:48Z joerg_wunsch $ */
+/* $Id: bitbang.c 1012 2011-09-15 14:57:51Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -606,7 +606,7 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
    * order to possibly get back into sync with the chip if we are out
    * of sync.
    */
-  if (strcmp(p->desc, "AT90S1200")==0) {
+  if (p->flags & AVRPART_IS_AT90S1200) {
     pgm->program_enable(pgm, p);
   }
   else {

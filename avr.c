@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: avr.c 978 2011-08-24 07:40:48Z joerg_wunsch $ */
+/* $Id: avr.c 1012 2011-09-15 14:57:51Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -239,12 +239,8 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   memset(buf, 0xff, size);
 
   /* supports "paged load" thru post-increment */
-  if ((p->flags & AVRPART_HAS_TPI) && mem->page_size != 0) {
-    if (pgm->cmd_tpi == NULL) {
-      fprintf(stderr, "%s: Error: %s programmer does not support TPI\n",
-          progname, pgm->type);
-      return -1;
-    }
+  if ((p->flags & AVRPART_HAS_TPI) && mem->page_size != 0 &&
+      pgm->cmd_tpi != NULL) {
 
     while (avr_tpi_poll_nvmbsy(pgm));
 
@@ -443,11 +439,17 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     return 0;
   }
 
-  if (!mem->paged) {
+  if (!mem->paged &&
+      (p->flags & AVRPART_IS_AT90S1200) == 0) {
     /* 
      * check to see if the write is necessary by reading the existing
      * value and only write if we are changing the value; we can't
      * use this optimization for paged addressing.
+     *
+     * For mysterious reasons, on the AT90S1200, this read operation
+     * sometimes causes the high byte of the same word to be
+     * programmed to the value of the low byte that has just been
+     * programmed before.  Avoid that optimization on this device.
      */
     rc = pgm->read_byte(pgm, p, mem, addr, &b);
     if (rc != 0) {
@@ -708,13 +710,8 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   }
 
 
-  if ((p->flags & AVRPART_HAS_TPI) && m->page_size != 0) {
-    if (pgm->cmd_tpi == NULL) {
-      fprintf(stderr,
-          "%s: Error: %s programmer does not support TPI\n",
-          progname, pgm->type);
-      return -1;
-    }
+  if ((p->flags & AVRPART_HAS_TPI) && m->page_size != 0 &&
+      pgm->cmd_tpi != NULL) {
 
     while (avr_tpi_poll_nvmbsy(pgm));
 

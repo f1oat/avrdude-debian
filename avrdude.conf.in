@@ -1,4 +1,4 @@
-# $Id: avrdude.conf.in 991 2011-08-26 20:50:32Z joerg_wunsch $ -*- text -*-
+# $Id: avrdude.conf.in 1012 2011-09-15 14:57:51Z joerg_wunsch $ -*- text -*-
 #
 # AVRDUDE Configuration File
 #
@@ -1523,6 +1523,7 @@ part
 part
     id               = "1200";
     desc             = "AT90S1200";
+    is_at90s1200     = yes;
     stk500_devcode   = 0x33;
     avr910_devcode   = 0x13;
     signature        = 0x1e 0x90 0x01;

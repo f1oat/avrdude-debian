@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: lexer.l 991 2011-08-26 20:50:32Z joerg_wunsch $ */
+/* $Id: lexer.l 1012 2011-09-15 14:57:51Z joerg_wunsch $ */
 
 %{
 /* need this for the call to atof() below */
@@ -155,6 +155,7 @@ has_pdi          { yylval=NULL; return K_HAS_PDI; }
 has_tpi          { yylval=NULL; return K_HAS_TPI; }
 id               { yylval=NULL; return K_ID; }
 idr              { yylval=NULL; return K_IDR; }
+is_at90s1200     { yylval=NULL; return K_IS_AT90S1200; }
 is_avr32         { yylval=NULL; return K_IS_AVR32; }
 jtagmki          { yylval=NULL; return K_JTAG_MKI; }
 jtagmkii         { yylval=NULL; return K_JTAG_MKII; }
