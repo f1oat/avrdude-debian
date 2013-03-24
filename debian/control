@@ -15,8 +15,8 @@ Build-Depends:
  libusb-dev,
  libftdi-dev
 Standards-Version: 3.9.2
-Vcs-Git: git://git.debian.org/git/users/biebl/avrdude.git
-Vcs-Browser: http://git.debian.org/?p=users/biebl/avrdude.git;a=summary
+Vcs-Git: git://anonscm.debian.org/collab-maint/avrdude.git
+Vcs-Browser: http://anonscm.debian.org/gitweb/?p=collab-maint/avrdude.git;a=summary
 Homepage: http://savannah.nongnu.org/projects/avrdude/
 
 Package: avrdude
