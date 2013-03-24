@@ -3,7 +3,7 @@ Section: electronics
 Priority: extra
 Maintainer: Michael Biebl <biebl@debian.org>
 Build-Depends:
- debhelper (>= 8),
+ debhelper (>= 9),
  autotools-dev (>= 20100122.1),
  texi2html,
  texinfo,
