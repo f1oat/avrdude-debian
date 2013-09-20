@@ -2,6 +2,8 @@ avrdude (6.0.1-1) UNRELEASED; urgency=low
 
   * New upstream release.
   * Add Build-Depends on libelf-dev to enable support for reading ELF files.
+  * Enable the Linux sysfs GPIO interface programmer type when building on
+    Linux.
 
  -- Michael Biebl <biebl@debian.org>  Fri, 20 Sep 2013 19:54:53 +0200
 
