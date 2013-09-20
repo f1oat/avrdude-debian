@@ -4,18 +4,18 @@ Description: Fix paths in the man page
 Author: Michael Biebl <biebl@debian.org>
 Index: avrdude/avrdude.1
 ===================================================================
---- avrdude.orig/avrdude.1	2011-08-28 14:06:33.475704194 +0200
-+++ avrdude/avrdude.1	2011-08-28 14:07:36.318914148 +0200
-@@ -362,7 +362,7 @@
+--- avrdude.orig/avrdude.1	2013-09-20 19:55:14.467002928 +0200
++++ avrdude/avrdude.1	2013-09-20 19:55:14.463002740 +0200
+@@ -287,7 +287,7 @@
  does not know about, you can add it to the config file (be sure and
  submit a patch back to the author so that it can be incorporated for
  the next version).  See the config file, located at
 -.Pa ${PREFIX}/etc/avrdude.conf ,
 +.Pa /etc/avrdude.conf ,
  which contains a description of the format.
- .It Fl D
- Disable auto erase for flash.  When the
-@@ -1007,7 +1007,7 @@
+ .Pp
+ If 
+@@ -1010,7 +1010,7 @@
  .It Pa /dev/ppi0
  default device to be used for communication with the programming
  hardware
@@ -24,7 +24,7 @@ Index: avrdude/avrdude.1
  programmer and parts configuration file
  .It Pa ${HOME}/.avrduderc
  programmer and parts configuration file (per-user overrides)
-@@ -1015,7 +1015,7 @@
+@@ -1018,7 +1018,7 @@
  Initialization file for the
  .Xr readline 3
  library
