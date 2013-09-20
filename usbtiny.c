@@ -13,8 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -40,7 +39,13 @@
 #include "usbtiny.h"
 
 #if defined(HAVE_LIBUSB)      // we use LIBUSB to talk to the board
-#include <usb.h>
+#if defined(HAVE_USB_H)
+#  include <usb.h>
+#elif defined(HAVE_LUSB0_USB_H)
+#  include <lusb0_usb.h>
+#else
+#  error "libusb needs either <usb.h> or <lusb0_usb.h>"
+#endif
 
 #ifndef HAVE_UINT_T
 typedef	unsigned int	uint_t;
@@ -175,7 +180,7 @@ static int usb_out (PROGRAMMER * pgm,
 // to get the information from AvrDude and send to the USBtiny
 static int usbtiny_avr_op (PROGRAMMER * pgm, AVRPART * p,
 			   int op,
-			   unsigned char res[4])
+			   unsigned char *res)
 {
   unsigned char	cmd[4];
 
@@ -199,9 +204,10 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
   struct usb_device   *dev = 0;
   char *bus_name = NULL;
   char *dev_name = NULL;
+  int vid, pid;
 
   // if no -P was given or '-P usb' was given
-  if(name == default_parallel || strcmp(name, "usb") == 0)
+  if(strcmp(name, "usb") == 0)
     name = NULL;
   else {
     // calculate bus and device names from -P option
@@ -220,13 +226,26 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
 
   PDATA(pgm)->usb_handle = NULL;
 
+  if (pgm->usbvid)
+    vid = pgm->usbvid;
+  else
+    vid = USBTINY_VENDOR_DEFAULT;
+  
+  if (pgm->usbpid)
+    pid = pgm->usbpid;
+  else
+    pid = USBTINY_PRODUCT_DEFAULT;
+  
+
   // now we iterate through all the busses and devices
   for ( bus = usb_busses; bus; bus = bus->next ) {
     for	( dev = bus->devices; dev; dev = dev->next ) {
-      if (dev->descriptor.idVendor == USBTINY_VENDOR
-	  && dev->descriptor.idProduct == USBTINY_PRODUCT ) {   // found match?
+      if (dev->descriptor.idVendor == vid
+	  && dev->descriptor.idProduct == pid ) {   // found match?
     if(verbose)
-      printf("avrdude: usbdev_open(): Found USBtinyISP, bus:device: %s:%s\n", bus->dirname, dev->filename);
+      fprintf(stderr,
+	      "%s: usbdev_open(): Found USBtinyISP, bus:device: %s:%s\n",
+	      progname, bus->dirname, dev->filename);
     // if -P was given, match device by device name and bus name
     if(name != NULL &&
       (NULL == dev_name ||
@@ -252,7 +271,7 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
   }
   if (!PDATA(pgm)->usb_handle) {
     fprintf( stderr, "%s: Error: Could not find USBtiny device (0x%x/0x%x)\n",
-	     progname, USBTINY_VENDOR, USBTINY_PRODUCT );
+	     progname, vid, pid );
     return -1;
   }
 
@@ -364,7 +383,7 @@ static void usbtiny_powerdown(PROGRAMMER * pgm)
 
 /* Send a 4-byte SPI command to the USBtinyISP for execution
    This procedure is used by higher-level Avrdude procedures */
-static int usbtiny_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res[4])
+static int usbtiny_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res)
 {
   int nbytes;
 
@@ -423,9 +442,10 @@ static void usbtiny_disable ( PROGRAMMER* pgm ) {}
  *  per byte
 */
 static int usbtiny_paged_load (PROGRAMMER * pgm, AVRPART * p, AVRMEM* m,
-				    int page_size, int n_bytes )
+                               unsigned int page_size,
+                               unsigned int addr, unsigned int n_bytes)
 {
-  int i;
+  unsigned int maxaddr = addr + n_bytes;
   int chunk;
   int function;
 
@@ -437,29 +457,22 @@ static int usbtiny_paged_load (PROGRAMMER * pgm, AVRPART * p, AVRMEM* m,
     function = USBTINY_EEPROM_READ;
   }
 
-  for (i = 0; i < n_bytes; i += chunk) {
+  for (; addr < maxaddr; addr += chunk) {
     chunk = PDATA(pgm)->chunk_size;         // start with the maximum chunk size possible
-
-    // If we want to xmit less than a chunk, thats OK
-    if	(chunk > n_bytes-i)
-      chunk = n_bytes - i;
 
     // Send the chunk of data to the USBtiny with the function we want
     // to perform
     if (usb_in(pgm,
 	       function,          // EEPROM or flash
 	       0,                 // delay between SPI commands
-	       i,                 // index
-	       m->buf + i,        // pointer to where we store data
+	       addr,              // address in memory
+	       m->buf + addr,     // pointer to where we store data
 	       chunk,             // number of bytes
 	       32 * PDATA(pgm)->sck_period)  // each byte gets turned into a 4-byte SPI cmd
 	< 0) {
                               // usb_in() multiplies this per byte.
       return -1;
     }
-
-    // Tell avrdude how we're doing to provide user feedback
-    report_progress(i + chunk, n_bytes, NULL );
   }
 
   check_retries(pgm, "read");
@@ -472,9 +485,10 @@ static int usbtiny_paged_load (PROGRAMMER * pgm, AVRPART * p, AVRMEM* m,
  *  per byte.
 */
 static int usbtiny_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-			       int page_size, int n_bytes)
+                               unsigned int page_size,
+                               unsigned int addr, unsigned int n_bytes)
 {
-  int i;
+  unsigned int maxaddr = addr + n_bytes;
   int chunk;        // Size of data to write at once
   int next;
   int function;     // which SPI command to use
@@ -489,14 +503,15 @@ static int usbtiny_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   delay = 0;
   if (! m->paged) {
+    unsigned int poll_value;
     // Does this chip not support paged writes?
-    i = (m->readback[1] << 8) | m->readback[0];
-    if (usb_control(pgm, USBTINY_POLL_BYTES, i, 0 ) < 0)
+    poll_value = (m->readback[1] << 8) | m->readback[0];
+    if (usb_control(pgm, USBTINY_POLL_BYTES, poll_value, 0 ) < 0)
       return -1;
     delay = m->max_write_delay;
   }
 
-  for (i=0; i < n_bytes; i=next) {
+  for (; addr < maxaddr; addr += chunk) {
     // start with the max chunk size
     chunk = PDATA(pgm)->chunk_size;
 
@@ -504,15 +519,11 @@ static int usbtiny_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     if (m->paged && chunk > page_size)
       chunk = page_size;
 
-    // if there's less data remaining than one chunk
-    if (chunk > n_bytes-i)
-      chunk = n_bytes - i;
-
     if (usb_out(pgm,
 		function,       // Flash or EEPROM
 		delay,          // How much to wait between each byte
-		i,              // Index of data
-		m->buf + i,     // Pointer to data
+		addr,           // Address in memory
+		m->buf + addr,  // Pointer to data
 		chunk,          // Number of bytes to write
 		32 * PDATA(pgm)->sck_period + delay  // each byte gets turned into a
 	                             // 4-byte SPI cmd  usb_out() multiplies
@@ -521,19 +532,17 @@ static int usbtiny_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       return -1;
     }
 
-    next = i + chunk;       // Calculate what address we're at now
+    next = addr + chunk;       // Calculate what address we're at now
     if (m->paged
-	&& ((next % page_size) == 0 || next == n_bytes) ) {
+	&& ((next % page_size) == 0 || next == maxaddr) ) {
       // If we're at a page boundary, send the SPI command to flush it.
-      avr_write_page(pgm, p, m, (unsigned long) i);
+      avr_write_page(pgm, p, m, (unsigned long) addr);
     }
-
-    report_progress( next, n_bytes, NULL );
   }
   return n_bytes;
 }
 
-extern void usbtiny_initpgm ( PROGRAMMER* pgm )
+void usbtiny_initpgm ( PROGRAMMER* pgm )
 {
   strcpy(pgm->type, "USBtiny");
 
@@ -579,3 +588,6 @@ void usbtiny_initpgm(PROGRAMMER * pgm)
 }
 
 #endif /* HAVE_LIBUSB */
+
+const char usbtiny_desc[] = "Driver for \"usbtiny\"-type programmers";
+

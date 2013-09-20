@@ -13,11 +13,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: par.c 985 2011-08-26 12:35:08Z joerg_wunsch $ */
+/* $Id: par.c 1160 2013-05-03 22:35:00Z rliebscher $ */
 
 #include "ac_cfg.h"
 
@@ -42,6 +41,7 @@
 #include "pgm.h"
 #include "ppi.h"
 #include "bitbang.h"
+#include "par.h"
 
 #if HAVE_PARPORT
 
@@ -105,11 +105,14 @@ static int par_setpin(PROGRAMMER * pgm, int pin, int value)
 
 static void par_setmany(PROGRAMMER * pgm, unsigned int pinset, int value)
 {
-  int pin;
+  int pin, mask;
+
+  /* mask is anything non-pin - needs to be applied to each par_setpin to preserve inversion */
+  mask = pinset & (~PIN_MASK);
 
   for (pin = 1; pin <= 17; pin++) {
     if (pinset & (1 << pin))
-      par_setpin(pgm, pin, value);
+      par_setpin(pgm, pin | mask, value);
   }
 }
 
@@ -175,25 +178,6 @@ static int par_highpulsepin(PROGRAMMER * pgm, int pin)
   }
 
   return 0;
-}
-
-static char * pins_to_str(unsigned int pmask)
-{
-  static char buf[64];
-  int pin;
-  char b2[8];
-
-  buf[0] = 0;
-  for (pin = 1; pin <= 17; pin++) {
-    if (pmask & (1 << pin)) {
-      sprintf(b2, "%d", pin);
-      if (buf[0] != 0)
-        strcat(buf, ",");
-      strcat(buf, b2);
-    }
-  }
-
-  return buf;
 }
 
 /*
@@ -336,52 +320,6 @@ static void par_close(PROGRAMMER * pgm)
   pgm->fd.ifd = -1;
 }
 
-static void par_display(PROGRAMMER * pgm, const char * p)
-{
-  char vccpins[64];
-  char buffpins[64];
-
-  if (pgm->pinno[PPI_AVR_VCC]) {
-    snprintf(vccpins, sizeof(vccpins), "%s",
-             pins_to_str(pgm->pinno[PPI_AVR_VCC]));
-  }
-  else {
-    strcpy(vccpins, " (not used)");
-  }
-
-  if (pgm->pinno[PPI_AVR_BUFF]) {
-    snprintf(buffpins, sizeof(buffpins), "%s",
-             pins_to_str(pgm->pinno[PPI_AVR_BUFF]));
-  }
-  else {
-    strcpy(buffpins, " (not used)");
-  }
-
-  fprintf(stderr, 
-          "%s  VCC     = %s\n"
-          "%s  BUFF    = %s\n"
-          "%s  RESET   = %d\n"
-          "%s  SCK     = %d\n"
-          "%s  MOSI    = %d\n"
-          "%s  MISO    = %d\n"
-          "%s  ERR LED = %d\n"
-          "%s  RDY LED = %d\n"
-          "%s  PGM LED = %d\n"
-          "%s  VFY LED = %d\n",
-
-          p, vccpins,
-          p, buffpins,
-          p, pgm->pinno[PIN_AVR_RESET],
-          p, pgm->pinno[PIN_AVR_SCK],
-          p, pgm->pinno[PIN_AVR_MOSI],
-          p, pgm->pinno[PIN_AVR_MISO],
-          p, pgm->pinno[PIN_LED_ERR],
-          p, pgm->pinno[PIN_LED_RDY],
-          p, pgm->pinno[PIN_LED_PGM],
-          p, pgm->pinno[PIN_LED_VFY]);
-}
-
-
 /*
  * parse the -E string
  */
@@ -421,6 +359,8 @@ void par_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "PPI");
 
+  pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
+
   pgm->exit_vcc = EXIT_VCC_UNSPEC;
   pgm->exit_reset = EXIT_RESET_UNSPEC;
   pgm->exit_datahigh = EXIT_DATAHIGH_UNSPEC;
@@ -430,7 +370,7 @@ void par_initpgm(PROGRAMMER * pgm)
   pgm->pgm_led        = bitbang_pgm_led;
   pgm->vfy_led        = bitbang_vfy_led;
   pgm->initialize     = bitbang_initialize;
-  pgm->display        = par_display;
+  pgm->display        = pgm_display_generic;
   pgm->enable         = par_enable;
   pgm->disable        = par_disable;
   pgm->powerup        = par_powerup;
@@ -460,3 +400,5 @@ void par_initpgm(PROGRAMMER * pgm)
 }
 
 #endif /* HAVE_PARPORT */
+
+const char par_desc[] = "Parallel port bitbanging";

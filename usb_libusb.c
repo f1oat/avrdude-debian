@@ -14,11 +14,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: usb_libusb.c 954 2011-05-11 20:42:27Z joerg_wunsch $ */
+/* $Id: usb_libusb.c 1228 2013-09-13 19:56:07Z joerg_wunsch $ */
 
 /*
  * USB interface via libusb for avrdude.
@@ -36,7 +35,13 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-#include <usb.h>
+#if defined(HAVE_USB_H)
+#  include <usb.h>
+#elif defined(HAVE_LUSB0_USB_H)
+#  include <lusb0_usb.h>
+#else
+#  error "libusb needs either <usb.h> or <lusb0_usb.h>"
+#endif
 
 #include "avrdude.h"
 #include "serial.h"
@@ -47,7 +52,7 @@
 #  undef interface
 #endif
 
-static char usbbuf[USBDEV_MAX_XFER];
+static char usbbuf[USBDEV_MAX_XFER_3];
 static int buflen = -1, bufptr;
 
 static int usb_interface;
@@ -98,6 +103,9 @@ static int usbdev_open(char * port, long baud, union filedescriptor *fd)
 	}
     }
 
+  if (fd->usb.max_xfer == 0)
+    fd->usb.max_xfer = USBDEV_MAX_XFER_MKII;
+
   usb_init();
 
   usb_find_busses();
@@ -107,11 +115,11 @@ static int usbdev_open(char * port, long baud, union filedescriptor *fd)
     {
       for (dev = bus->devices; dev; dev = dev->next)
 	{
-	  udev = usb_open(dev);
-	  if (udev)
+	  if (dev->descriptor.idVendor == USB_VENDOR_ATMEL &&
+	      dev->descriptor.idProduct == (unsigned short)baud)
 	    {
-	      if (dev->descriptor.idVendor == USB_VENDOR_ATMEL &&
-		  dev->descriptor.idProduct == (unsigned short)baud)
+	      udev = usb_open(dev);
+	      if (udev)
 		{
 		  /* yeah, we found something */
 		  if (usb_get_string_simple(udev,
@@ -194,36 +202,58 @@ static int usbdev_open(char * port, long baud, union filedescriptor *fd)
 		    }
 
 		  fd->usb.handle = udev;
-		  fd->usb.ep = -1;
-		  /* Try finding out what our read endpoint is. */
-		  for (i = 0; i < dev->config[0].interface[0].altsetting[0].bNumEndpoints; i++)
+		  if (fd->usb.rep == 0)
+		  {
+		    /* Try finding out what our read endpoint is. */
+		    for (i = 0; i < dev->config[0].interface[0].altsetting[0].bNumEndpoints; i++)
 		    {
 		      int possible_ep = dev->config[0].interface[0].altsetting[0].
-		      endpoint[i].bEndpointAddress;
+			endpoint[i].bEndpointAddress;
 
 		      if ((possible_ep & USB_ENDPOINT_DIR_MASK) != 0)
+		      {
+			if (verbose > 1)
 			{
-			  if (verbose > 1)
-			    {
-			      fprintf(stderr,
-				      "%s: usbdev_open(): using read endpoint 0x%02x\n",
-				      progname, possible_ep);
-			    }
-			  fd->usb.ep = possible_ep;
-			  break;
+			  fprintf(stderr,
+				  "%s: usbdev_open(): using read endpoint 0x%02x\n",
+				  progname, possible_ep);
 			}
+			fd->usb.rep = possible_ep;
+			break;
+		      }
 		    }
-		  if (fd->usb.ep == -1)
+		    if (fd->usb.rep == 0)
 		    {
 		      fprintf(stderr,
 			      "%s: usbdev_open(): cannot find a read endpoint, using 0x%02x\n",
-			      progname, USBDEV_BULK_EP_READ);
-		      fd->usb.ep = USBDEV_BULK_EP_READ;
+			      progname, USBDEV_BULK_EP_READ_MKII);
+		      fd->usb.rep = USBDEV_BULK_EP_READ_MKII;
 		    }
-                  return 0;
+		  }
+		  for (i = 0; i < dev->config[0].interface[0].altsetting[0].bNumEndpoints; i++)
+		    {
+		      if ((dev->config[0].interface[0].altsetting[0].endpoint[i].bEndpointAddress == fd->usb.rep ||
+			   dev->config[0].interface[0].altsetting[0].endpoint[i].bEndpointAddress == fd->usb.wep) &&
+			  dev->config[0].interface[0].altsetting[0].endpoint[i].wMaxPacketSize < fd->usb.max_xfer)
+			{
+			  if (verbose != 0)
+			    fprintf(stderr,
+				    "%s: max packet size expected %d, but found %d due to EP 0x%02x's wMaxPacketSize\n",
+				    progname,
+				    fd->usb.max_xfer,
+				    dev->config[0].interface[0].altsetting[0].endpoint[i].wMaxPacketSize,
+				    dev->config[0].interface[0].altsetting[0].endpoint[i].bEndpointAddress);
+			  fd->usb.max_xfer = dev->config[0].interface[0].altsetting[0].endpoint[i].wMaxPacketSize;
+			}
+		    }
+		  return 0;
+		  trynext:
+		  usb_close(udev);
 		}
-	      trynext:
-	      usb_close(udev);
+	      else
+		fprintf(stderr,
+			"%s: usbdev_open(): cannot open device: %s\n",
+			progname, usb_strerror());
 	    }
 	}
     }
@@ -268,8 +298,8 @@ static int usbdev_send(union filedescriptor *fd, unsigned char *bp, size_t mlen)
    * 0.
    */
   do {
-    tx_size = (mlen < USBDEV_MAX_XFER)? mlen: USBDEV_MAX_XFER;
-    rv = usb_bulk_write(udev, USBDEV_BULK_EP_WRITE, (char *)bp, tx_size, 100000);
+    tx_size = (mlen < fd->usb.max_xfer)? mlen: fd->usb.max_xfer;
+    rv = usb_bulk_write(udev, fd->usb.wep, (char *)bp, tx_size, 10000);
     if (rv != tx_size)
     {
         fprintf(stderr, "%s: usbdev_send(): wrote %d out of %d bytes, err = %s\n",
@@ -278,7 +308,7 @@ static int usbdev_send(union filedescriptor *fd, unsigned char *bp, size_t mlen)
     }
     bp += tx_size;
     mlen -= tx_size;
-  } while (tx_size == USBDEV_MAX_XFER);
+  } while (tx_size == fd->usb.max_xfer);
 
   if (verbose > 3)
   {
@@ -311,11 +341,11 @@ static int usbdev_send(union filedescriptor *fd, unsigned char *bp, size_t mlen)
  * empty and more data are requested.
  */
 static int
-usb_fill_buf(usb_dev_handle *udev, int ep)
+usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep)
 {
   int rv;
 
-  rv = usb_bulk_read(udev, ep, usbbuf, USBDEV_MAX_XFER, 100000);
+  rv = usb_bulk_read(udev, ep, usbbuf, maxsize, 10000);
   if (rv < 0)
     {
       if (verbose > 1)
@@ -340,7 +370,7 @@ static int usbdev_recv(union filedescriptor *fd, unsigned char *buf, size_t nbyt
     {
       if (buflen <= bufptr)
 	{
-	  if (usb_fill_buf(udev, fd->usb.ep) < 0)
+	  if (usb_fill_buf(udev, fd->usb.max_xfer, fd->usb.rep) < 0)
 	    return -1;
 	}
       amnt = buflen - bufptr > nbytes? nbytes: buflen - bufptr;
@@ -389,11 +419,30 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
   int i;
   unsigned char * p = buf;
 
+  /* If there's an event EP, and it has data pending, return it first. */
+  if (fd->usb.eep != 0)
+  {
+      rv = usb_bulk_read(udev, fd->usb.eep, usbbuf,
+                         fd->usb.max_xfer, 1);
+      if (rv > 4)
+      {
+	  memcpy(buf, usbbuf, rv);
+	  n = rv;
+	  n |= USB_RECV_FLAG_EVENT;
+	  goto printout;
+      }
+      else if (rv > 0)
+      {
+	  fprintf(stderr, "Short event len = %d, ignored.\n", rv);
+	  /* fallthrough */
+      }
+  }
+
   n = 0;
   do
     {
-      rv = usb_bulk_read(udev, fd->usb.ep, usbbuf,
-			 USBDEV_MAX_XFER, 100000);
+      rv = usb_bulk_read(udev, fd->usb.rep, usbbuf,
+			 fd->usb.max_xfer, 10000);
       if (rv < 0)
 	{
 	  if (verbose > 1)
@@ -411,14 +460,15 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
       n += rv;
       nbytes -= rv;
     }
-  while (rv == USBDEV_MAX_XFER);
+  while (rv == fd->usb.max_xfer);
 
   if (nbytes < 0)
     return -1;
 
+  printout:
   if (verbose > 3)
   {
-      i = n;
+      i = n & USB_RECV_LENGTH_MASK;
       fprintf(stderr, "%s: Recv: ", progname);
 
       while (i) {
@@ -445,7 +495,7 @@ static int usbdev_drain(union filedescriptor *fd, int display)
   int rv;
 
   do {
-    rv = usb_bulk_read(udev, fd->usb.ep, usbbuf, USBDEV_MAX_XFER, 100);
+    rv = usb_bulk_read(udev, fd->usb.rep, usbbuf, fd->usb.max_xfer, 100);
     if (rv > 0 && verbose >= 4)
       fprintf(stderr, "%s: usbdev_drain(): flushed %d characters\n",
 	      progname, rv);

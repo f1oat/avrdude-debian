@@ -14,11 +14,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: ser_win32.c 949 2010-10-22 14:44:53Z springob $ */
+/* $Id: ser_win32.c 1107 2012-11-20 14:03:50Z joerg_wunsch $ */
 
 /*
  * Native Win32 serial interface for avrdude.
@@ -312,6 +311,15 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 			      progname, (char*)lpMsgBuf);
 		LocalFree( lpMsgBuf );
 		exit(1);
+	}
+
+	/* time out detected */
+	if (read == 0) {
+		if (verbose > 1)
+		fprintf(stderr,
+			"%s: ser_recv(): programmer is not responding\n",
+			progname);
+		return -1;
 	}
 
 	p = buf;

@@ -13,12 +13,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
 #
-# $Id: Makefile.am 987 2011-08-26 20:22:09Z joerg_wunsch $
+# $Id: Makefile.am 1175 2013-05-15 18:55:19Z rliebscher $
 #
 
 EXTRA_DIST   = \
@@ -30,6 +29,9 @@ EXTRA_DIST   = \
 	ChangeLog-2007 \
 	ChangeLog-2008 \
 	ChangeLog-2009 \
+	ChangeLog-2010 \
+	ChangeLog-2011 \
+	ChangeLog-2012 \
 	avrdude.1 \
 	avrdude.spec \
 	bootstrap
@@ -44,7 +46,10 @@ BUILT_SOURCES = $(CLEANFILES)
 #SUBDIRS      = doc @WINDOWS_DIRS@
 #DIST_SUBDIRS = doc windows
 
-SUBDIRS = @SUBDIRS_AC@
+# . lets build this directory before the following in SUBDIRS
+SUBDIRS = .
+# doc comes here, and we want to use the built avrdude to generate the parts list
+SUBDIRS += @SUBDIRS_AC@
 SUBDIRS += @WINDOWS_DIRS@
 DIST_SUBDIRS = @DIST_SUBDIRS_AC@
 
@@ -58,7 +63,7 @@ avrdude_CFLAGS   = @ENABLE_WARNINGS@
 
 libavrdude_a_CFLAGS   = @ENABLE_WARNINGS@
 
-avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB@ @LIBUSB_1_0@ @LIBFTDI@ @LIBHID@ -lm
+avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB_1_0@ @LIBUSB@ @LIBFTDI1@ @LIBFTDI@ @LIBHID@ @LIBELF@ @LIBPTHREAD@ -lm
 
 bin_PROGRAMS = avrdude
 
@@ -91,6 +96,9 @@ libavrdude_a_SOURCES = \
 	avrdude.h \
 	avrftdi.c \
 	avrftdi.h \
+	avrftdi_private.h \
+	avrftdi_tpi.c \
+	avrftdi_tpi.h \
 	avrpart.c \
 	avrpart.h \
 	bitbang.c \
@@ -108,12 +116,19 @@ libavrdude_a_SOURCES = \
 	fileio.c \
 	fileio.h \
 	freebsd_ppi.h \
+	ft245r.c \
+	ft245r.h \
 	jtagmkI.c \
 	jtagmkI.h \
 	jtagmkI_private.h \
 	jtagmkII.c \
 	jtagmkII.h \
 	jtagmkII_private.h \
+	jtag3.c \
+	jtag3.h \
+	jtag3_private.h \
+	linuxgpio.c \
+	linuxgpio.h \
 	linux_ppdev.h \
 	lists.c \
 	lists.h \
@@ -122,6 +137,11 @@ libavrdude_a_SOURCES = \
 	par.h \
 	pgm.c \
 	pgm.h \
+	pgm_type.c \
+	pgm_type.h \
+	pickit2.c \
+	pickit2.h \
+	pindefs.c \
 	pindefs.h \
 	ppi.c \
 	ppi.h \
