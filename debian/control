@@ -13,7 +13,8 @@ Build-Depends:
  libncurses5-dev,
  libreadline-dev,
  libusb-dev,
- libftdi-dev
+ libftdi-dev,
+ libelf-dev
 Standards-Version: 3.9.4
 Vcs-Git: git://anonscm.debian.org/collab-maint/avrdude.git
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=collab-maint/avrdude.git;a=summary
