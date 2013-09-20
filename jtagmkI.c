@@ -13,11 +13,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: jtagmkI.c 948 2010-10-22 14:29:56Z springob $ */
+/* $Id: jtagmkI.c 1131 2013-01-08 21:02:01Z joerg_wunsch $ */
 
 /*
  * avrdude interface for Atmel JTAG ICE (mkI) programmer
@@ -37,6 +36,7 @@
 #include "avr.h"
 #include "crc16.h"
 #include "pgm.h"
+#include "jtagmkI.h"
 #include "jtagmkI_private.h"
 #include "serial.h"
 
@@ -153,7 +153,7 @@ static void jtagmkI_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
       if (i % 16 == 15)
 	putc('\n', stderr);
       else
-	putchar(' ');
+	putc(' ', stderr);
     }
     if (i % 16 != 0)
       putc('\n', stderr);
@@ -737,9 +737,11 @@ static void jtagmkI_close(PROGRAMMER * pgm)
 
 
 static int jtagmkI_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-				int page_size, int n_bytes)
+                               unsigned int page_size,
+                               unsigned int addr, unsigned int n_bytes)
 {
-  int addr, block_size, send_size, tries;
+  int block_size, send_size, tries;
+  unsigned int maxaddr = addr + n_bytes;
   unsigned char cmd[6], *datacmd;
   unsigned char resp[2];
   int is_flash = 0;
@@ -781,9 +783,7 @@ static int jtagmkI_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   datacmd[0] = CMD_DATA;
 
   serial_recv_timeout = 1000;
-  for (addr = 0; addr < n_bytes; addr += page_size) {
-    report_progress(addr, n_bytes,NULL);
-
+  for (; addr < maxaddr; addr += page_size) {
     tries = 0;
     again:
 
@@ -875,9 +875,11 @@ static int jtagmkI_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 static int jtagmkI_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-			       int page_size, int n_bytes)
+			      unsigned int page_size,
+                              unsigned int addr, unsigned int n_bytes)
 {
-  int addr, block_size, read_size, is_flash = 0, tries;
+  int block_size, read_size, is_flash = 0, tries;
+  unsigned int maxaddr = addr + n_bytes;
   unsigned char cmd[6], resp[256 * 2 + 3];
   long otimeout = serial_recv_timeout;
 #define MAXTRIES 3
@@ -906,9 +908,7 @@ static int jtagmkI_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
 
   serial_recv_timeout = 1000;
-  for (addr = 0; addr < n_bytes; addr += page_size) {
-    report_progress(addr, n_bytes,NULL);
-
+  for (; addr < maxaddr; addr += page_size) {
     tries = 0;
     again:
     if (tries != 0 && jtagmkI_resync(pgm, 2000, 0) < 0) {
@@ -1372,6 +1372,7 @@ static void jtagmkI_print_parms(PROGRAMMER * pgm)
   jtagmkI_print_parms1(pgm, "");
 }
 
+const char jtagmkI_desc[] = "Atmel JTAG ICE mkI";
 
 void jtagmkI_initpgm(PROGRAMMER * pgm)
 {

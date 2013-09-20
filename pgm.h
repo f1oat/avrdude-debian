@@ -14,11 +14,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: pgm.h 985 2011-08-26 12:35:08Z joerg_wunsch $ */
+/* $Id: pgm.h 1196 2013-09-02 20:22:53Z joerg_wunsch $ */
 
 #ifndef pgm_h
 #define pgm_h
@@ -56,15 +55,24 @@ typedef enum {
   EXIT_DATAHIGH_DISABLED
 } exit_datahigh_t;
 
+typedef enum {
+  CONNTYPE_PARALLEL,
+  CONNTYPE_SERIAL,
+  CONNTYPE_USB
+} conntype_t;
+
 typedef struct programmer_t {
   LISTID id;
   char desc[PGM_DESCLEN];
   char type[PGM_TYPELEN];
   char port[PGM_PORTLEN];
+  void (*initpgm)(struct programmer_t * pgm);
   unsigned int pinno[N_PINS];
+  struct pindef_t pin[N_PINS];
   exit_vcc_t exit_vcc;
   exit_reset_t exit_reset;
   exit_datahigh_t exit_datahigh;
+  conntype_t conntype;
   int ppidata;
   int ppictrl;
   int baudrate;
@@ -87,18 +95,22 @@ typedef struct programmer_t {
   void (*powerdown)      (struct programmer_t * pgm);
   int  (*program_enable) (struct programmer_t * pgm, AVRPART * p);
   int  (*chip_erase)     (struct programmer_t * pgm, AVRPART * p);
-  int  (*cmd)            (struct programmer_t * pgm, unsigned char cmd[4], 
-                          unsigned char res[4]);
-  int  (*cmd_tpi)        (struct programmer_t * pgm, unsigned char cmd[], 
+  int  (*cmd)            (struct programmer_t * pgm, const unsigned char *cmd,
+                          unsigned char *res);
+  int  (*cmd_tpi)        (struct programmer_t * pgm, const unsigned char *cmd,
                           int cmd_len, unsigned char res[], int res_len);
-  int  (*spi)            (struct programmer_t * pgm, unsigned char cmd[], 
-                          unsigned char res[], int count);
+  int  (*spi)            (struct programmer_t * pgm, const unsigned char *cmd,
+                          unsigned char *res, int count);
   int  (*open)           (struct programmer_t * pgm, char * port);
   void (*close)          (struct programmer_t * pgm);
   int  (*paged_write)    (struct programmer_t * pgm, AVRPART * p, AVRMEM * m, 
-                          int page_size, int n_bytes);
+                          unsigned int page_size, unsigned int baseaddr,
+                          unsigned int n_bytes);
   int  (*paged_load)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
-                          int page_size, int n_bytes);
+                          unsigned int page_size, unsigned int baseaddr,
+                          unsigned int n_bytes);
+  int  (*page_erase)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
+                          unsigned int baseaddr);
   void (*write_setup)    (struct programmer_t * pgm, AVRPART * p, AVRMEM * m);
   int  (*write_byte)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
                           unsigned long addr, unsigned char value);
@@ -129,14 +141,27 @@ extern "C" {
 #endif
 
 PROGRAMMER * pgm_new(void);
+PROGRAMMER * pgm_dup(const PROGRAMMER const * src);
+void         pgm_free(PROGRAMMER * const p);
 
 void programmer_display(PROGRAMMER * pgm, const char * p);
+
+/* show is a mask like this (1<<PIN_AVR_SCK)|(1<<PIN_AVR_MOSI)| ... */
+#define SHOW_ALL_PINS (~0u)
+#define SHOW_PPI_PINS ((1<<PPI_AVR_VCC)|(1<<PPI_AVR_BUFF))
+#define SHOW_AVR_PINS ((1<<PIN_AVR_RESET)|(1<<PIN_AVR_SCK)|(1<<PIN_AVR_MOSI)|(1<<PIN_AVR_MISO))
+#define SHOW_LED_PINS ((1<<PIN_LED_ERR)|(1<<PIN_LED_RDY)|(1<<PIN_LED_PGM)|(1<<PIN_LED_VFY))
+void pgm_display_generic_mask(PROGRAMMER * pgm, const char * p, unsigned int show);
+void pgm_display_generic(PROGRAMMER * pgm, const char * p);
+
 PROGRAMMER * locate_programmer(LISTID programmers, const char * configid);
 
 typedef void (*walk_programmers_cb)(const char *name, const char *desc,
                                     const char *cfgname, int cfglineno,
                                     void *cookie);
 void walk_programmers(LISTID programmers, walk_programmers_cb cb, void *cookie);
+
+void sort_programmers(LISTID programmers);
 
 #ifdef __cplusplus
 }

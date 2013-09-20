@@ -13,11 +13,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: serial.h 948 2010-10-22 14:29:56Z springob $ */
+/* $Id: serial.h 1108 2012-11-26 16:24:56Z joerg_wunsch $ */
 
 /* This is the API for the generic serial interface. The implementations are
    actually provided by the target dependant files:
@@ -38,7 +37,10 @@ union filedescriptor
   struct
   {
     void *handle;
-    int ep;
+    int rep;                    /* bulk read endpoint */
+    int wep;                    /* bulk write endpoint */
+    int eep;                    /* event read endpoint */
+    int max_xfer;               /* max transfer size */
   } usb;
 };
 

@@ -13,11 +13,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: usbasp.h 961 2011-05-28 07:35:40Z fischl $ */
+/* $Id: usbasp.h 1107 2012-11-20 14:03:50Z joerg_wunsch $ */
 
 #ifndef usbasp_h
 #define usbasp_h
@@ -140,6 +139,7 @@ typedef struct sckoptions_t {
 extern "C" {
 #endif
 
+extern const char usbasp_desc[];
 void usbasp_initpgm (PROGRAMMER * pgm);
 
 #ifdef __cplusplus

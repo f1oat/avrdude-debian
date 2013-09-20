@@ -15,10 +15,9 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: bitbang.c 1012 2011-09-15 14:57:51Z joerg_wunsch $ */
+/* $Id: bitbang.c 1196 2013-09-02 20:22:53Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -331,8 +330,8 @@ int bitbang_vfy_led(PROGRAMMER * pgm, int value)
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-int bitbang_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-                   unsigned char res[4])
+int bitbang_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+                   unsigned char *res)
 {
   int i;
 
@@ -356,8 +355,8 @@ int bitbang_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
   return 0;
 }
 
-int bitbang_cmd_tpi(PROGRAMMER * pgm, unsigned char cmd[], 
-                       int cmd_len, unsigned char res[], int res_len) 
+int bitbang_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd,
+                       int cmd_len, unsigned char *res, int res_len)
 {
   int i, r;
 
@@ -398,8 +397,8 @@ int bitbang_cmd_tpi(PROGRAMMER * pgm, unsigned char cmd[],
  * transmit bytes via SPI and return the results; 'cmd' and
  * 'res' must point to data buffers
  */
-int bitbang_spi(PROGRAMMER * pgm, unsigned char cmd[],
-                   unsigned char res[], int count)
+int bitbang_spi(PROGRAMMER * pgm, const unsigned char *cmd,
+                   unsigned char *res, int count)
 {
   int i;
 

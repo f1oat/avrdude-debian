@@ -13,11 +13,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: arduino.c 948 2010-10-22 14:29:56Z springob $ */
+/* $Id: arduino.c 1107 2012-11-20 14:03:50Z joerg_wunsch $ */
 
 /*
  * avrdude interface for Arduino programmer
@@ -37,6 +36,7 @@
 #include "stk500_private.h"
 #include "stk500.h"
 #include "serial.h"
+#include "arduino.h"
 
 /* read signature bytes - arduino version */
 static int arduino_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
@@ -93,7 +93,7 @@ static int arduino_open(PROGRAMMER * pgm, char * port)
   /* Clear DTR and RTS to unload the RESET capacitor 
    * (for example in Arduino) */
   serial_set_dtr_rts(&pgm->fd, 0);
-  usleep(50*1000);
+  usleep(250*1000);
   /* Set DTR and RTS back to high */
   serial_set_dtr_rts(&pgm->fd, 1);
   usleep(50*1000);
@@ -116,9 +116,11 @@ static void arduino_close(PROGRAMMER * pgm)
   pgm->fd.ifd = -1;
 }
 
+const char arduino_desc[] = "Arduino programmer";
+
 void arduino_initpgm(PROGRAMMER * pgm)
 {
-	/* This is mostly a STK500; just the signature is read
+  /* This is mostly a STK500; just the signature is read
      differently than on real STK500v1 
      and the DTR signal is set when opening the serial port
      for the Auto-Reset feature */

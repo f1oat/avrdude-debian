@@ -14,11 +14,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: stk500.c 948 2010-10-22 14:29:56Z springob $ */
+/* $Id: stk500.c 1223 2013-09-13 14:59:15Z joerg_wunsch $ */
 
 /*
  * avrdude interface for Atmel STK500 programmer
@@ -40,16 +39,16 @@
 #include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
+#include "stk500.h"
 #include "stk500_private.h"
 #include "serial.h"
 
 #define STK500_XTAL 7372800U
+#define MAX_SYNC_ATTEMPTS 10
 
 static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value);
 static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value);
 static void stk500_print_parms1(PROGRAMMER * pgm, const char * p);
-static int stk500_is_page_empty(unsigned int address, int page_size, 
-    const unsigned char *buf);
 
 
 static int stk500_send(PROGRAMMER * pgm, unsigned char * buf, size_t len)
@@ -82,6 +81,7 @@ int stk500_drain(PROGRAMMER * pgm, int display)
 int stk500_getsync(PROGRAMMER * pgm)
 {
   unsigned char buf[32], resp[32];
+  int attempt;
 
   /*
    * get in sync */
@@ -97,13 +97,17 @@ int stk500_getsync(PROGRAMMER * pgm)
   stk500_send(pgm, buf, 2);
   stk500_drain(pgm, 0);
 
-  stk500_send(pgm, buf, 2);
-  if (stk500_recv(pgm, resp, 1) < 0)
-    return -1;
-  if (resp[0] != Resp_STK_INSYNC) {
-    fprintf(stderr, 
-            "%s: stk500_getsync(): not in sync: resp=0x%02x\n",
-            progname, resp[0]);
+  for (attempt = 0; attempt < MAX_SYNC_ATTEMPTS; attempt++) {
+    stk500_send(pgm, buf, 2);
+    stk500_recv(pgm, resp, 1);
+    if (resp[0] == Resp_STK_INSYNC){
+      break;
+    }
+    fprintf(stderr,
+            "%s: stk500_getsync() attempt %d of %d: not in sync: resp=0x%02x\n",
+            progname, attempt + 1, MAX_SYNC_ATTEMPTS, resp[0]);
+  }
+  if (attempt == MAX_SYNC_ATTEMPTS) {
     stk500_drain(pgm, 0);
     return -1;
   }
@@ -126,8 +130,8 @@ int stk500_getsync(PROGRAMMER * pgm)
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-static int stk500_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-                      unsigned char res[4])
+static int stk500_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+                      unsigned char *res)
 {
   unsigned char buf[32];
 
@@ -560,37 +564,40 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   if (n_extparms) {
     if ((p->pagel == 0) || (p->bs2 == 0)) {
-      fprintf(stderr, 
-              "%s: please define PAGEL and BS2 signals in the configuration "
-              "file for part %s\n", 
-              progname, p->desc);
+      if (verbose > 1)
+          fprintf(stderr,
+                  "%s: PAGEL and BS2 signals not defined in the configuration "
+                  "file for part %s, using dummy values\n",
+                  progname, p->desc);
+      buf[2] = 0xD7;            /* they look somehow possible, */
+      buf[3] = 0xA0;            /* don't they? ;) */
     }
     else {
-      buf[0] = n_extparms+1;
-
-      /*
-       * m is currently pointing to eeprom memory if the part has it
-       */
-      if (m)
-        buf[1] = m->page_size;
-      else
-        buf[1] = 0;
-      
       buf[2] = p->pagel;
       buf[3] = p->bs2;
-      
-      if (n_extparms == 4) {
-        if (p->reset_disposition == RESET_DEDICATED)
-          buf[4] = 0;
-        else
-          buf[4] = 1;
-      }
-      
-      rc = stk500_set_extended_parms(pgm, n_extparms+1, buf);
-      if (rc) {
-        fprintf(stderr, "%s: stk500_initialize(): failed\n", progname);
-        exit(1);
-      }
+    }
+    buf[0] = n_extparms+1;
+
+    /*
+     * m is currently pointing to eeprom memory if the part has it
+     */
+    if (m)
+      buf[1] = m->page_size;
+    else
+      buf[1] = 0;
+
+
+    if (n_extparms == 4) {
+      if (p->reset_disposition == RESET_DEDICATED)
+        buf[4] = 0;
+      else
+        buf[4] = 1;
+    }
+
+    rc = stk500_set_extended_parms(pgm, n_extparms+1, buf);
+    if (rc) {
+      fprintf(stderr, "%s: stk500_initialize(): failed\n", progname);
+      exit(1);
     }
   }
 
@@ -739,36 +746,23 @@ static int stk500_loadaddr(PROGRAMMER * pgm, unsigned int addr)
 }
 
 
-static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
-                              int page_size, int n_bytes)
+static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                              unsigned int page_size,
+                              unsigned int addr, unsigned int n_bytes)
 {
   unsigned char buf[page_size + 16];
   int memtype;
-  unsigned int addr;
   int a_div;
   int block_size;
   int tries;
   unsigned int n;
   unsigned int i;
-  int flash;
-
-  if (page_size == 0) {
-    // MIB510 uses page size of 256 bytes
-    if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
-      page_size = 256;
-    }
-    else {
-      page_size = 128;
-    }
-  }
 
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
-    flash = 1;
   }
   else if (strcmp(m->desc, "eeprom") == 0) {
     memtype = 'E';
-    flash = 0;
   }
   else {
     return -2;
@@ -779,19 +773,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   else
     a_div = 1;
 
-  if (n_bytes > m->size) {
-    n_bytes = m->size;
-    n = m->size;
-  }
-  else {
-    if ((n_bytes % page_size) != 0) {
-      n = n_bytes + page_size - (n_bytes % page_size);
-    }
-    else {
-      n = n_bytes;
-    }
-  }
-
+  n = addr + n_bytes;
 #if 0
   fprintf(stderr, 
           "n_bytes   = %d\n"
@@ -801,23 +783,15 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
           n_bytes, n, a_div, page_size);
 #endif     
 
-  for (addr = 0; addr < n; addr += page_size) {
-    report_progress (addr, n_bytes, NULL);
-    
+  for (; addr < n; addr += block_size) {
     // MIB510 uses fixed blocks size of 256 bytes
-    if ((strcmp(ldata(lfirst(pgm->id)), "mib510") != 0) &&
-	(addr + page_size > n_bytes)) {
-	   block_size = n_bytes % page_size;
-	}
-	else {
-	   block_size = page_size;
-	}
-  
-    /* Only skip on empty page if programming flash. */
-    if (flash) {
-      if (stk500_is_page_empty(addr, block_size, m->buf)) {
-          continue;
-      }
+    if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
+      block_size = 256;
+    } else {
+      if (n - addr < page_size)
+        block_size = n - addr;
+      else
+        block_size = page_size;
     }
     tries = 0;
   retry:
@@ -870,27 +844,12 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
-static int stk500_is_page_empty(unsigned int address, int page_size, 
-                                const unsigned char *buf)
-{
-    int i;
-    for(i = 0; i < page_size; i++) {
-        if(buf[address + i] != 0xFF) {
-            /* Page is not empty. */
-            return(0);
-        }
-    }
-    
-    /* Page is empty. */
-    return(1);
-}
-
-static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
-                             int page_size, int n_bytes)
+static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                             unsigned int page_size,
+                             unsigned int addr, unsigned int n_bytes)
 {
   unsigned char buf[16];
   int memtype;
-  unsigned int addr;
   int a_div;
   int tries;
   unsigned int n;
@@ -911,31 +870,18 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   else
     a_div = 1;
 
-  if (n_bytes > m->size) {
-    n_bytes = m->size;
-    n = m->size;
-  }
-  else {
-    if ((n_bytes % page_size) != 0) {
-      n = n_bytes + page_size - (n_bytes % page_size);
-    }
-    else {
-      n = n_bytes;
-    }
-  }
-
-  for (addr = 0; addr < n; addr += page_size) {
-    report_progress (addr, n_bytes, NULL);
-
+  n = addr + n_bytes;
+  for (; addr < n; addr += block_size) {
     // MIB510 uses fixed blocks size of 256 bytes
-    if ((strcmp(ldata(lfirst(pgm->id)), "mib510") != 0) &&
-	(addr + page_size > n_bytes)) {
-	   block_size = n_bytes % page_size;
-	}
-	else {
-	   block_size = page_size;
-	}
-  
+    if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
+      block_size = 256;
+    } else {
+      if (n - addr < page_size)
+        block_size = n - addr;
+      else
+        block_size = page_size;
+    }
+
     tries = 0;
   retry:
     tries++;
@@ -1330,6 +1276,7 @@ static void stk500_print_parms(PROGRAMMER * pgm)
   stk500_print_parms1(pgm, "");
 }
 
+const char stk500_desc[] = "Atmel STK500 Version 1.x firmware";
 
 void stk500_initpgm(PROGRAMMER * pgm)
 {

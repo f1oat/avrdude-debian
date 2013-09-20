@@ -15,10 +15,9 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: serbb_win32.c 976 2011-08-23 21:03:36Z joerg_wunsch $ */
+/* $Id: serbb_win32.c 1160 2013-05-03 22:35:00Z rliebscher $ */
 
 /*
  * Win32 serial bitbanging interface for avrdude.
@@ -38,6 +37,7 @@
 #include "pindefs.h"
 #include "pgm.h"
 #include "bitbang.h"
+#include "serbb.h"
 
 /* cached status lines */
 static int dtr, rts, txd;
@@ -344,9 +344,13 @@ static void serbb_close(PROGRAMMER *pgm)
 	hComPort = INVALID_HANDLE_VALUE;
 }
 
+const char serbb_desc[] = "Serial port bitbanging";
+
 void serbb_initpgm(PROGRAMMER *pgm)
 {
   strcpy(pgm->type, "SERBB");
+
+  pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
 
   pgm->rdy_led        = bitbang_rdy_led;
   pgm->err_led        = bitbang_err_led;

@@ -13,11 +13,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: fileio.h 722 2007-01-24 22:43:46Z joerg_wunsch $ */
+/* $Id: fileio.h 1107 2012-11-20 14:03:50Z joerg_wunsch $ */
 
 #ifndef fileio_h
 #define fileio_h
@@ -31,7 +30,8 @@ typedef enum {
   FMT_HEX,
   FMT_DEC,
   FMT_OCT,
-  FMT_BIN
+  FMT_BIN,
+  FMT_ELF
 } FILEFMT;
 
 struct fioparms {
@@ -40,6 +40,7 @@ struct fioparms {
   char * iodesc;
   char * dir;
   char * rw;
+  unsigned int fileoffset;
 };
 
 enum {
@@ -52,8 +53,6 @@ extern "C" {
 #endif
 
 char * fmtstr(FILEFMT format);
-
-int fileio_setparms(int op, struct fioparms * fp);
 
 int fileio(int op, char * filename, FILEFMT format,
            struct avrpart * p, char * memtype, int size);
