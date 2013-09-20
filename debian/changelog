@@ -1,3 +1,9 @@
+avrdude (6.0.1-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 20 Sep 2013 19:54:53 +0200
+
 avrdude (5.11.1-2) unstable; urgency=low
 
   * Move package to collab-maint.
