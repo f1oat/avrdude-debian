@@ -1,12 +1,18 @@
-Description: Fix paths in the man page
- Update the man page to point to the correct location of the documentation
- and config file when installed on a Debian system.
-Author: Michael Biebl <biebl@debian.org>
-Index: avrdude/avrdude.1
-===================================================================
---- avrdude.orig/avrdude.1	2013-09-20 19:55:14.467002928 +0200
-+++ avrdude/avrdude.1	2013-09-20 19:55:14.463002740 +0200
-@@ -287,7 +287,7 @@
+From: Michael Biebl <biebl@debian.org>
+Date: Fri, 14 Mar 2014 15:25:04 +0100
+Subject: Fix paths in the man page
+
+Update the man page to point to the correct location of the
+documentation and config file when installed on a Debian system.
+---
+ avrdude.1 | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/avrdude.1 b/avrdude.1
+index 955dbad..041171e 100644
+--- a/avrdude.1
++++ b/avrdude.1
+@@ -287,7 +287,7 @@ knows about.  If you have a programmer or part that
  does not know about, you can add it to the config file (be sure and
  submit a patch back to the author so that it can be incorporated for
  the next version).  See the config file, located at
@@ -15,7 +21,7 @@ Index: avrdude/avrdude.1
  which contains a description of the format.
  .Pp
  If 
-@@ -1010,7 +1010,7 @@
+@@ -1010,7 +1010,7 @@ Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
  .It Pa /dev/ppi0
  default device to be used for communication with the programming
  hardware
@@ -24,7 +30,7 @@ Index: avrdude/avrdude.1
  programmer and parts configuration file
  .It Pa ${HOME}/.avrduderc
  programmer and parts configuration file (per-user overrides)
-@@ -1018,7 +1018,7 @@
+@@ -1018,7 +1018,7 @@ programmer and parts configuration file (per-user overrides)
  Initialization file for the
  .Xr readline 3
  library

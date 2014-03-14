@@ -1,2 +1,1 @@
-# Debian patches for avrdude
-02-manpage_fix.patch
+0001-Fix-paths-in-the-man-page.patch
