@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: pindefs.h 1184 2013-06-19 17:40:32Z rliebscher $ */
+/* $Id: pindefs.h 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
 
 #ifndef __pindefs_h__
 #define __pindefs_h__

@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: avrftdi.c 1204 2013-09-03 20:33:52Z rliebscher $ */
+/* $Id: avrftdi.c 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
 /*
  * Interface to the MPSSE Engine of FTDI Chips using libftdi.
  */
@@ -41,6 +41,7 @@
 #include "avrpart.h"
 #include "avrftdi_tpi.h"
 #include "avrftdi_private.h"
+#include "usbdevs.h"
 
 #ifndef MAX
 #define MAX(a,b) ((a)>(b)?(a):(b))
@@ -69,14 +70,6 @@ void avrftdi_initpgm(PROGRAMMER * pgm)
 #else
 
 enum { FTDI_SCK = 0, FTDI_MOSI, FTDI_MISO, FTDI_RESET };
-
-/* This is for running the code without having a FTDI-device.
- * The generated code is useless! For debugging purposes only.
- * This should never be defined, unless you know what you are
- * doing.
- * If you think you know what you are doing: YOU DONT!
- */
-//#define DRYRUN
 
 static int write_flush(avrftdi_t *);
 
@@ -224,9 +217,7 @@ static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
 	buf[1] = (uint8_t)(divisor & 0xff);
 	buf[2] = (uint8_t)((divisor >> 8) & 0xff);
 
-#ifndef DRYRUN
 	E(ftdi_write_data(ftdi->ftdic, buf, 3) < 0, ftdi->ftdic);
-#endif
 
 	return 0;
 }
@@ -442,17 +433,13 @@ static int avrftdi_transmit_mpsse(avrftdi_t* pdata, unsigned char mode, const un
 	else
 		blocksize = pdata->rx_buffer_size;
 
-#ifndef DRYRUN
 	E(ftdi_write_data(pdata->ftdic, cmd, sizeof(cmd)) != sizeof(cmd), pdata->ftdic);
-#endif
 
 	while(remaining)
 	{
 		size_t transfer_size = (remaining > blocksize) ? blocksize : remaining;
 
-#ifndef DRYRUN
 		E(ftdi_write_data(pdata->ftdic, &buf[written], transfer_size) != transfer_size, pdata->ftdic);
-#endif
 #if 0
 		if(remaining < blocksize)
 			E(ftdi_write_data(pdata->ftdic, &si, sizeof(si)) != sizeof(si), pdata->ftdic);
@@ -462,12 +449,8 @@ static int avrftdi_transmit_mpsse(avrftdi_t* pdata, unsigned char mode, const un
 			int n;
 			int k = 0;
 			do {
-	#ifndef DRYRUN
 				n = ftdi_read_data(pdata->ftdic, &data[written + k], transfer_size - k);
 				E(n < 0, pdata->ftdic);
-	#else
-				n = transfer_size - k;
-	#endif
 				k += n;
 			} while (k < transfer_size);
 
@@ -490,73 +473,6 @@ static inline int avrftdi_transmit(PROGRAMMER * pgm, unsigned char mode, const u
 		return avrftdi_transmit_mpsse(pdata, mode, buf, data, buf_size);
 }
 
-#ifdef notyet
-/* this function tries to sync up with the FTDI. See FTDI application note AN_129.
- * AN_135 uses 0xab as bad command and enables/disables loopback around synchronisation.
- * This may fail if data is left in the buffer (i.e. avrdude aborted with ctrl-c)
- * or the device is in an illegal state (i.e. a previous program).
- * If the FTDI is out of sync, the buffers are cleared ("purged") and the
- * sync is re-tried.
- * if it still fails, we return an error code. higher level code may than abort.
- * the device may be reset by unplugging the device and plugging it back in.
- * resetting the device did not always help for me.
- */
-static int ftdi_sync(avrftdi_t* pdata)
-{
-	unsigned char illegal_cmd[] = {0xaa};
-	unsigned char reply[2];
-	unsigned int i, n;
-	unsigned int retry = 0;
-	unsigned char latency;
-
-	ftdi_get_latency_timer(pdata->ftdic, &latency);
-	fprintf(stderr, "Latency: %d\n", latency);
-
-	do{
-		n = ftdi_read_data(pdata->ftdic, reply, 1);
-	} while(n > 0);
-retry:
-	/* send command "0xaa", which is an illegal command. */
-	E(ftdi_write_data(pdata->ftdic, illegal_cmd, sizeof(illegal_cmd)) != sizeof(illegal_cmd), pdata->ftdic);
-	
-	i = 0;
-	do {
-#ifndef DRYRUN
-		n = ftdi_read_data(pdata->ftdic, &reply[i], sizeof(reply) - i);
-		E(n < 0, pdata->ftdic);
-		//fprintf(stderr, "%s\n", ftdi_get_error_string(pdata->ftdic));
-#else
-		n = sizeof(reply) - i;
-#endif
-		i += n;
-	} while (i < sizeof(reply));
-
-	/* 0xfa is return code for illegal command - we expect that, since we issued an
-	 * illegal command (0xaa)
-	 * the next byte will be the illegal command, the FTDI is complaining about.
-	 */
-	if(reply[0] == 0xfa && reply[1] == illegal_cmd[0])
-	{
-		/* if the FTDI is complaining about the right thing, everything is fine */
-		fprintf(stderr, "FTDI is in sync.\n");
-		return 0;
-	}
-		else
-	{
-		fprintf(stderr, "FTDI out of sync. Received 0x%02x 0x%02x\n", reply[0], reply[1]);
-		if(retry < 4)
-		{
-			fprintf(stderr, "Trying to re-sync by purging buffers. Attempt\n");
-			E(ftdi_usb_purge_buffers(pdata->ftdic), pdata->ftdic);
-			retry++;
-			goto retry;
-		} else
-			fprintf(stderr, "Aborting. Try resetting or unplugging the device.\n");
-	}
-	return -1;
-}
-#endif /* notyet */
-
 static int write_flush(avrftdi_t* pdata)
 {
 	unsigned char buf[6];
@@ -571,10 +487,7 @@ static int write_flush(avrftdi_t* pdata)
 	buf[4] = ((pdata->pin_value) >> 8) & 0xff;
 	buf[5] = ((pdata->pin_direction) >> 8) & 0xff;
 
-#ifndef DRYRUN
 	E(ftdi_write_data(pdata->ftdic, buf, 6) != 6, pdata->ftdic);
-
-#endif
 
 	log_trace("Set pins command: %02x %02x %02x %02x %02x %02x\n",
 	          buf[0], buf[1], buf[2], buf[3], buf[4], buf[5]);
@@ -588,7 +501,6 @@ static int write_flush(avrftdi_t* pdata)
 	 * command actually arrives at the chip.
 	 * Use read pin status command as sync.
 	 */
-#ifndef DRYRUN
 	//E(ftdi_usb_purge_buffers(pdata->ftdic), pdata->ftdic);
 
 	unsigned char cmd[] = { GET_BITS_LOW, SEND_IMMEDIATE };
@@ -605,7 +517,6 @@ static int write_flush(avrftdi_t* pdata)
 	
 	if(num > 1)
 		log_warn("Read %d extra bytes\n", num-1);
-#endif
 
 	return 0;
 
@@ -756,12 +667,17 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	if (pgm->usbvid)
 		vid = pgm->usbvid;
 	else
-		vid = 0x0403;
+		vid = USB_VENDOR_FTDI;
 
-	if (pgm->usbpid)
-		pid = pgm->usbpid;
-	else
-		pid = 0x6010;
+	LNODEID usbpid = lfirst(pgm->usbpid);
+	if (usbpid) {
+		pid = *(int *)(ldata(usbpid));
+		if (lnext(usbpid))
+			fprintf(stderr,
+				"%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
+				progname, pid);
+	} else
+		pid = USB_DEVICE_FT2232;
 
 	if (0 == pgm->usbsn[0]) /* we don't care about SN. Use first avail. */
 		serial = NULL;
@@ -810,11 +726,6 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	E(ftdi_set_bitmode(pdata->ftdic, pdata->pin_direction & 0xff, BITMODE_MPSSE) < 0, pdata->ftdic);
 	E(ftdi_usb_purge_buffers(pdata->ftdic), pdata->ftdic);
 
-#ifdef notyet
-	ret = ftdi_sync(pdata);
-	if(ret < 0)
-		return ret;
-#endif
 	write_flush(pdata);
 
 	if (pgm->baudrate) {
@@ -893,11 +804,9 @@ static void avrftdi_close(PROGRAMMER * pgm)
 		pdata->pin_direction = pdata->led_mask;
 		pdata->pin_value &= pdata->led_mask;
 		write_flush(pdata);
-#ifndef DRYRUN
 		/* reset state recommended by FTDI */
 		ftdi_set_bitmode(pdata->ftdic, 0, BITMODE_RESET);
 		E_VOID(ftdi_usb_close(pdata->ftdic), pdata->ftdic);
-#endif
 	}
 
 	return;
@@ -973,11 +882,8 @@ static int avrftdi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 	}
 
 	log_err("Device is not responding to program enable. Check connection.\n");
-#ifndef DRYRUN
+
 	return -1;
-#else
-	return 0;
-#endif
 }
 
 
@@ -1015,10 +921,9 @@ avrftdi_lext(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m, unsigned int address)
 		buf_dump(buf, sizeof(buf),
 			 "load extended address command", 0, 16 * 3);
 
-#ifndef DRYRUN
 	if (0 > avrftdi_transmit(pgm, MPSSE_DO_WRITE, buf, buf, 4))
 		return -1;
-#endif
+	
 	return 0;
 }
 
@@ -1301,7 +1206,6 @@ avrftdi_setup(PROGRAMMER * pgm)
 	pgm->cookie = malloc(sizeof(avrftdi_t));
 	pdata = to_pdata(pgm);
 
-	#ifndef DRYRUN
 	pdata->ftdic = ftdi_new();
 	if(!pdata->ftdic)
 	{
@@ -1309,7 +1213,6 @@ avrftdi_setup(PROGRAMMER * pgm)
 		exit(-ENOMEM);
 	}
 	E_VOID(ftdi_init(pdata->ftdic), pdata->ftdic);
-	#endif
 
 	pdata->pin_value = 0;
 	pdata->pin_direction = 0;
@@ -1322,11 +1225,8 @@ avrftdi_teardown(PROGRAMMER * pgm)
 	avrftdi_t* pdata = to_pdata(pgm);
 
 	if(pdata) {
-#ifndef DRYRUN
 		ftdi_deinit(pdata->ftdic);
 		ftdi_free(pdata->ftdic);
-#endif
-
 		free(pdata);
 	}
 }

@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: config.h 1226 2013-09-13 17:22:38Z joerg_wunsch $ */
+/* $Id: config.h 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
 
 #ifndef config_h
 #define config_h

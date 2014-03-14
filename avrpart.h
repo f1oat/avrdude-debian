@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: avrpart.h 1161 2013-05-05 13:35:35Z rliebscher $ */
+/* $Id: avrpart.h 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
 
 #ifndef avrpart_h
 #define avrpart_h
@@ -111,6 +111,7 @@ typedef struct avrpart {
   unsigned char pagel;              /* for parallel programming */
   unsigned char bs2;                /* for parallel programming */
   unsigned char signature[3];       /* expected value of signature bytes */
+  unsigned short usbpid;            /* USB DFU product ID (0 = none) */
   int           reset_disposition;  /* see RESET_ enums */
   int           retry_pulse;        /* retry program enable by pulsing
                                        this pin (PIN_AVR_*) */

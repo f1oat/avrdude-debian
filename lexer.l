@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: lexer.l 1226 2013-09-13 17:22:38Z joerg_wunsch $ */
+/* $Id: lexer.l 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
 
 %{
 /* need this for the call to atof() below */

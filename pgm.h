@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: pgm.h 1196 2013-09-02 20:22:53Z joerg_wunsch $ */
+/* $Id: pgm.h 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
 
 #ifndef pgm_h
 #define pgm_h
@@ -76,7 +76,8 @@ typedef struct programmer_t {
   int ppidata;
   int ppictrl;
   int baudrate;
-  int usbvid, usbpid;
+  int usbvid;
+  LISTID usbpid;
   char usbdev[PGM_USBSTRINGLEN], usbsn[PGM_USBSTRINGLEN];
   char usbvendor[PGM_USBSTRINGLEN], usbproduct[PGM_USBSTRINGLEN];
   double bitclock;    /* JTAG ICE clock period in microseconds */
@@ -122,9 +123,9 @@ typedef struct programmer_t {
   int  (*set_varef)      (struct programmer_t * pgm, unsigned int chan, double v);
   int  (*set_fosc)       (struct programmer_t * pgm, double v);
   int  (*set_sck_period) (struct programmer_t * pgm, double v);
-  int  (*setpin)         (struct programmer_t * pgm, int pin, int value);
-  int  (*getpin)         (struct programmer_t * pgm, int pin);
-  int  (*highpulsepin)   (struct programmer_t * pgm, int pin);
+  int  (*setpin)         (struct programmer_t * pgm, int pinfunc, int value);
+  int  (*getpin)         (struct programmer_t * pgm, int pinfunc);
+  int  (*highpulsepin)   (struct programmer_t * pgm, int pinfunc);
   int  (*parseexitspecs) (struct programmer_t * pgm, char *s);
   int  (*perform_osccal) (struct programmer_t * pgm);
   int  (*parseextparams) (struct programmer_t * pgm, LISTID xparams);
@@ -141,7 +142,7 @@ extern "C" {
 #endif
 
 PROGRAMMER * pgm_new(void);
-PROGRAMMER * pgm_dup(const PROGRAMMER const * src);
+PROGRAMMER * pgm_dup(const PROGRAMMER * const src);
 void         pgm_free(PROGRAMMER * const p);
 
 void programmer_display(PROGRAMMER * pgm, const char * p);
