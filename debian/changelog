@@ -2,6 +2,7 @@ avrdude (6.1-1) UNRELEASED; urgency=medium
 
   * New upstream release.
   * Refresh patches.
+  * Bump Standards-Version to 3.9.5. No further changes.
 
  -- Michael Biebl <biebl@debian.org>  Fri, 14 Mar 2014 15:28:01 +0100
 
