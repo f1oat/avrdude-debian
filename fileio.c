@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: fileio.c 1216 2013-09-11 09:21:37Z joerg_wunsch $ */
+/* $Id: fileio.c 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -1416,7 +1416,11 @@ static int fmt_autodetect(char * fname)
   int found;
   int first = 1;
 
+#if defined(WIN32NATIVE)
   f = fopen(fname, "r");
+#else
+  f = fopen(fname, "rb");
+#endif
   if (f == NULL) {
     fprintf(stderr, "%s: error opening %s: %s\n",
             progname, fname, strerror(errno));
@@ -1562,8 +1566,8 @@ int fileio(int op, char * filename, FILEFMT format,
   }
 
 #if defined(WIN32NATIVE)
-  /* Open Raw Binary format in binary mode on Windows.*/
-  if(format == FMT_RBIN)
+  /* Open Raw Binary and ELF format in binary mode on Windows.*/
+  if(format == FMT_RBIN || format == FMT_ELF)
   {
       if(fio.op == FIO_READ)
       {

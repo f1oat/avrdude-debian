@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: pgm.c 1161 2013-05-05 13:35:35Z rliebscher $ */
+/* $Id: pgm.c 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -76,6 +76,7 @@ PROGRAMMER * pgm_new(void)
   memset(pgm, 0, sizeof(*pgm));
 
   pgm->id = lcreat(NULL, 0);
+  pgm->usbpid = lcreat(NULL, 0);
   pgm->desc[0] = 0;
   pgm->type[0] = 0;
   pgm->config_file[0] = 0;
@@ -139,7 +140,7 @@ PROGRAMMER * pgm_new(void)
 
 void pgm_free(PROGRAMMER * const p)
 {
-  ldestroy_cb(p->id,free);
+  ldestroy_cb(p->id, free);
   p->id = NULL;
   /* this is done by pgm_teardown, but usually cookie is not set to NULL */
   /* if (p->cookie !=NULL) {
@@ -149,7 +150,7 @@ void pgm_free(PROGRAMMER * const p)
   free(p);
 }
 
-PROGRAMMER * pgm_dup(const PROGRAMMER const * src)
+PROGRAMMER * pgm_dup(const PROGRAMMER * const src)
 {
   PROGRAMMER * pgm;
 
