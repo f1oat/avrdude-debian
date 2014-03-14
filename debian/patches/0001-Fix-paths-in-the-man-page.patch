@@ -9,10 +9,10 @@ documentation and config file when installed on a Debian system.
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/avrdude.1 b/avrdude.1
-index 955dbad..041171e 100644
+index 117cdcb..5717101 100644
 --- a/avrdude.1
 +++ b/avrdude.1
-@@ -287,7 +287,7 @@ knows about.  If you have a programmer or part that
+@@ -297,7 +297,7 @@ knows about.  If you have a programmer or part that
  does not know about, you can add it to the config file (be sure and
  submit a patch back to the author so that it can be incorporated for
  the next version).  See the config file, located at
@@ -21,7 +21,7 @@ index 955dbad..041171e 100644
  which contains a description of the format.
  .Pp
  If 
-@@ -1010,7 +1010,7 @@ Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
+@@ -1053,7 +1053,7 @@ Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
  .It Pa /dev/ppi0
  default device to be used for communication with the programming
  hardware
@@ -30,7 +30,7 @@ index 955dbad..041171e 100644
  programmer and parts configuration file
  .It Pa ${HOME}/.avrduderc
  programmer and parts configuration file (per-user overrides)
-@@ -1018,7 +1018,7 @@ programmer and parts configuration file (per-user overrides)
+@@ -1061,7 +1061,7 @@ programmer and parts configuration file (per-user overrides)
  Initialization file for the
  .Xr readline 3
  library
