@@ -1,8 +1,8 @@
-avrdude (6.1-2) UNRELEASED; urgency=medium
+avrdude (6.1-2) unstable; urgency=medium
 
   * Fix reset on FT245R. Patch cherry-picked from upstream. (Closes: #760764)
 
- -- Michael Biebl <biebl@debian.org>  Thu, 11 Sep 2014 21:53:56 +0200
+ -- Michael Biebl <biebl@debian.org>  Thu, 11 Sep 2014 21:56:06 +0200
 
 avrdude (6.1-1) unstable; urgency=medium
 
