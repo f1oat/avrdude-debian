@@ -1,10 +1,10 @@
-avrdude (6.1-3) UNRELEASED; urgency=medium
+avrdude (6.1-3) unstable; urgency=medium
 
   * Bump Standards-Version to 3.9.6. No further changes.
   * Update Vcs-Browser URL to use cgit and https.
   * Fix Linux GPIO typo. Patch cherry-picked from upstream. (Closes: #745034)
 
- -- Michael Biebl <biebl@debian.org>  Fri, 01 May 2015 05:08:04 +0200
+ -- Michael Biebl <biebl@debian.org>  Fri, 01 May 2015 05:22:06 +0200
 
 avrdude (6.1-2) unstable; urgency=medium
 
