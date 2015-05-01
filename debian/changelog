@@ -1,3 +1,9 @@
+avrdude (6.1-3) UNRELEASED; urgency=medium
+
+  * Bump Standards-Version to 3.9.6. No further changes.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 01 May 2015 05:08:04 +0200
+
 avrdude (6.1-2) unstable; urgency=medium
 
   * Fix reset on FT245R. Patch cherry-picked from upstream. (Closes: #760764)
