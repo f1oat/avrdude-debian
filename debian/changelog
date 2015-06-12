@@ -1,4 +1,4 @@
-avrdude (6.1-4) UNRELEASED; urgency=medium
+avrdude (6.1-4) unstable; urgency=medium
 
   [ Michael Biebl ]
   * Update watch file to also track .bz2 and .xz tarballs.
@@ -9,7 +9,7 @@ avrdude (6.1-4) UNRELEASED; urgency=medium
   * Avoid division by zero on empty size. Patch cherry-picked from upstream.
     (Closes: #788517)
 
- -- Michael Biebl <biebl@debian.org>  Fri, 08 May 2015 23:38:06 +0200
+ -- Michael Biebl <biebl@debian.org>  Fri, 12 Jun 2015 12:49:43 +0200
 
 avrdude (6.1-3) unstable; urgency=medium
 
