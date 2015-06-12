@@ -2,6 +2,7 @@ avrdude (6.1-4) UNRELEASED; urgency=medium
 
   * Update watch file to also track .bz2 and .xz tarballs.
   * Add cryptographic signature verification for upstream tarball.
+  * Make no-patch-numbers the default for gbp.
 
  -- Michael Biebl <biebl@debian.org>  Fri, 08 May 2015 23:38:06 +0200
 
