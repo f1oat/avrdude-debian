@@ -1,0 +1,25 @@
+From: =?utf-8?q?Guido_G=C3=BCnther?= <agx@sigxcpu.org>
+Date: Fri, 12 Jun 2015 10:49:52 +0200
+Subject: Avoid division by zero on empty size
+
+Basically a cherry-pick of revision 1340 in SVN fixing a
+floating point exception.
+
+Bug: http://savannah.nongnu.org/bugs/?40142
+---
+ avr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/avr.c b/avr.c
+index 3b4c872..a04b2da 100644
+--- a/avr.c
++++ b/avr.c
+@@ -1238,7 +1238,7 @@ void report_progress (int completed, int total, char *hdr)
+ {
+   static int last = 0;
+   static double start_time;
+-  int percent = (completed * 100) / total;
++  int percent = (total > 0) ? ((completed * 100) / total) : 100;
+   struct timeval tv;
+   double t;
+ 
