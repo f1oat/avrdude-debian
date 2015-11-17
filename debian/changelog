@@ -3,6 +3,7 @@ avrdude (6.2-1) UNRELEASED; urgency=medium
   * New upstream release. (Closes: #805352)
   * Rebase patches.
   * Override dh_install to list uninstalled files.
+  * Use .install files to install the avrdude man page and info file.
 
  -- Michael Biebl <biebl@debian.org>  Tue, 17 Nov 2015 13:49:17 +0100
 
