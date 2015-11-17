@@ -35,6 +35,7 @@ Package: avrdude-doc
 Section: doc
 Priority: extra
 Architecture: all
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends}
 Suggests: doc-base
 Description: documentation for avrdude
