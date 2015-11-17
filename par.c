@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: par.c 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
+/* $Id: par.c 1321 2014-06-13 20:07:40Z awachtler $ */
 
 #include "ac_cfg.h"
 
@@ -36,9 +36,8 @@
 #endif
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pindefs.h"
-#include "pgm.h"
+#include "libavrdude.h"
+
 #include "ppi.h"
 #include "bitbang.h"
 #include "par.h"
@@ -237,13 +236,14 @@ static int par_open(PROGRAMMER * pgm, char * port)
 {
   int rc;
 
-  bitbang_check_prerequisites(pgm);
+  if (bitbang_check_prerequisites(pgm) < 0)
+    return -1;
 
   ppi_open(port, &pgm->fd);
   if (pgm->fd.ifd < 0) {
-    fprintf(stderr, "%s: failed to open parallel port \"%s\"\n\n",
+    avrdude_message(MSG_INFO, "%s: failed to open parallel port \"%s\"\n\n",
             progname, port);
-    exit(1);
+    return -1;
   }
 
   /*
@@ -251,14 +251,14 @@ static int par_open(PROGRAMMER * pgm, char * port)
    */
   rc = ppi_getall(&pgm->fd, PPIDATA);
   if (rc < 0) {
-    fprintf(stderr, "%s: error reading status of ppi data port\n", progname);
+    avrdude_message(MSG_INFO, "%s: error reading status of ppi data port\n", progname);
     return -1;
   }
   pgm->ppidata = rc;
 
   rc = ppi_getall(&pgm->fd, PPICTRL);
   if (rc < 0) {
-    fprintf(stderr, "%s: error reading status of ppi ctrl port\n", progname);
+    avrdude_message(MSG_INFO, "%s: error reading status of ppi ctrl port\n", progname);
     return -1;
   }
   pgm->ppictrl = rc;
@@ -402,9 +402,8 @@ void par_initpgm(PROGRAMMER * pgm)
 
 void par_initpgm(PROGRAMMER * pgm)
 {
-  fprintf(stderr,
-	  "%s: parallel port access not available in this configuration\n",
-	  progname);
+  avrdude_message(MSG_INFO, "%s: parallel port access not available in this configuration\n",
+                  progname);
 }
 
 #endif /* HAVE_PARPORT */

@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: serbb_posix.c 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
+/* $Id: serbb_posix.c 1321 2014-06-13 20:07:40Z awachtler $ */
 
 /*
  * Posix serial bitbanging interface for avrdude.
@@ -37,9 +37,8 @@
 #include <termios.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pindefs.h"
-#include "pgm.h"
+#include "libavrdude.h"
+
 #include "bitbang.h"
 #include "serbb.h"
 
@@ -225,7 +224,8 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
   int flags;
   int r;
 
-  bitbang_check_prerequisites(pgm);
+  if (bitbang_check_prerequisites(pgm) < 0)
+    return -1;
 
   /* adapted from uisp code */
 
@@ -238,7 +238,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 
   r = tcgetattr(pgm->fd.ifd, &mode);
   if (r < 0) {
-    fprintf(stderr, "%s: ", port);
+    avrdude_message(MSG_INFO, "%s: ", port);
     perror("tcgetattr");
     return(-1);
   }
@@ -252,7 +252,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 
   r = tcsetattr(pgm->fd.ifd, TCSANOW, &mode);
   if (r < 0) {
-      fprintf(stderr, "%s: ", port);
+      avrdude_message(MSG_INFO, "%s: ", port);
       perror("tcsetattr");
       return(-1);
   }
@@ -261,14 +261,14 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
   flags = fcntl(pgm->fd.ifd, F_GETFL, 0);
   if (flags == -1)
     {
-      fprintf(stderr, "%s: Can not get flags: %s\n",
+      avrdude_message(MSG_INFO, "%s: Can not get flags: %s\n",
 	      progname, strerror(errno));
       return(-1);
     }
   flags &= ~O_NONBLOCK;
   if (fcntl(pgm->fd.ifd, F_SETFL, flags) == -1)
     {
-      fprintf(stderr, "%s: Can not clear nonblock flag: %s\n",
+      avrdude_message(MSG_INFO, "%s: Can not clear nonblock flag: %s\n",
 	      progname, strerror(errno));
       return(-1);
     }

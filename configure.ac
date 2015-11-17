@@ -17,13 +17,13 @@
 #
 
 #
-# $Id: configure.ac 1294 2014-03-12 23:03:18Z joerg_wunsch $
+# $Id: configure.ac 1363 2015-11-16 22:43:18Z joerg_wunsch $
 #
 
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.60)
-AC_INIT(avrdude, 6.1, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 6.2, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -32,6 +32,9 @@ AC_CANONICAL_TARGET
 AC_CONFIG_SRCDIR([main.c])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(ac_cfg.h)
+AC_CONFIG_MACRO_DIR([m4])
+
+LT_INIT()
 
 # Checks for programs.
 AC_PROG_CC
@@ -39,10 +42,6 @@ AC_PROG_INSTALL
 AC_PROG_SED
 AC_PROG_YACC
 AC_PROG_LEX
-AN_MAKEVAR([RANLIB], [AC_PROG_RANLIB])
-AN_PROGRAM([ranlib], [AC_PROG_RANLIB])
-AC_DEFUN([AC_PROG_RANLIB], [AC_CHECK_TARGET_TOOL(RANLIB, ranlib, :)])
-AC_PROG_RANLIB
 AN_MAKEVAR([AR], [AC_PROG_AR])
 AN_PROGRAM([ar], [AC_PROG_AR])
 AC_DEFUN([AC_PROG_AR], [AC_CHECK_TARGET_TOOL(AR, ar, :)])
@@ -191,6 +190,9 @@ AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_HEADER_TIME
+
+# WinSock2
+AC_CHECK_LIB([ws2_32], [puts])
 
 # Checks for library functions.
 AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday usleep])

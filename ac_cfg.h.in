@@ -3,6 +3,9 @@
 /* Define to 1 if you have the <ddk/hidsdi.h> header file. */
 #undef HAVE_DDK_HIDSDI_H
 
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
@@ -53,6 +56,9 @@
 
 /* Define to 1 if you have the <libusb.h> header file. */
 #undef HAVE_LIBUSB_H
+
+/* Define to 1 if you have the `ws2_32' library (-lws2_32). */
+#undef HAVE_LIBWS2_32
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
@@ -140,6 +146,10 @@
 
 /* Define if lex/flex has yylex_destroy */
 #undef HAVE_YYLEX_DESTROY
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
 
 /* Name of package */
 #undef PACKAGE

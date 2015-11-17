@@ -21,9 +21,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "avrdude.h"
-#include "pindefs.h"
-#include "pgm.h"
+#include "libavrdude.h"
 
 /**
  * Adds a pin in the pin definition as normal or inverse pin.
@@ -57,14 +57,14 @@ void pin_clear_all(struct pindef_t * const pindef) {
  * @param[in] pindef new pin definition structure
  * @param[out] pinno old pin definition integer
  */
-static void pin_fill_old_pinno(const struct pindef_t * const pindef, unsigned int * const pinno) {
+static int pin_fill_old_pinno(const struct pindef_t * const pindef, unsigned int * const pinno) {
   bool found = false;
   int i;
   for(i = 0; i < PIN_MAX; i++) {
     if(pindef->mask[i / PIN_FIELD_ELEMENT_SIZE] & (1 << (i % PIN_FIELD_ELEMENT_SIZE))) {
       if(found) {
-        fprintf(stderr, "Multiple pins found\n"); //TODO
-        exit(1);
+        avrdude_message(MSG_INFO, "Multiple pins found\n"); //TODO
+        return -1;
       }
       found = true;
       *pinno = i;
@@ -73,6 +73,7 @@ static void pin_fill_old_pinno(const struct pindef_t * const pindef, unsigned in
       }
     }
   }
+  return 0;
 }
 
 /**
@@ -81,14 +82,14 @@ static void pin_fill_old_pinno(const struct pindef_t * const pindef, unsigned in
  * @param[in] pindef new pin definition structure
  * @param[out] pinno old pin definition integer
  */
-static void pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned int * const pinno) {
+static int pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned int * const pinno) {
   int i;
 
   for(i = 0; i < PIN_FIELD_SIZE; i++) {
     if(i == 0) {
       if((pindef->mask[i] & ~PIN_MASK) != 0) {
-        fprintf(stderr, "Pins of higher index than max field size for old pinno found\n");
-        exit(1);
+        avrdude_message(MSG_INFO, "Pins of higher index than max field size for old pinno found\n");
+        return -1;
       }
       if (pindef->mask[i] == 0) {
         /* this pin function is not using any pins */
@@ -99,14 +100,15 @@ static void pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned 
       } else if(pindef->mask[i] == ((~pindef->inverse[i]) & pindef->mask[i])) {  /* all set bits in mask are cleared in inverse */
         *pinno = pindef->mask[i];
       } else {
-        fprintf(stderr, "pins have different polarity set\n");
-        exit(1);
+        avrdude_message(MSG_INFO, "pins have different polarity set\n");
+        return -1;
       }
     } else if(pindef->mask[i] != 0) {
-      fprintf(stderr, "Pins have higher number than fit in old format\n");
-      exit(1);
+      avrdude_message(MSG_INFO, "Pins have higher number than fit in old format\n");
+      return -1;
     }
   }
+  return 0;
 }
 
 
@@ -115,19 +117,30 @@ static void pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned 
  *
  * @param[inout] pgm programmer whose pins shall be converted.
  */
-void pgm_fill_old_pins(struct programmer_t * const pgm) {
+int pgm_fill_old_pins(struct programmer_t * const pgm) {
 
-  pin_fill_old_pinlist(&(pgm->pin[PPI_AVR_VCC]),  &(pgm->pinno[PPI_AVR_VCC]));
-  pin_fill_old_pinlist(&(pgm->pin[PPI_AVR_BUFF]), &(pgm->pinno[PPI_AVR_BUFF]));
-  pin_fill_old_pinno(&(pgm->pin[PIN_AVR_RESET]), &(pgm->pinno[PIN_AVR_RESET]));
-  pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SCK]),  &(pgm->pinno[PIN_AVR_SCK]));
-  pin_fill_old_pinno(&(pgm->pin[PIN_AVR_MOSI]), &(pgm->pinno[PIN_AVR_MOSI]));
-  pin_fill_old_pinno(&(pgm->pin[PIN_AVR_MISO]), &(pgm->pinno[PIN_AVR_MISO]));
-  pin_fill_old_pinno(&(pgm->pin[PIN_LED_ERR]),  &(pgm->pinno[PIN_LED_ERR]));
-  pin_fill_old_pinno(&(pgm->pin[PIN_LED_RDY]),  &(pgm->pinno[PIN_LED_RDY]));
-  pin_fill_old_pinno(&(pgm->pin[PIN_LED_PGM]),  &(pgm->pinno[PIN_LED_PGM]));
-  pin_fill_old_pinno(&(pgm->pin[PIN_LED_VFY]),  &(pgm->pinno[PIN_LED_VFY]));
+  if (pin_fill_old_pinlist(&(pgm->pin[PPI_AVR_VCC]),  &(pgm->pinno[PPI_AVR_VCC])) < 0)
+    return -1;
+  if (pin_fill_old_pinlist(&(pgm->pin[PPI_AVR_BUFF]), &(pgm->pinno[PPI_AVR_BUFF])) < 0)
+    return -1;
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_RESET]), &(pgm->pinno[PIN_AVR_RESET])) < 0)
+    return -1;
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SCK]),  &(pgm->pinno[PIN_AVR_SCK])) < 0)
+    return -1;
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_MOSI]), &(pgm->pinno[PIN_AVR_MOSI])) < 0)
+    return -1;
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_MISO]), &(pgm->pinno[PIN_AVR_MISO])) < 0)
+    return -1;
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_LED_ERR]),  &(pgm->pinno[PIN_LED_ERR])) < 0)
+    return -1;
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_LED_RDY]),  &(pgm->pinno[PIN_LED_RDY])) < 0)
+    return -1;
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_LED_PGM]),  &(pgm->pinno[PIN_LED_PGM])) < 0)
+    return -1;
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_LED_VFY]),  &(pgm->pinno[PIN_LED_VFY])) < 0)
+    return -1;
 
+  return 0;
 }
 
 /**
@@ -257,52 +270,41 @@ int pins_check(const struct programmer_t * const pgm, const struct pin_checklist
     }
     if(invalid) {
       if(output) {
-        fprintf(stderr,
-                "%s: %s: Following pins are not valid pins for this function: %s\n",
-                progname, avr_pin_name(pinname), pinmask_to_str(invalid_used));
-        if(verbose >= 2) {
-          fprintf(stderr,
-                  "%s: %s: Valid pins for this function are: %s\n",
+        avrdude_message(MSG_INFO, "%s: %s: Following pins are not valid pins for this function: %s\n",
+                        progname, avr_pin_name(pinname), pinmask_to_str(invalid_used));
+        avrdude_message(MSG_NOTICE2, "%s: %s: Valid pins for this function are: %s\n",
                   progname, avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
-        }
       }
       is_ok = false;
     }
     if(inverse) {
       if(output) {
-        fprintf(stderr,
-              "%s: %s: Following pins are not usable as inverse pins for this function: %s\n",
-              progname, avr_pin_name(pinname), pinmask_to_str(inverse_used));
-        if(verbose >= 2) {
-          fprintf(stderr,
-                  "%s: %s: Valid inverse pins for this function are: %s\n",
-                  progname, avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
-        }
+        avrdude_message(MSG_INFO, "%s: %s: Following pins are not usable as inverse pins for this function: %s\n",
+                        progname, avr_pin_name(pinname), pinmask_to_str(inverse_used));
+        avrdude_message(MSG_NOTICE2, "%s: %s: Valid inverse pins for this function are: %s\n",
+                          progname, avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
       }
       is_ok = false;
     }
     if(used) {
       if(output) {
-        fprintf(stderr,
-                "%s: %s: Following pins are set for other functions too: %s\n",
-                progname, avr_pin_name(pinname), pinmask_to_str(already_used));
+        avrdude_message(MSG_INFO, "%s: %s: Following pins are set for other functions too: %s\n",
+                        progname, avr_pin_name(pinname), pinmask_to_str(already_used));
         is_ok = false;
       }
     }
     if(!mandatory_used && is_mandatory && !invalid) {
       if(output) {
-        fprintf(stderr,
-                "%s: %s: Mandatory pin is not defined.\n",
-                progname, avr_pin_name(pinname));
+        avrdude_message(MSG_INFO, "%s: %s: Mandatory pin is not defined.\n",
+                        progname, avr_pin_name(pinname));
       }
       is_ok = false;
     }
     if(!is_ok) {
       rv = -1;
-    } else if(output && verbose >= 3) {
-      fprintf(stderr,
-              "%s: %s: Pin is ok.\n",
-              progname, avr_pin_name(pinname));
+    } else if(output) {
+      avrdude_message(MSG_DEBUG, "%s: %s: Pin is ok.\n",
+                      progname, avr_pin_name(pinname));
     }
   }
   return rv;
@@ -345,7 +347,7 @@ const char * pins_to_str(const struct pindef_t * const pindef) {
 
 /**
  * Returns the name of the pin as string.
- * 
+ *
  * @param pinname the pinname which we want as string.
  * @returns a string with the pinname, or <unknown> if pinname is invalid.
  */

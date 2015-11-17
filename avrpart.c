@@ -18,14 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: avrpart.c 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
+/* $Id: avrpart.c 1332 2014-08-18 21:43:08Z rliebscher $ */
 
 #include <stdlib.h>
 #include <string.h>
 
 #include "avrdude.h"
-#include "avrpart.h"
-#include "pindefs.h"
+#include "libavrdude.h"
 
 /***
  *** Elementary functions dealing with OPCODE structures
@@ -37,7 +36,7 @@ OPCODE * avr_new_opcode(void)
 
   m = (OPCODE *)malloc(sizeof(*m));
   if (m == NULL) {
-    fprintf(stderr, "avr_new_opcode(): out of memory\n");
+    avrdude_message(MSG_INFO, "avr_new_opcode(): out of memory\n");
     exit(1);
   }
 
@@ -57,7 +56,7 @@ static OPCODE * avr_dup_opcode(OPCODE * op)
 
   m = (OPCODE *)malloc(sizeof(*m));
   if (m == NULL) {
-    fprintf(stderr, "avr_dup_opcode(): out of memory\n");
+    avrdude_message(MSG_INFO, "avr_dup_opcode(): out of memory\n");
     exit(1);
   }
 
@@ -250,7 +249,7 @@ AVRMEM * avr_new_memtype(void)
 
   m = (AVRMEM *)malloc(sizeof(*m));
   if (m == NULL) {
-    fprintf(stderr, "avr_new_memtype(): out of memory\n");
+    avrdude_message(MSG_INFO, "avr_new_memtype(): out of memory\n");
     exit(1);
   }
 
@@ -273,13 +272,13 @@ int avr_initmem(AVRPART * p)
     m = ldata(ln);
     m->buf = (unsigned char *) malloc(m->size);
     if (m->buf == NULL) {
-      fprintf(stderr, "%s: can't alloc buffer for %s size of %d bytes\n",
+      avrdude_message(MSG_INFO, "%s: can't alloc buffer for %s size of %d bytes\n",
               progname, m->desc, m->size);
       return -1;
     }
     m->tags = (unsigned char *) malloc(m->size);
     if (m->tags == NULL) {
-      fprintf(stderr, "%s: can't alloc buffer for %s size of %d bytes\n",
+      avrdude_message(MSG_INFO, "%s: can't alloc buffer for %s size of %d bytes\n",
               progname, m->desc, m->size);
       return -1;
     }
@@ -301,9 +300,8 @@ AVRMEM * avr_dup_mem(AVRMEM * m)
   if (m->buf != NULL) {
     n->buf = (unsigned char *)malloc(n->size);
     if (n->buf == NULL) {
-      fprintf(stderr,
-              "avr_dup_mem(): out of memory (memsize=%d)\n",
-              n->size);
+      avrdude_message(MSG_INFO, "avr_dup_mem(): out of memory (memsize=%d)\n",
+                      n->size);
       exit(1);
     }
     memcpy(n->buf, m->buf, n->size);
@@ -312,9 +310,8 @@ AVRMEM * avr_dup_mem(AVRMEM * m)
   if (m->tags != NULL) {
     n->tags = (unsigned char *)malloc(n->size);
     if (n->tags == NULL) {
-      fprintf(stderr,
-              "avr_dup_mem(): out of memory (memsize=%d)\n",
-              n->size);
+      avrdude_message(MSG_INFO, "avr_dup_mem(): out of memory (memsize=%d)\n",
+                      n->size);
       exit(1);
     }
     memcpy(n->tags, m->tags, n->size);
@@ -407,11 +404,10 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
             m->readback[0],
             m->readback[1]);
     if (verbose > 4) {
-      fprintf(stderr,
-              "%s  Memory Ops:\n"
-              "%s    Oeration     Inst Bit  Bit Type  Bitno  Value\n"
-              "%s    -----------  --------  --------  -----  -----\n",
-              prefix, prefix, prefix);
+      avrdude_message(MSG_TRACE2, "%s  Memory Ops:\n"
+                      "%s    Oeration     Inst Bit  Bit Type  Bitno  Value\n"
+                      "%s    -----------  --------  --------  -----  -----\n",
+                      prefix, prefix, prefix);
       for (i=0; i<AVR_OP_MAX; i++) {
         if (m->op[i]) {
           for (j=31; j>=0; j--) {
@@ -445,7 +441,7 @@ AVRPART * avr_new_part(void)
 
   p = (AVRPART *)malloc(sizeof(AVRPART));
   if (p == NULL) {
-    fprintf(stderr, "new_part(): out of memory\n");
+    avrdude_message(MSG_INFO, "new_part(): out of memory\n");
     exit(1);
   }
 
@@ -539,6 +535,27 @@ AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode)
     p = ldata(ln1);
     if (p->avr910_devcode == devcode)
       return p;
+  }
+
+  return NULL;
+}
+
+AVRPART * locate_part_by_signature(LISTID parts, unsigned char * sig,
+                                   int sigsize)
+{
+  LNODEID ln1;
+  AVRPART * p = NULL;
+  int i;
+
+  if (sigsize == 3) {
+    for (ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
+      p = ldata(ln1);
+      for (i=0; i<3; i++)
+        if (p->signature[i] != sig[i])
+          break;
+      if (i == 3)
+        return p;
+    }
   }
 
   return NULL;

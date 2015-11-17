@@ -16,12 +16,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: flip1.h 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
+/* $Id: flip1.h 1311 2014-05-19 10:01:59Z joerg_wunsch $ */
 
 #ifndef flip1_h
 #define flip1_h
-
-#include "pgm.h"
 
 #ifdef __cplusplus
 extern "C" {

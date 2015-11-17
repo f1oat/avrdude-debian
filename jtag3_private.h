@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: jtag3_private.h 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
+/* $Id: jtag3_private.h 1278 2014-02-26 17:54:32Z joerg_wunsch $ */
 
 
 /*

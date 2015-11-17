@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: linux_ppdev.h 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
+/* $Id: linux_ppdev.h 1325 2014-06-23 20:20:38Z rliebscher $ */
 
 #ifndef linux_ppdev_h
 #define linux_ppdev_h
@@ -33,17 +33,16 @@
 
 #define ppi_claim(fd)                                        \
   if (ioctl(fd, PPCLAIM)) {                                  \
-    fprintf(stderr, "%s: can't claim device \"%s\": %s\n\n", \
+    avrdude_message(MSG_INFO, "%s: can't claim device \"%s\": %s\n\n", \
             progname, port, strerror(errno));                \
     close(fd);                                               \
-    exit(1);                                                 \
+    return;                                                  \
   }
 
 #define ppi_release(fd)                                      \
   if (ioctl(fd, PPRELEASE)) {                                \
-    fprintf(stderr, "%s: can't release device: %s\n\n",      \
+    avrdude_message(MSG_INFO, "%s: can't release device: %s\n\n", \
             progname, strerror(errno));                      \
-    exit(1);                                                 \
   }
 
 #define DO_PPI_READ(fd, reg, valp) \

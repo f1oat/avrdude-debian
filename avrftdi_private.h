@@ -22,9 +22,6 @@
 
 #ifndef DO_NOT_BUILD_AVRFTDI
 
-#include "pgm.h"
-#include "pindefs.h"
-
 enum { ERR, WARN, INFO, DEBUG, TRACE };
 
 #define __log(lvl, fmt, ...)                                  \
@@ -43,7 +40,7 @@ enum { ERR, WARN, INFO, DEBUG, TRACE };
 	do {                                                              \
 		if ((x))                                                        \
 		{                                                               \
-			fprintf(stderr, "%s:%d %s() %s: %s (%d)\n\t%s\n",             \
+			avrdude_message(MSG_INFO, "%s:%d %s() %s: %s (%d)\n\t%s\n",             \
 					__FILE__, __LINE__, __FUNCTION__,                         \
 					#x, strerror(errno), errno, ftdi_get_error_string(ftdi)); \
 			return -1;                                                    \
@@ -54,7 +51,7 @@ enum { ERR, WARN, INFO, DEBUG, TRACE };
 	do {                                                              \
 		if ((x))                                                        \
 		{                                                               \
-			fprintf(stderr, "%s:%d %s() %s: %s (%d)\n\t%s\n",             \
+			avrdude_message(MSG_INFO, "%s:%d %s() %s: %s (%d)\n\t%s\n",             \
 					__FILE__, __LINE__, __FUNCTION__,                         \
 	 			 #x, strerror(errno), errno, ftdi_get_error_string(ftdi));  \
 		}                                                               \

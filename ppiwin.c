@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: ppiwin.c 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
+/* $Id: ppiwin.c 1321 2014-06-13 20:07:40Z awachtler $ */
 
 /*
 This is the parallel port interface for Windows built using Cygwin.
@@ -31,7 +31,6 @@ reg = register as defined in an enum in ppi.h. This must be converted
 
 
 #include "ac_cfg.h"
-#include "avrdude.h"
 
 #if defined (WIN32NATIVE)
 
@@ -45,7 +44,9 @@ reg = register as defined in an enum in ppi.h. This must be converted
 #include <sys/time.h>
 #include <windows.h>
 
-#include "serial.h"
+#include "avrdude.h"
+#include "libavrdude.h"
+
 #include "ppi.h"
 
 #define DEVICE_LPT1 "lpt1"
@@ -91,7 +92,7 @@ void ppi_open(char *port, union filedescriptor *fdp)
 
     if(fd < 0)
     {
-        fprintf(stderr, "%s: can't open device \"giveio\"\n\n", progname);
+        avrdude_message(MSG_INFO, "%s: can't open device \"giveio\"\n\n", progname);
         fdp->ifd = -1;
         return;
     }
@@ -119,15 +120,14 @@ void ppi_open(char *port, union filedescriptor *fdp)
 	fd = strtol(port, &cp, 0);
 	if(*port == '\0' || *cp != '\0')
 	{
-	    fprintf(stderr,
-		    "%s: port name \"%s\" is neither lpt1/2/3 nor valid number\n",
-		    progname, port);
+	    avrdude_message(MSG_INFO, "%s: port name \"%s\" is neither lpt1/2/3 nor valid number\n",
+                            progname, port);
 	    fd = -1;
 	}
     }
     if(fd < 0)
     {
-        fprintf(stderr, "%s: can't open device \"%s\"\n\n", progname, port);
+        avrdude_message(MSG_INFO, "%s: can't open device \"%s\"\n\n", progname, port);
         fdp->ifd = -1;
         return;
     }
@@ -361,7 +361,7 @@ int gettimeofday(struct timeval *tv, struct timezone *unused){
        unsigned long dt;                                                   \
        dt = (unsigned long)((stop.QuadPart - start.QuadPart) * 1000 * 1000 \
                             / freq.QuadPart);                              \
-       fprintf(stderr,                                                     \
+       avrdude_message(MSG_INFO, \
                "hpt:%i usleep usec:%lu sleep msec:%lu timed usec:%lu\n",   \
                has_highperf, us, ((us + 999) / 1000), dt);                 \
      } while (0)

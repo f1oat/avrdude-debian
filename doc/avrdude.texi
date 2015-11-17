@@ -1,7 +1,7 @@
 %% -*-texinfo-*-
 \input texinfo
 
-@c $Id: avrdude.texi 1288 2014-02-28 14:36:38Z joerg_wunsch $
+@c $Id: avrdude.texi 1355 2015-04-09 19:50:30Z joerg_wunsch $
 
 @setfilename avrdude.info
 @settitle AVRDUDE
@@ -354,6 +354,8 @@ programmer's entry of the configuration file.
 @item -B @var{bitclock}
 Specify the bit clock period for the JTAG interface or the ISP clock (JTAG ICE only).
 The value is a floating-point number in microseconds.
+Alternatively, the value might be suffixed with "Hz", "kHz", or "MHz",
+in order to specify the bit clock frequency, rather than a period.
 The default value of the JTAG ICE results in about 1 microsecond bit
 clock period, suitable for target MCUs running at 4 MHz clock and
 above.
@@ -385,9 +387,7 @@ Currently, the following programmer ids are understood and supported:
 @item -C @var{config-file}
 Use the specified config file for configuration data.  This file
 contains all programmer and part definitions that AVRDUDE knows about.
-If you have a programmer or part that AVRDUDE does not know about, you
-can add it to the config file (be sure and submit a patch back to the
-author so that it can be incorporated for the next version).  If not
+If not
 specified, AVRDUDE reads the configuration file from
 /usr/local/etc/avrdude.conf (FreeBSD and Linux). See Appendix A for
 the method of searching for the configuration file for Windows.
@@ -561,8 +561,6 @@ The port is assumed to be properly configured, for example using a
 transparent 8-bit data connection without parity at 115200 Baud
 for a STK500.
 
-@emph{This feature is currently not implemented for Win32 systems.}
-
 
 @item -q
 Disable (or quell) output of the progress bar while reading or writing
@@ -719,6 +717,12 @@ Note that if @var{filename} contains a colon, the @var{format} field is
 no longer optional since the filename part following the colon would
 otherwise be misinterpreted as @var{format}.
 
+When reading any kind of flash memory area (including the various sub-areas
+in Xmega devices), the resulting output file will be truncated to not contain
+trailing 0xFF bytes which indicate unprogrammed (erased) memory.
+Thus, if the entire memory is unprogrammed, this will result in an output
+file that has no contents at all.
+
 As an abbreviation, the form @code{-U} @var{filename}
 is equivalent to specifying
 @code{-U} @emph{flash:w:}@var{filename}@emph{:a}.
@@ -841,7 +845,7 @@ the above
 and
 @samp{rawfreq=}
 parameters unavailable. Be aware that ASCII mode is not guaranteed to work
-with newer firmware versions, and is retained only to maintain compatability
+with newer firmware versions, and is retained only to maintain compatibility
 with older firmware versions.
 
 @item @samp{nopagedwrite}
@@ -860,9 +864,7 @@ reason, this option disables it.
 This sets the @emph{AUX}  pin to output a frequency of @var{n} kHz. Connecting
 the @emph{AUX} pin to the XTAL1 pin of your MCU, you can provide it a clock, 
 for example when it needs an external clock because of wrong fuses settings.
-This setting is only available in ASCII mode. (The lower limit was chosen so
-the CPU frequency is at least for four times the SPI frequency which is in 
-ASCII mode 30kHz.)  
+Make sure the CPU frequency is at least four times the SPI frequency.  
 
 @item @samp{serial_recv_timeout=@var{1...}}
 This sets the serial receive timeout to the given value. 

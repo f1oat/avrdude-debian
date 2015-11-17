@@ -26,10 +26,9 @@
 #include <string.h>
 
 #include "avrdude.h"
-#include "pgm_type.h"
+#include "libavrdude.h"
 
 #include "arduino.h"
-#include "avr.h"
 #include "avr910.h"
 #include "avrftdi.h"
 #include "buspirate.h"
@@ -53,7 +52,7 @@
 #include "wiring.h"
 
 
-const PROGRAMMER_TYPE const programmers_types[] = {
+const PROGRAMMER_TYPE programmers_types[] = {
         {"arduino", arduino_initpgm, arduino_desc},
         {"avr910", avr910_initpgm, avr910_desc},
         {"avrftdi", avrftdi_initpgm, avrftdi_desc},

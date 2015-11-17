@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: stk500generic.c 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
+/* $Id: stk500generic.c 1321 2014-06-13 20:07:40Z awachtler $ */
 
 /*
  * avrdude interface for Atmel STK500 programmer
@@ -32,7 +32,8 @@
 #include <string.h>
 
 #include "avrdude.h"
-#include "pgm.h"
+#include "libavrdude.h"
+
 #include "stk500generic.h"
 #include "stk500.h"
 #include "stk500v2.h"
@@ -42,9 +43,8 @@ static int stk500generic_open(PROGRAMMER * pgm, char * port)
   stk500_initpgm(pgm);
   if (pgm->open(pgm, port) >= 0)
     {
-      fprintf(stderr,
-	      "%s: successfully opened stk500v1 device -- please use -c stk500v1\n",
-	      progname);
+      avrdude_message(MSG_INFO, "%s: successfully opened stk500v1 device -- please use -c stk500v1\n",
+                      progname);
       return 0;
     }
 
@@ -53,15 +53,13 @@ static int stk500generic_open(PROGRAMMER * pgm, char * port)
   stk500v2_initpgm(pgm);
   if (pgm->open(pgm, port) >= 0)
     {
-      fprintf(stderr,
-	      "%s: successfully opened stk500v2 device -- please use -c stk500v2\n",
-	      progname);
+      avrdude_message(MSG_INFO, "%s: successfully opened stk500v2 device -- please use -c stk500v2\n",
+                      progname);
       return 0;
     }
 
-  fprintf(stderr,
-	  "%s: cannot open either stk500v1 or stk500v2 programmer\n",
-	  progname);
+  avrdude_message(MSG_INFO, "%s: cannot open either stk500v1 or stk500v2 programmer\n",
+                  progname);
   return -1;
 }
 

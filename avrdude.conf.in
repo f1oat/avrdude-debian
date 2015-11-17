@@ -1,4 +1,4 @@
-# $Id: avrdude.conf.in 1294 2014-03-12 23:03:18Z joerg_wunsch $ -*- text -*-
+# $Id: avrdude.conf.in 1360 2015-10-31 20:50:52Z joerg_wunsch $ -*- text -*-
 #
 # AVRDUDE Configuration File
 #
@@ -9,6 +9,10 @@
 # which must match one of the entry's "id" parameter.  The "-p" option
 # identifies which part AVRDUDE is going to be programming and must match
 # one of the parts' "id" parameter.
+#
+# DO NOT MODIFY THIS FILE.  Modifications will be overwritten the next
+# time a "make install" is run.  For user-specific additions, use the
+# "-C +filename" commandline option.
 #
 # Possible entry formats are:
 #
@@ -470,27 +474,27 @@ programmer
 # J2: Pin 7 is SCK
 #   : Pin 8 is MOSI
 #   : Pin 9 is MISO
-#	: Pin 11 is RST
+#   : Pin 11 is RST
 #   : Pin 6 is ground
 # Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
 # a 16MHz Atmega1280 to program reliably.  The 232H is conveniently 5V tolerant.
 programmer
-  id	= "UM232H";
-  desc	= "FT232H based module from FTDI and Glyn.com.au";
-  type	= "avrftdi";
+  id         = "UM232H";
+  desc       = "FT232H based module from FTDI and Glyn.com.au";
+  type       = "avrftdi";
   usbvid     = 0x0403;
 # Note: This PID is reserved for generic 232H devices and
 # should be programmed into the EEPROM
-   usbpid    = 0x6014;
-  usbdev = "A";
+  usbpid     = 0x6014;
+  usbdev     = "A";
   usbvendor  = "";
   usbproduct = "";
   usbsn      = "";
 #ISP-signals
-  sck    = 1;
-  mosi   = 2;
-  miso   = 3;
-  reset  = 4;
+  sck    = 0;
+  mosi   = 1;
+  miso   = 2;
+  reset  = 3;
 ;
 
 # C232HM module from FTDI and Glyn.com.au.
@@ -502,22 +506,22 @@ programmer
 # Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
 # a 16MHz Atmega1280 to program reliably.  The 232H is conveniently 5V tolerant.
 programmer
-  id	= "C232HM";
-  desc	= "FT232H based module from FTDI and Glyn.com.au";
-  type	= "avrftdi";
+  id         = "C232HM";
+  desc       = "FT232H based module from FTDI and Glyn.com.au";
+  type       = "avrftdi";
   usbvid     = 0x0403;
 # Note: This PID is reserved for generic 232H devices and
 # should be programmed into the EEPROM
-   usbpid    = 0x6014;
-  usbdev = "A";
+  usbpid     = 0x6014;
+  usbdev     = "A";
   usbvendor  = "";
   usbproduct = "";
   usbsn      = "";
 #ISP-signals
-  sck    = 1;
-  mosi   = 2;
-  miso   = 3;
-  reset  = 4;
+  sck    = 0;
+  mosi   = 1;
+  miso   = 2;
+  reset  = 3;
 ;
 
 
@@ -580,6 +584,24 @@ programmer
   miso   = 2;
 # Enable correct buffers
   buff   = 7;
+;
+
+# submitted as bug #46020
+programmer
+  id     = "tumpa";
+  desc   = "TIAO USB Multi-Protocol Adapter";
+  type   = "avrftdi";
+  connection_type = usb;
+  usbvid = 0x0403;
+  usbpid = 0x8A98;
+  usbdev = "A";
+  usbvendor = "TIAO";
+  usbproduct = "";
+  usbsn  = "";
+  sck    = 0; # TCK 9
+  mosi   = 1; # TDI 5
+  miso   = 2; # TDO 13
+  reset  = 3; # TMS 7
 ;
 
 programmer
@@ -753,6 +775,47 @@ programmer
 programmer parent "arduino-ft232r"
   id    = "diecimila";
   desc  = "alias for arduino-ft232r";
+;
+
+# There is a ATmega328P kit PCB called "uncompatino".
+# This board allows ISP via its on-board FT232R.
+# This is designed like Arduino Duemilanove but has no standard ICPS header.
+# Its 4 pairs of pins are shorted to enable ftdi_syncbb.
+# http://akizukidenshi.com/catalog/g/gP-07487/
+# http://akizukidenshi.com/download/ds/akizuki/k6096_manual_20130816.pdf
+programmer
+  id    = "uncompatino";
+  desc  = "uncompatino with all pairs of pins shorted";
+  type  = "ftdi_syncbb";
+  connection_type = usb;
+  miso  = 3; # cts
+  sck   = 5; # dsr
+  mosi  = 6; # dcd
+  reset = 7; # ri
+;
+
+# FTDI USB to serial cable TTL-232R-5V with a custom adapter for ICSP
+# http://www.ftdichip.com/Products/Cables/USBTTLSerial.htm
+# http://www.ftdichip.com/Support/Documents/DataSheets/Cables/DS_TTL-232R_CABLES.pdf
+# For ICSP pinout see for example http://www.atmel.com/images/doc2562.pdf
+# (Figure 1. ISP6PIN header pinout and Table 1. Connections required for ISP ...)
+# TTL-232R GND 1 Black  -> ICPS GND   (pin 6)
+# TTL-232R CTS 2 Brown  -> ICPS MOSI  (pin 4)
+# TTL-232R VCC 3 Red    -> ICPS VCC   (pin 2)
+# TTL-232R TXD 4 Orange -> ICPS RESET (pin 5)
+# TTL-232R RXD 5 Yellow -> ICPS SCK   (pin 3)
+# TTL-232R RTS 6 Green  -> ICPS MISO  (pin 1)
+# Except for VCC and GND, you can connect arbitual pairs as long as 
+# the following table is adjusted.
+programmer
+  id    = "ttl232r";
+  desc  = "FTDI TTL232R-5V with ICSP adapter";
+  type  = "ftdi_syncbb";
+  connection_type = usb;
+  miso  = 2; # rts
+  sck   = 1; # rxd
+  mosi  = 3; # cts
+  reset = 0; # txd
 ;
 
 programmer
@@ -6935,7 +6998,7 @@ part
                           "x x x x  x x x x  x x x i  i i i i";
 
         read            = "0 1 0 1  1 0 0 0  0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x  x x x o  o o o o";
+                          "x x x x  x x x x  o o o o  o o o o";
         min_write_delay = 9000;
         max_write_delay = 9000;
       ;
@@ -7126,7 +7189,7 @@ part
                           "x x x x  x x x x   x x x x  x x x i";
 
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   x x x x  x x x o";
+                          "x x x x  x x x x   o o o o  o o o o";
         min_write_delay = 4500;
         max_write_delay = 4500;
       ;
@@ -7317,7 +7380,7 @@ part
                           "x x x x  x x x x   x x x x  x x x i";
 
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   x x x x  x x x o";
+                          "x x x x  x x x x   o o o o  o o o o";
         min_write_delay = 4500;
         max_write_delay = 4500;
       ;
@@ -7508,7 +7571,7 @@ part
                           "x x x x  x x x x   x x x x  x x x i";
 
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   x x x x  x x x o";
+                          "x x x x  x x x x   o o o o  o o o o";
         min_write_delay = 4500;
         max_write_delay = 4500;
       ;
@@ -7680,7 +7743,7 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   x x x x  x x x o";
+                          "x x x x  x x x x   o o o o  o o o o";
 
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
                           "x x x x  x x x x   x x x x  x x x i";
@@ -7880,7 +7943,7 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   x x x x  x o o o";
+                          "x x x x  x x x x   o o o o  o o o o";
 
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
                           "x x x x  x x x x   x x x x  x i i i";
@@ -8082,7 +8145,7 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         read            = "0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0",
-                          "x x x x x x x x x x x x x o o o";
+                          "x x x x x x x x o o o o o o o o";
         
         write           = "1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0",
                           "x x x x x x x x x x x x x i i i";
@@ -8282,7 +8345,7 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   x x x x  x o o o";
+                          "x x x x  x x x x   o o o o  o o o o";
 
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
                           "x x x x  x x x x   x x x x  x x x i";
@@ -8472,7 +8535,7 @@ part
 	min_write_delay = 4500;
 	max_write_delay = 4500;
 	read = "0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0",
-	       "x x x x x x x x x x x x x o o o";
+	       "x x x x x x x x o o o o o o o o";
 
 	write = "1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0",
 	      	"x x x x x x x x x x x x x i i i";
@@ -8508,6 +8571,26 @@ part parent "m328"
     signature		= 0x1e 0x95 0x0F;
 
     ocdrev              = 1;
+;
+
+#------------------------------------------------------------
+# ATmega32m1
+#------------------------------------------------------------
+
+part parent "m328"
+    id              = "m32m1";
+    desc            = "ATmega32M1";
+    # stk500_devcode	= 0x;
+    # avr910_devcode	= 0x;
+    signature       = 0x1e 0x95 0x84;
+    bs2             = 0xe2;
+
+    memory "efuse"
+        read            = "0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0",
+                          "x x x x x x x x o o o o o o o o";
+        write           = "1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0",
+                          "x x x x x x x x x x i i i i i i";
+    ;
 ;
 
 #------------------------------------------------------------
@@ -9157,6 +9240,16 @@ part parent "pwm3b"
   ;
 
 #------------------------------------------------------------
+# AT90PWM216
+#------------------------------------------------------------
+# Completely identical to AT90PWM316 (including the signature!)
+
+part parent "pwm316"
+     id = "pwm216";
+     desc = "AT90PWM216";
+  ; 
+
+#------------------------------------------------------------
 # ATtiny25
 #------------------------------------------------------------
 
@@ -9294,6 +9387,8 @@ part
          size            = 1;
          write           = "1 0 1 0  1 1 0 0  1 1 1 x  x x x x",
                            "x x x x  x x x x  1 1 i i  i i i i";
+         read            = "0 1 0 1  1 0 0 0  0 0 0 0  0 0 0 0",
+                           "0 0 0 0  0 0 0 0  o o o o  o o o o";
         min_write_delay = 9000;
         max_write_delay = 9000;
        ;
@@ -9332,7 +9427,7 @@ part
      ;
 
      memory "calibration"
-         size            = 2;
+         size            = 1;
          read            = "0  0  1  1   1  0  0  0    0 0 0 x  x x x x",
                            "0  0  0  0   0  0  0  a0   o o o o  o o o o";
      ;
@@ -9475,6 +9570,8 @@ part
          size            = 1;
          write           = "1 0 1 0  1 1 0 0  1 1 1 x  x x x x",
                            "x x x x  x x x x  1 1 i i  i i i i";
+         read            = "0 1 0 1  1 0 0 0  0 0 0 0  0 0 0 0",
+                           "0 0 0 0  0 0 0 0  o o o o  o o o o";
         min_write_delay = 9000;
         max_write_delay = 9000;
        ;
@@ -9513,7 +9610,7 @@ part
      ;
 
      memory "calibration"
-         size            = 2;
+         size            = 1;
          read            = "0  0  1  1   1  0  0  0    0 0 0 x  x x x x",
                            "0  0  0  0   0  0  0  a0   o o o o  o o o o";
      ;
@@ -9657,6 +9754,8 @@ part
          size            = 1;
          write           = "1 0 1 0  1 1 0 0  1 1 1 x  x x x x",
                            "x x x x  x x x x  1 1 i i  i i i i";
+         read            = "0 1 0 1  1 0 0 0  0 0 0 0  0 0 0 0",
+                           "0 0 0 0  0 0 0 0  o o o o  o o o o";
         min_write_delay = 9000;
         max_write_delay = 9000;
        ;
@@ -9695,7 +9794,7 @@ part
      ;
 
      memory "calibration"
-         size            = 2;
+         size            = 1;
          read            = "0  0  1  1   1  0  0  0    0 0 0 x  x x x x",
                            "0  0  0  0   0  0  0  a0   o o o o  o o o o";
      ;
@@ -12711,8 +12810,8 @@ part
     memory "flash"
         paged           = yes;
         size            = 8192;
-        page_size       = 64;
-        num_pages       = 128;
+        page_size       = 128;
+        num_pages       = 64;
         min_write_delay = 4500;
         max_write_delay = 4500;
         readback_p1     = 0x00;
@@ -12744,7 +12843,7 @@ part
 
 	mode		= 0x41;
 	delay		= 6;
-	blocksize	= 64;
+	blocksize	= 128;
 	readsize	= 256;
       ;
 
@@ -14542,7 +14641,7 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         read            = "0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0",
-                          "x x x x x x x x x x x o o o o o";
+                          "x x x x x x x x o o o o o o o o";
 
         write           = "1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0",
                           "x x x x x x x x x x x i i i i i";

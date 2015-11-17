@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: avrftdi.c 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
+/* $Id: avrftdi.c 1328 2014-07-16 20:02:01Z rliebscher $ */
 /*
  * Interface to the MPSSE Engine of FTDI Chips using libftdi.
  */
@@ -34,11 +34,9 @@
 #include <stdarg.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pgm.h"
-#include "pindefs.h"
+#include "libavrdude.h"
+
 #include "avrftdi.h"
-#include "avrpart.h"
 #include "avrftdi_tpi.h"
 #include "avrftdi_private.h"
 #include "usbdevs.h"
@@ -54,9 +52,8 @@
 
 static int avrftdi_noftdi_open (struct programmer_t *pgm, char * name)
 {
-	fprintf(stderr,
-		"%s: Error: no libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.\n",
-		progname);
+	avrdude_message(MSG_INFO, "%s: Error: no libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.\n",
+                        progname);
 
 	return -1;
 }
@@ -145,14 +142,14 @@ void avrftdi_log(int level, const char * func, int line,
 		if(!skip_prefix)
 		{
 			switch(level) {
-				case ERR: fprintf(stderr, "E "); break;
-				case WARN:  fprintf(stderr, "W "); break;
-				case INFO:  fprintf(stderr, "I "); break;
-				case DEBUG: fprintf(stderr, "D "); break;
-				case TRACE: fprintf(stderr, "T "); break;
-				default: fprintf(stderr, "  ");
+				case ERR: avrdude_message(MSG_INFO, "E "); break;
+				case WARN:  avrdude_message(MSG_INFO, "W "); break;
+				case INFO:  avrdude_message(MSG_INFO, "I "); break;
+				case DEBUG: avrdude_message(MSG_INFO, "D "); break;
+				case TRACE: avrdude_message(MSG_INFO, "T "); break;
+				default: avrdude_message(MSG_INFO, "  "); break;
 			}
-			fprintf(stderr, "%s(%d): ", func, line);
+			avrdude_message(MSG_INFO, "%s(%d): ", func, line);
 		}
 		va_start(ap, fmt);
 		vfprintf(stderr, fmt, ap);
@@ -175,16 +172,16 @@ static void buf_dump(const unsigned char *buf, int len, char *desc,
 		     int offset, int width)
 {
 	int i;
-	fprintf(stderr, "%s begin:\n", desc);
+	avrdude_message(MSG_INFO, "%s begin:\n", desc);
 	for (i = 0; i < offset; i++)
-		fprintf(stderr, "%02x ", buf[i]);
-	fprintf(stderr, "\n");
+		avrdude_message(MSG_INFO, "%02x ", buf[i]);
+	avrdude_message(MSG_INFO, "\n");
 	for (i++; i <= len; i++) {
-		fprintf(stderr, "%02x ", buf[i-1]);
+		avrdude_message(MSG_INFO, "%02x ", buf[i-1]);
 		if((i-offset) != 0 && (i-offset)%width == 0)
-		    fprintf(stderr, "\n");
+		    avrdude_message(MSG_INFO, "\n");
 	}
-	fprintf(stderr, "%s end\n", desc);
+	avrdude_message(MSG_INFO, "%s end\n", desc);
 }
 
 /*
@@ -193,7 +190,7 @@ static void buf_dump(const unsigned char *buf, int len, char *desc,
  */
 static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
 {
-	uint32_t divisor;
+	int32_t divisor;
 	uint8_t buf[3];
 
 	/* divisor on 6000000 / freq - 1 */
@@ -357,7 +354,7 @@ static int avrftdi_transmit_bb(PROGRAMMER * pgm, unsigned char mode, const unsig
 	size_t max_size = MIN(pdata->ftdic->max_packet_size,pdata->tx_buffer_size);
 	// select block size so that resulting commands does not exceed max_size if possible
 	blocksize = MAX(1,(max_size-7)/((8*2*6)+(8*1*2)));
-	//fprintf(stderr,"blocksize %d \n",blocksize);
+	//avrdude_message(MSG_INFO, "blocksize %d \n",blocksize);
 
 	while(remaining)
 	{
@@ -439,7 +436,7 @@ static int avrftdi_transmit_mpsse(avrftdi_t* pdata, unsigned char mode, const un
 	{
 		size_t transfer_size = (remaining > blocksize) ? blocksize : remaining;
 
-		E(ftdi_write_data(pdata->ftdic, &buf[written], transfer_size) != transfer_size, pdata->ftdic);
+		E(ftdi_write_data(pdata->ftdic, (unsigned char*)&buf[written], transfer_size) != transfer_size, pdata->ftdic);
 #if 0
 		if(remaining < blocksize)
 			E(ftdi_write_data(pdata->ftdic, &si, sizeof(si)) != sizeof(si), pdata->ftdic);
@@ -497,7 +494,7 @@ static int write_flush(avrftdi_t* pdata)
 	 * avr has got the reset signal when we start sleeping.
 	 * (it may be stuck in the USB stack or some USB hub)
 	 *
-	 * Add.: purge does NOT flush. It clears. Also, it is unkown, when the purge
+	 * Add.: purge does NOT flush. It clears. Also, it is unknown, when the purge
 	 * command actually arrives at the chip.
 	 * Use read pin status command as sync.
 	 */
@@ -673,9 +670,8 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	if (usbpid) {
 		pid = *(int *)(ldata(usbpid));
 		if (lnext(usbpid))
-			fprintf(stderr,
-				"%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
-				progname, pid);
+			avrdude_message(MSG_INFO, "%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
+                                        progname, pid);
 	} else
 		pid = USB_DEVICE_FT2232;
 
@@ -769,7 +765,7 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 			pdata->tx_buffer_size = 2048;
 			break;
 		default:
-			log_warn("Found unkown device %x. I will do my ", pdata->ftdic->type);
+			log_warn("Found unknown device %x. I will do my ", pdata->ftdic->type);
 			log_warn("best to work with it, but no guarantees ...\n");
 			pdata->pin_limit = 8;
 			pdata->rx_buffer_size = pdata->ftdic->max_packet_size;
@@ -1210,7 +1206,7 @@ avrftdi_setup(PROGRAMMER * pgm)
 	if(!pdata->ftdic)
 	{
 		log_err("Error allocating memory.\n");
-		exit(-ENOMEM);
+		exit(1);
 	}
 	E_VOID(ftdi_init(pdata->ftdic), pdata->ftdic);
 

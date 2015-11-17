@@ -16,14 +16,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: config.h 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
+/* $Id: config.h 1322 2014-06-17 20:08:28Z rliebscher $ */
+
+/* These are the internal definitions needed for config parsing */
 
 #ifndef config_h
 #define config_h
 
-#include "lists.h"
-#include "pindefs.h"
-#include "avr.h"
+#include "libavrdude.h"
 
 
 #define MAX_STR_CONST 1024
@@ -54,17 +54,6 @@ extern int          lineno;
 extern const char * infile;
 extern LISTID       string_list;
 extern LISTID       number_list;
-extern LISTID       part_list;
-extern LISTID       programmers;
-extern char         default_programmer[];
-extern char         default_parallel[];
-extern char         default_serial[];
-extern double       default_bitclock;
-extern int          default_safemode;
-
-/* This name is fixed, it's only here for symmetry with
- * default_parallel and default_serial. */
-#define DEFAULT_USB "usb"
 
 
 #if !defined(HAS_YYSTYPE)
@@ -81,10 +70,9 @@ extern "C" {
 
 int yyparse(void);
 
+int yyerror(char * errmsg, ...);
 
-int init_config(void);
-
-void cleanup_config(void);
+int yywarning(char * errmsg, ...);
 
 TOKEN * new_token(int primary);
 
@@ -107,8 +95,6 @@ void print_token(TOKEN * tkn);
 void pyytext(void);
 
 char * dup_string(const char * str);
-
-int read_config(const char * file);
 
 #ifdef __cplusplus
 }

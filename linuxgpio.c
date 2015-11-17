@@ -29,9 +29,8 @@
 #include <errno.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pindefs.h"
-#include "pgm.h"
+#include "libavrdude.h"
+
 #include "bitbang.h"
 
 #if HAVE_LINUXGPIO
@@ -219,7 +218,7 @@ static int linuxgpio_highpulsepin(PROGRAMMER * pgm, int pinfunc)
 
 static void linuxgpio_display(PROGRAMMER *pgm, const char *p)
 {
-    fprintf(stderr, "%sPin assignment  : /sys/class/gpio/gpio{n}\n",p);
+    avrdude_message(MSG_INFO, "%sPin assignment  : /sys/class/gpio/gpio{n}\n",p);
     pgm_display_generic_mask(pgm, p, SHOW_AVR_PINS);
 }
 
@@ -247,7 +246,8 @@ static int linuxgpio_open(PROGRAMMER *pgm, char *port)
 {
   int r, i, pin;
 
-  bitbang_check_prerequisites(pgm);
+  if (bitbang_check_prerequisites(pgm) < 0)
+    return -1;
 
 
   for (i=0; i<N_GPIO; i++)
@@ -268,7 +268,7 @@ static int linuxgpio_open(PROGRAMMER *pgm, char *port)
          i == PIN_AVR_MISO ) {
         pin = pgm->pinno[i] & PIN_MASK;
         if ((r=linuxgpio_export(pin)) < 0) {
-            fprintf(stderr, "Can't export GPIO %d, already exported/busy?: %s",
+            avrdude_message(MSG_INFO, "Can't export GPIO %d, already exported/busy?: %s",
                     pin, strerror(errno));
             return r;
         }
@@ -345,9 +345,8 @@ const char linuxgpio_desc[] = "GPIO bitbanging using the Linux sysfs interface";
 
 void linuxgpio_initpgm(PROGRAMMER * pgm)
 {
-  fprintf(stderr,
-	  "%s: Linux sysfs GPIO support not available in this configuration\n",
-	  progname);
+  avrdude_message(MSG_INFO, "%s: Linux sysfs GPIO support not available in this configuration\n",
+                  progname);
 }
 
 const char linuxgpio_desc[] = "GPIO bitbanging using the Linux sysfs interface (not available)";
