@@ -11,3 +11,6 @@ override_dh_auto_configure:
 		--enable-versioned-doc=no \
 		--enable-doc \
 		$(CONFFLAGS)
+
+override_dh_install:
+	dh_install --list-missing
