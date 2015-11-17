@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: usbdevs.h 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
+/* $Id: usbdevs.h 1288 2014-02-28 14:36:38Z joerg_wunsch $ */
 
 /*
  * defines for the USB interface

@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: lexer.l 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
+/* $Id: lexer.l 1322 2014-06-17 20:08:28Z rliebscher $ */
 
 %{
 /* need this for the call to atof() below */
@@ -29,10 +29,10 @@
 #include <sys/stat.h>
 
 #include "avrdude.h"
-
+#include "libavrdude.h"
 #include "config.h"
+
 #include "config_gram.h"
-#include "lists.h"
 
 #ifndef YYERRCODE
 #define YYERRCODE 256
@@ -95,12 +95,8 @@ SIGN     [+-]
           }
           
           if (c == EOF) {
-            fprintf(stderr, "error at %s:%d: EOF in comment\n", 
-                    infile, lineno);
-            fprintf(stderr, "    comment started on line %d\n", 
-                    comment_start);
-            exit(1);
-            break;
+            yyerror("EOF in comment (started on line %d)", comment_start);
+            return YYERRCODE;
           }
         }
      }
@@ -116,9 +112,9 @@ SIGN     [+-]
 <strng>\\(.|\n)  *(string_buf_ptr++) = yytext[1];
 <strng>[^\\\n\"]+ { char *yptr = yytext; while (*yptr) 
                                          *(string_buf_ptr++) = *(yptr++); }
-<strng>\n { fprintf(stderr, "error at line %d: unterminated character constant\n",
-            lineno); 
-            exit(1); }
+
+<strng>\n { yyerror("unterminated character constant");
+            return YYERRCODE; }
 
 allowfullpagebitstream { yylval=NULL; return K_ALLOWFULLPAGEBITSTREAM; }
 avr910_devcode   { yylval=NULL; return K_AVR910_DEVCODE; }
@@ -255,10 +251,9 @@ yes              { yylval=new_token(K_YES); return K_YES; }
 "\n"      { lineno++; }
 [ \r\t]+  { /* ignore whitespace */ }
 
-c: { fprintf(stderr, "error at %s:%d: possible old-style config file entry\n",
-             infile, lineno);
-     fprintf(stderr, "  Update your config file (see %s%s for a sample)\n",
-             CONFIG_DIR, "/avrdude.conf.sample");
+c: { yyerror("possible old-style config file entry\n"
+             "  Update your config file (see " CONFIG_DIR 
+               "/avrdude.conf.sample for a sample)");
      return YYERRCODE; }
 
 . { return YYERRCODE; }

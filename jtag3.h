@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: jtag3.h 1294 2014-03-12 23:03:18Z joerg_wunsch $ */
+/* $Id: jtag3.h 1283 2014-02-27 13:06:03Z joerg_wunsch $ */
 
 #ifndef jtag3_h
 #define jtag3_h
