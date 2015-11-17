@@ -8,11 +8,11 @@ Abstract: AVRDUDE is an open source utility to
 Section: Science/Electronics
 
 Format: pdf
-Files: /usr/share/doc/avrdude-doc/avrdude.pdf.gz
+Files: /usr/share/doc/avrdude/avrdude.pdf.gz
 
 Format: postscript
-Files: /usr/share/doc/avrdude-doc/avrdude.ps.gz
+Files: /usr/share/doc/avrdude/avrdude.ps.gz
 
 Format: HTML
-Index: /usr/share/doc/avrdude-doc/avrdude-html/avrdude.html
-Files: /usr/share/doc/avrdude-doc/avrdude-html/*.html
+Index: /usr/share/doc/avrdude/avrdude-html/avrdude.html
+Files: /usr/share/doc/avrdude/avrdude-html/*.html

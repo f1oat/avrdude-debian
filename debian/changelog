@@ -4,6 +4,8 @@ avrdude (6.2-1) UNRELEASED; urgency=medium
   * Rebase patches.
   * Override dh_install to list uninstalled files.
   * Use .install files to install the avrdude man page and info file.
+  * Install html, pdf and ps documentation under /usr/share/doc/avrdude, as
+    this is the location where upstream puts it.
 
  -- Michael Biebl <biebl@debian.org>  Tue, 17 Nov 2015 13:49:17 +0100
 
