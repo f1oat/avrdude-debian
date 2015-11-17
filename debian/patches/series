@@ -1,4 +1,1 @@
 Fix-paths-in-the-man-page.patch
-FT245R-correct-reset-ftdi_syncbb.patch
-Fix-Linux-GPIO-pindefs-typo.patch
-Avoid-division-by-zero-on-empty-size.patch

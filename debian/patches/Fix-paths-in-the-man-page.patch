@@ -9,10 +9,10 @@ documentation and config file when installed on a Debian system.
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/avrdude.1 b/avrdude.1
-index 117cdcb..5717101 100644
+index 779fd21..af14aaa 100644
 --- a/avrdude.1
 +++ b/avrdude.1
-@@ -297,7 +297,7 @@ knows about.  If you have a programmer or part that
+@@ -294,7 +294,7 @@ knows about.  If you have a programmer or part that
  does not know about, you can add it to the config file (be sure and
  submit a patch back to the author so that it can be incorporated for
  the next version).  See the config file, located at
