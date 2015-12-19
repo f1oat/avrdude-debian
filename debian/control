@@ -1,7 +1,7 @@
 Source: avrdude
 Section: electronics
 Priority: extra
-Maintainer: Michael Biebl <biebl@debian.org>
+Maintainer: Milan Kupcevic <milan@debian.org>
 Build-Depends:
  debhelper (>= 9),
  autotools-dev (>= 20100122.1),

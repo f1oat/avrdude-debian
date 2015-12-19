@@ -1,3 +1,10 @@
+avrdude (6.2-2) UNRELEASED; urgency=low
+
+  * New maintainer (closes: #805651). Many thanks to Michael Biebl for a 
+    decade worth of contributions to this package.
+
+ -- Milan Kupcevic <milan@debian.org>  Sat, 19 Dec 2015 09:42:11 -0500
+
 avrdude (6.2-1) unstable; urgency=medium
 
   * New upstream release. (Closes: #805352)
