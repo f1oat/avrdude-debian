@@ -1,3 +1,9 @@
+avrdude (6.2-3) UNRELEASED; urgency=low
+
+  * No CPP macro timestamps.
+
+ -- Milan Kupcevic <milan@debian.org>  Sun, 20 Dec 2015 12:46:00 -0500
+
 avrdude (6.2-2) unstable; urgency=low
 
   * New maintainer (closes: #805651). Many thanks to Michael Biebl for a 

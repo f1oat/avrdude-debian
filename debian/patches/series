@@ -1,2 +1,3 @@
 Fix-paths-in-the-man-page.patch
 805642-set-proper-serial-attributes.patch
+no-cpp-timestamps.patch
