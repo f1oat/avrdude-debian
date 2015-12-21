@@ -14,5 +14,5 @@ Format: postscript
 Files: /usr/share/doc/avrdude/avrdude.ps.gz
 
 Format: HTML
-Index: /usr/share/doc/avrdude/avrdude-html/avrdude.html
+Index: /usr/share/doc/avrdude/avrdude-html/index.html
 Files: /usr/share/doc/avrdude/avrdude-html/*.html

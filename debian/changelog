@@ -2,6 +2,7 @@ avrdude (6.2-3) UNRELEASED; urgency=low
 
   * No CPP macro timestamps.
   * Use tbl man preprocessor.
+  * Use makeinfo instead of texi2html.
 
  -- Milan Kupcevic <milan@debian.org>  Sun, 20 Dec 2015 12:46:00 -0500
 
