@@ -1,11 +1,12 @@
-avrdude (6.2-3) UNRELEASED; urgency=low
+avrdude (6.2-3) unstable; urgency=low
 
   * No CPP macro timestamps.
   * Use tbl man preprocessor.
   * Use makeinfo instead of texi2html.
   * Include all ChangeLog files.
+  * Add udev device rules. (Closes: #666137)
 
- -- Milan Kupcevic <milan@debian.org>  Sun, 20 Dec 2015 12:46:00 -0500
+ -- Milan Kupcevic <milan@debian.org>  Sun, 27 Dec 2015 23:22:32 -0500
 
 avrdude (6.2-2) unstable; urgency=low
 
