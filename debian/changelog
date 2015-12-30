@@ -1,3 +1,9 @@
+avrdude (6.2-4) UNRELEASED; urgency=low
+
+  * Update udev rules.
+
+ -- Milan Kupcevic <milan@debian.org>  Tue, 29 Dec 2015 23:36:19 -0500
+
 avrdude (6.2-3) unstable; urgency=low
 
   * No CPP macro timestamps.
