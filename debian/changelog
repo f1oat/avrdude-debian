@@ -1,6 +1,7 @@
 avrdude (6.2-4) UNRELEASED; urgency=low
 
   * Update udev rules.
+  * Set reproducible postscript CreationDate field.
 
  -- Milan Kupcevic <milan@debian.org>  Tue, 29 Dec 2015 23:36:19 -0500
 
