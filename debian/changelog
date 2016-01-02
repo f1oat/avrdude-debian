@@ -1,3 +1,9 @@
+avrdude (6.2-5) unstable; urgency=medium
+
+  * Set ISO 8601 formatted postscript CreationDate.
+
+ -- Milan Kupcevic <milan@debian.org>  Sat, 02 Jan 2016 09:59:25 -0500
+
 avrdude (6.2-4) unstable; urgency=medium
 
   * Update udev rules.

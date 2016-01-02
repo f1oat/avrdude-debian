@@ -13,7 +13,7 @@ This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
 +.dvi.ps:
 +	$(AM_V_DVIPS)TEXINPUTS="$(am__TEXINFO_TEX_DIR)$(PATH_SEPARATOR)$$TEXINPUTS" \
 +	$(DVIPS) $(AM_V_texinfo) -o $@.tmp $<
-+	printf "[ /CreationDate (%s)\n/DOCINFO pdfmark\n" "`date -u -r ../debian/changelog`" > $@.mark
++	printf "[ /CreationDate (%s)\n/DOCINFO pdfmark\n" "`date -u -r ../debian/changelog +%Y-%m-%dT%H:%M:%SZ`" > $@.mark
 +	gs -q -dBATCH -dNOPAUSE -sDEVICE=ps2write -sOutputFile=$@ $@.tmp $@.mark
 +	rm -f $@.mark $@.tmp
 +
