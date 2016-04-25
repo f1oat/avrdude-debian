@@ -17,13 +17,13 @@
 #
 
 #
-# $Id: configure.ac 1363 2015-11-16 22:43:18Z joerg_wunsch $
+# $Id: configure.ac 1376 2016-02-16 21:28:52Z joerg_wunsch $
 #
 
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.60)
-AC_INIT(avrdude, 6.2, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 6.3, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST

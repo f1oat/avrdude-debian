@@ -1,6 +1,6 @@
 .\"
 .\" avrdude - A Downloader/Uploader for AVR device programmers
-.\" Copyright (C) 2001, 2002, 2003, 2005 - 2014  Joerg Wunsch
+.\" Copyright (C) 2001, 2002, 2003, 2005 - 2016  Joerg Wunsch
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
 .\" along with this program. If not, see <http://www.gnu.org/licenses/>.
 .\"
 .\"
-.\" $Id: avrdude.1 1355 2015-04-09 19:50:30Z joerg_wunsch $
+.\" $Id: avrdude.1 1375 2016-02-15 21:02:00Z joerg_wunsch $
 .\"
-.Dd DATE November 23, 2014
+.Dd DATE February 15, 2016
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -156,6 +156,9 @@ ISP).
 Atmel's XplainedPro boards, using the EDBG protocol (CMSIS-DAP compatible),
 are supported using the "jtag3" programmer type.
 .Pp
+Atmel's XplainedMini boards, using the mEDBG protocol,
+are also supported using the "jtag3" programmer type.
+.Pp
 The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP, debugWire).
 When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
 JTAG ICE mkII, so all device-specific comments for that device
@@ -289,11 +292,8 @@ by using ? as programmer-id.
 Use the specified config file to load configuration data.  This file
 contains all programmer and part definitions that
 .Nm avrdude
-knows about.  If you have a programmer or part that
-.Nm avrdude
-does not know about, you can add it to the config file (be sure and
-submit a patch back to the author so that it can be incorporated for
-the next version).  See the config file, located at
+knows about.
+See the config file, located at
 .Pa ${PREFIX}/etc/avrdude.conf ,
 which contains a description of the format.
 .Pp

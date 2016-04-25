@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: avrftdi.c 1328 2014-07-16 20:02:01Z rliebscher $ */
+/* $Id: avrftdi.c 1373 2016-02-15 20:29:53Z joerg_wunsch $ */
 /*
  * Interface to the MPSSE Engine of FTDI Chips using libftdi.
  */
@@ -703,7 +703,7 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	
 	err = ftdi_usb_open_desc_index(pdata->ftdic, vid, pid, desc, serial, index);
 	if(err) {
-		log_err("Error %d occured: %s\n", err, ftdi_get_error_string(pdata->ftdic));
+		log_err("Error %d occurred: %s\n", err, ftdi_get_error_string(pdata->ftdic));
 		//stupid hack, because avrdude calls pgm->close() even when pgm->open() fails
 		//and usb_dev is intialized to the last usb device from probing
 		pdata->ftdic->usb_dev = NULL;
