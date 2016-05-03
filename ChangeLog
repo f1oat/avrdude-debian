@@ -1,39 +1,41 @@
-2015-11-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2016-02-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* configure.ac: Released version 6.2.
+	* configure.ac: Released version 6.3.
 
-2015-10-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	Submitted by Martino Facchin:
-	bug #45727: Wrong atmega8u2 flash parameters
-	* avrdude.conf.in (ATmega8U2): correct page and block size
+	patch #8894: Spelling in 6.2 doc
+	* doc/avrdude.texi: Various spelling fixes.
 
-2015-10-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	Submitted by Pasquale Cocchini:
-	bug #46020: Add TIAO TUMPA to the conf file.
-	* avrdude.conf.in (tumpa): New entry.
+	patch #8895: Spelling in 6.2 code
+	* avrftdi.c (avrftdi_open): Spell fix.
 
-2015-10-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	Submitted by Pasquale Cocchini:
-	bug #46021: Please add read in the memory lock section of ATtiny85
-	* avrdude.conf.in (ATtiny25/45/85): add read pattern for lock bits
+	patch #8896: Silence cppcheck warnings in 6.2 code
+	* linuxgpio.c: Use %ud to print GPIO values.
 
-2015-10-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* Makefile.am (libavrdude_a_SOURCES): reflect recent changes
-	(pgm.h is gone, config.h is new).
+	patch #8735: ATtiny28 support in avrdude.conf
+	* avrdude.conf.in (ATtiny28): New device.
 
-2015-04-09  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	bug #44717: avrdude creates empty flash dump
-	* update.c (do_op): When about to write an empty flash dump file,
-	warn about this to avoid surprises.
-	* avrdude.1: Document the truncation of trailing 0xFF bytes for
-	flash memory areas.
+	* avrdude.conf.in (ATmega48PB, ATmega88PB, ATmega168PB): New
+	devices.
+
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	patch #8435: Implementing mEDBG CMSIS-DAP protocol
+	* usb_libusb.c: Add endpoint IDs for Xplained Mini, correctly
+	transfer trailing ZLP when needed
+	* avrdude.conf.in (xplainedmini, xplainedmini_dw): New entries.
+	* jtag3.c (jtag3_edbg_send, jtag3_edbg_recv_frame): Implement
+	fragmentation needed for the 64-byte EP size of the Xplained Mini
+	* avrdude.1: Document the change
 	* doc/avrdude.texi: (Dito.)
 
-2015-04-09  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	Annual ChangeLog rotation.

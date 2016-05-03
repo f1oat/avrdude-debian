@@ -8,7 +8,7 @@ END-INFO-DIR-ENTRY
 
    This file documents the avrdude program.
 
-   For avrdude version 6.2, 16 November 2015.
+   For avrdude version 6.3, 15 February 2016.
 
    Copyright (C) 2003, 2005 Brian Dean
 
@@ -37,7 +37,7 @@ File: avrdude.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
    This file documents the avrdude program for downloading/uploading
 programs to Atmel AVR microcontrollers.
 
-   For avrdude version 6.2, 16 November 2015.
+   For avrdude version 6.3, 15 February 2016.
 
    Send comments on AVRDUDE to <avrdude-dev@nongnu.org>.
 
@@ -87,7 +87,7 @@ serial bit-bang adapters, and the PPI (parallel port interface). PPI
 represents a class of simple programmers where the programming lines
 are directly connected to the PC parallel port. Several pin
 configurations exist for several variations of the PPI programmers, and
-AVRDUDE can be be configured to work with them by either specifying the
+AVRDUDE can be configured to work with them by either specifying the
 appropriate programmer on the command line or by creating a new entry
 in its configuration file. All that's usually required for a new entry
 is to tell AVRDUDE which pins to use for each programming function.
@@ -106,7 +106,7 @@ any additional hardware - just connect them to the MOSI, MISO, RESET
 and SCK pins on the AVR and use the linuxgpio programmer type. It
 bitbangs the lines using the Linux sysfs GPIO interface. Of course,
 care should be taken about voltage level compatibility. Also, although
-not strictrly required, it is strongly advisable to protect the GPIO
+not strictly required, it is strongly advisable to protect the GPIO
 pins from overcurrent situations in some way. The simplest would be to
 just put some resistors in series or better yet use a 3-state buffer
 driver like the 74HC244. Have a look at
@@ -115,7 +115,7 @@ using this programmer type.
 
    The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial
 port to communicate with the PC.  The STK600, JTAG ICE mkII/3, AVRISP
-mkII, USBasp, avrftdi (and derivitives), and USBtinyISP programmers
+mkII, USBasp, avrftdi (and derivatives), and USBtinyISP programmers
 communicate through the USB, using `libusb' as a platform abstraction
 layer.  The avrftdi adds support for the FT2232C/D, FT2232H, and
 FT4232H devices. These all use the MPSSE mode, which has a specific pin
@@ -148,7 +148,10 @@ at least 5.37 (decimal).
 debugWIRE, ISP modes).
 
    Atmel's XplainedPro boards, using EDBG protocol (CMSIS-DAP
-compliant), are supported by teh "jtag3" programmer type.
+compliant), are supported by the "jtag3" programmer type.
+
+   Atmel's XplainedMini boards, using mEDBG protocol, are also
+supported by the "jtag3" programmer type.
 
    The AVR Dragon is supported in all modes (ISP, JTAG, PDI, HVSP, PP,
 debugWire).  When used in JTAG and debugWire mode, the AVR Dragon
@@ -291,6 +294,7 @@ following options are recognized:
      `m164p'    ATmega164P
      `m168'     ATmega168
      `m168p'    ATmega168P
+     `m168pb'   ATmega168PB
      `m169'     ATmega169
      `m16u2'    ATmega16U2
      `m2560'    ATmega2560 (**)
@@ -314,6 +318,7 @@ following options are recognized:
      `m406'     ATMEGA406
      `m48'      ATmega48
      `m48p'     ATmega48P
+     `m48pb'    ATmega48PB
      `m64'      ATmega64
      `m640'     ATmega640
      `m644'     ATmega644
@@ -329,6 +334,7 @@ following options are recognized:
      `m8535'    ATmega8535
      `m88'      ATmega88
      `m88p'     ATmega88P
+     `m88pb'    ATmega88PB
      `m8u2'     ATmega8U2
      `t10'      ATtiny10
      `t11'      ATtiny11
@@ -342,6 +348,7 @@ following options are recognized:
      `t25'      ATtiny25
      `t26'      ATtiny26
      `t261'     ATtiny261
+     `t28'      ATtiny28
      `t4'       ATtiny4
      `t40'      ATtiny40
      `t4313'    ATtiny4313
@@ -603,7 +610,7 @@ following options are recognized:
      but not on Windows. For more information about AVR-Doper see
      `http://www.obdev.at/avrusb/avrdoper.html'.
 
-     For the USBtinyISP, which is a simplicistic device not implementing
+     For the USBtinyISP, which is a simplistic device not implementing
      serial numbers, multiple devices can be distinguished by their
      location in the USB hierarchy.  *Note Troubleshooting::, for
      examples.
@@ -946,7 +953,7 @@ File: avrdude.info,  Node: Programmers accepting extended parameters,  Next: Exa
      `SCLK'`PDC (5) '
      `OSI'`AUX (6) '
 
-     Extended commandline parameters:
+     Extended command line parameters:
     ``clockrate=RATE''
           Sets the SPI clocking rate in Hz (default is 100kHz).
           Alternately the -B or -i options can be used to set the
@@ -1165,7 +1172,7 @@ The following commands are implemented:
 `verbose [LEVEL]'
      Change (when LEVEL is provided), or display the verbosity level.
      The initial verbosity level is controlled by the number of `-v'
-     options given on the commandline.
+     options given on the command line.
 
 `?'
 `help'
@@ -1322,7 +1329,7 @@ programmer work with AVRDUDE.
 
    AVRDUDE first looks for a system wide configuration file in a
 platform dependent location.  On Unix, this is usually
-`/usr/local/etc/avrdude.conf', while on Windows it is usally in the
+`/usr/local/etc/avrdude.conf', while on Windows it is usually in the
 same location as the executable file.  The name of this file can be
 changed using the `-C' command line option.  After the system wide
 configuration file is parsed, AVRDUDE looks for a per-user configuration
@@ -1616,7 +1623,7 @@ File: avrdude.info,  Node: Other Notes,  Prev: Part Definitions,  Up: Configurat
 
      Reading fuse and lock bits is fully supported.
 
-     Note that due to the unability to write the fuse bits, the safemode
+     Note that due to the inability to write the fuse bits, the safemode
      functionality does not make sense for these boot loaders.
 
 
@@ -1829,8 +1836,8 @@ A.1.1 Unix Installation
 
 To build and install from the source tarball on Unix like systems:
 
-     $ gunzip -c avrdude-6.2.tar.gz | tar xf -
-     $ cd avrdude-6.2
+     $ gunzip -c avrdude-6.3.tar.gz | tar xf -
+     $ cd avrdude-6.3
      $ ./configure
      $ make
      $ su root -c 'make install'
@@ -1839,11 +1846,11 @@ To build and install from the source tarball on Unix like systems:
 need to be sure that `/usr/local/bin' is in your `PATH' environment
 variable.
 
-   If you do not have root access to your system, you can do the the
+   If you do not have root access to your system, you can do the
 following instead:
 
-     $ gunzip -c avrdude-6.2.tar.gz | tar xf -
-     $ cd avrdude-6.2
+     $ gunzip -c avrdude-6.3.tar.gz | tar xf -
+     $ cd avrdude-6.3
      $ ./configure --prefix=$HOME/local
      $ make
      $ make install
@@ -1881,12 +1888,12 @@ File: avrdude.info,  Node: Linux Installation,  Prev: FreeBSD Installation,  Up:
 A.1.1.2 Linux Installation
 ..........................
 
-On rpm based Linux systems (such as RedHat, SUSE, Mandrake, etc), you
+On rpm based Linux systems (such as RedHat, SUSE, Mandrake, etc.), you
 can build and install the rpm binaries directly from the tarball:
 
      $ su - root
-     # rpmbuild -tb avrdude-6.2.tar.gz
-     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-6.2-1.i386.rpm
+     # rpmbuild -tb avrdude-6.3.tar.gz
+     # rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-6.3-1.i386.rpm
 
    Note that the path to the resulting rpm package, differs from system
 to system. The above example is specific to RedHat.
@@ -2000,8 +2007,8 @@ Cygwin):
 
      $ set PREFIX=<your install directory path>
      $ export PREFIX
-     $ gunzip -c avrdude-6.2.tar.gz | tar xf -
-     $ cd avrdude-6.2
+     $ gunzip -c avrdude-6.3.tar.gz | tar xf -
+     $ cd avrdude-6.3
      $ ./configure LDFLAGS="-static" --prefix=$PREFIX --datadir=$PREFIX
      --sysconfdir=$PREFIX/bin --enable-versioned-doc=no
      $ make
@@ -2306,7 +2313,7 @@ In general, please report any bugs encountered via
      serial number on other USB-based programmers.
 
      The actual naming convention for the bus and device names is
-     operating-system dependant; AVRDUDE will print out what it found
+     operating-system dependent; AVRDUDE will print out what it found
      on the bus when running it with (at least) one -V option.  By
      specifying a string that cannot match any existing device (for
      example, -P USB:XXX), the scan will list all possible candidate
@@ -2480,47 +2487,47 @@ In general, please report any bugs encountered via
 Tag Table:
 Node: Top1227
 Node: Introduction1868
-Node: History8837
-Node: Command Line Options10070
-Node: Option Descriptions10348
-Node: Programmers accepting extended parameters32661
-Node: Example Command Line Invocations38847
-Node: Terminal Mode Operation43552
-Node: Terminal Mode Commands44289
-Node: Terminal Mode Examples47555
-Node: Configuration File50739
-Node: AVRDUDE Defaults52158
-Node: Programmer Definitions52874
-Node: Part Definitions55005
-Node: Parent Part59921
-Node: Instruction Format60559
-Node: Other Notes61941
-Node: Programmer Specific Information64149
-Node: Atmel STK60064429
-Node: Atmel DFU bootloader using FLIP version 172535
-Node: Platform Dependent Information73761
-Node: Unix74012
-Node: Unix Installation74262
-Node: FreeBSD Installation75058
-Node: Linux Installation75690
-Node: Unix Configuration Files76231
-Node: FreeBSD Configuration Files76865
-Node: Linux Configuration Files77224
-Node: Unix Port Names77539
-Node: Unix Documentation78530
-Node: Windows79057
-Node: Windows Installation79319
-Node: Windows Configuration Files80578
-Node: Configuration file names80845
-Node: How AVRDUDE finds the configuration files.81235
-Node: Windows Port Names82025
-Node: Serial Ports82237
-Node: Parallel Ports82524
-Node: Using the parallel port83293
-Node: Windows NT/2K/XP83520
-Node: Windows 95/9885026
-Node: Documentation85229
-Node: Credits.85785
-Node: Troubleshooting86118
+Node: History8939
+Node: Command Line Options10172
+Node: Option Descriptions10450
+Node: Programmers accepting extended parameters32868
+Node: Example Command Line Invocations39055
+Node: Terminal Mode Operation43760
+Node: Terminal Mode Commands44497
+Node: Terminal Mode Examples47764
+Node: Configuration File50948
+Node: AVRDUDE Defaults52368
+Node: Programmer Definitions53084
+Node: Part Definitions55215
+Node: Parent Part60131
+Node: Instruction Format60769
+Node: Other Notes62151
+Node: Programmer Specific Information64359
+Node: Atmel STK60064639
+Node: Atmel DFU bootloader using FLIP version 172745
+Node: Platform Dependent Information73971
+Node: Unix74222
+Node: Unix Installation74472
+Node: FreeBSD Installation75264
+Node: Linux Installation75896
+Node: Unix Configuration Files76438
+Node: FreeBSD Configuration Files77072
+Node: Linux Configuration Files77431
+Node: Unix Port Names77746
+Node: Unix Documentation78737
+Node: Windows79264
+Node: Windows Installation79526
+Node: Windows Configuration Files80785
+Node: Configuration file names81052
+Node: How AVRDUDE finds the configuration files.81442
+Node: Windows Port Names82232
+Node: Serial Ports82444
+Node: Parallel Ports82731
+Node: Using the parallel port83500
+Node: Windows NT/2K/XP83727
+Node: Windows 95/9885233
+Node: Documentation85436
+Node: Credits.85992
+Node: Troubleshooting86325
 
 End Tag Table

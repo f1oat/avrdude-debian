@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: usb_libusb.c 1334 2014-09-22 10:01:39Z joerg_wunsch $ */
+/* $Id: usb_libusb.c 1369 2016-02-15 19:58:45Z joerg_wunsch $ */
 
 /*
  * USB interface via libusb for avrdude.
@@ -164,6 +164,13 @@ static int usbdev_open(char * port, union pinfo pinfo, union filedescriptor *fd)
 		      /* The JTAGICE3 running the CMSIS-DAP firmware doesn't
 		       * use a separate endpoint for event reception. */
 		      fd->usb.eep = 0;
+		  }
+
+		  if(strstr(product, "mEDBG") != NULL)
+		  {
+		      /* The AVR Xplained Mini uses different endpoints. */
+		      fd->usb.rep = 0x81;
+		      fd->usb.wep = 0x02;
 		  }
 
                   avrdude_message(MSG_NOTICE, "%s: usbdev_open(): Found %s, serno: %s\n",
@@ -353,7 +360,7 @@ static int usbdev_send(union filedescriptor *fd, const unsigned char *bp, size_t
     }
     bp += tx_size;
     mlen -= tx_size;
-  } while (tx_size == fd->usb.max_xfer);
+  } while (mlen > 0);
 
   if (verbose > 3)
   {
