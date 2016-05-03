@@ -9,4 +9,4 @@ This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
 +'\" t
  .\"
  .\" avrdude - A Downloader/Uploader for AVR device programmers
- .\" Copyright (C) 2001, 2002, 2003, 2005 - 2014  Joerg Wunsch
+ .\" Copyright (C) 2001, 2002, 2003, 2005 - 2016  Joerg Wunsch
