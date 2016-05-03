@@ -2,6 +2,9 @@ avrdude (6.3-1) UNRELEASED; urgency=medium
 
   * New upstream release (closes: #821033)
     - set proper serial device attributes (closes: 805642), patch removed
+  * Build-Depends on:
+    - libusb-1.0-0-dev (closes: #810401)
+    - libftdi1-dev (closes: #810366)
 
  -- Milan Kupcevic <milan@debian.org>  Mon, 25 Apr 2016 23:08:35 -0400
 

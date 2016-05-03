@@ -14,8 +14,8 @@ Build-Depends:
  bison,
  libncurses5-dev,
  libreadline-dev,
- libusb-dev,
- libftdi-dev,
+ libusb-1.0-0-dev,
+ libftdi1-dev,
  libelf-dev
 Standards-Version: 3.9.6
 Vcs-Git: git://anonscm.debian.org/collab-maint/avrdude.git
