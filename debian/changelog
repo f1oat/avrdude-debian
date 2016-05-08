@@ -2,6 +2,7 @@ avrdude (6.3-1) UNRELEASED; urgency=medium
 
   * New upstream release (closes: #821033)
     - set proper serial device attributes (closes: 805642), patch removed
+  * Fix linuxgpio conversion failure. Upstream bug#47550 patch.
   * Update Vcs-Git to use secure transport for anonymous git repository access.
   * Bump Standards-Version to 3.9.8. No changes.
 
