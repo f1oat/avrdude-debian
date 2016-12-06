@@ -4,3 +4,4 @@ Fix-paths-in-the-man-page.patch
 no-cpp-timestamps.patch
 use-tbl-man-preprocessor.patch
 linux-gpio-conversion.patch
+no-lock-byte-read-mask.patch
