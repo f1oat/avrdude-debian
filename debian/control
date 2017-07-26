@@ -1,6 +1,6 @@
 Source: avrdude
 Section: electronics
-Priority: extra
+Priority: optional
 Maintainer: Milan Kupcevic <milan@debian.org>
 Build-Depends:
  debhelper (>= 9),

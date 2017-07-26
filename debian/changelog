@@ -1,6 +1,7 @@
 avrdude (6.3-3) UNRELEASED; urgency=medium
 
   * Recreate aclocal.m4 (closes: #868925)
+  * Set package priority to overridden optional.
 
  -- Milan Kupcevic <milan@debian.org>  Wed, 26 Jul 2017 00:56:25 -0400
 
