@@ -1,3 +1,9 @@
+avrdude (6.3-3) UNRELEASED; urgency=medium
+
+  * Recreate aclocal.m4 (closes: #868925)
+
+ -- Milan Kupcevic <milan@debian.org>  Wed, 26 Jul 2017 00:56:25 -0400
+
 avrdude (6.3-2) unstable; urgency=medium
 
   * Do not mask unused lock byte bits on read (closes: #809002)
