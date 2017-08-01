@@ -1,3 +1,9 @@
+avrdude (6.3-4) UNRELEASED; urgency=medium
+
+  * Support ATtiny841 and ATtiny441
+
+ -- Milan Kupcevic <milan@debian.org>  Tue, 01 Aug 2017 17:29:40 -0400
+
 avrdude (6.3-3) unstable; urgency=medium
 
   * Recreate aclocal.m4 (closes: #868925)
