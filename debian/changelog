@@ -1,6 +1,8 @@
 avrdude (6.3-4) UNRELEASED; urgency=medium
 
   * Support ATtiny841 and ATtiny441
+  * Bump Standards-Version to 4.0.0
+  * Full auto-reconfigure on builds
 
  -- Milan Kupcevic <milan@debian.org>  Tue, 01 Aug 2017 17:29:40 -0400
 

@@ -4,10 +4,9 @@ ifeq ($(DEB_HOST_ARCH_OS),linux)
 	CONFFLAGS += --enable-linuxgpio
 endif
 %:
-	dh $@ --with autotools_dev
+	dh $@ --with autotools_dev --with autoreconf
 
 override_dh_auto_configure:
-	aclocal
 	dh_auto_configure -- \
 		--enable-versioned-doc=no \
 		--enable-doc \
