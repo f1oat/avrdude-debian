@@ -1,3 +1,9 @@
+avrdude (6.3-5) UNRELEASED; urgency=medium
+
+  * Update package maintenance Vcs-* fields
+
+ -- Milan Kupcevic <milan@debian.org>  Tue, 07 Nov 2017 00:30:16 -0500
+
 avrdude (6.3-4) unstable; urgency=medium
 
   * Support ATtiny841 and ATtiny441
