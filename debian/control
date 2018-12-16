@@ -26,7 +26,7 @@ Homepage: http://savannah.nongnu.org/projects/avrdude/
 Package: avrdude
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Suggests: avrdude-doc
+Suggests: dfu-programmer, avrdude-doc
 Description: software for programming Atmel AVR microcontrollers
  AVRDUDE is an open source utility to download/upload/manipulate the
  ROM and EEPROM contents of AVR microcontrollers using the in-system
