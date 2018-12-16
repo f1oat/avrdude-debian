@@ -3,6 +3,7 @@ avrdude (6.3-5) UNRELEASED; urgency=medium
   * Update package maintenance Vcs-* fields
   * Use 'uaccess' tag in udev rules
   * Suggest dfu-programmer
+  * Provide package metainfo
 
  -- Milan Kupcevic <milan@debian.org>  Tue, 07 Nov 2017 00:30:16 -0500
 
