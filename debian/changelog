@@ -5,6 +5,7 @@ avrdude (6.3-5) UNRELEASED; urgency=medium
   * Suggest dfu-programmer
   * Provide package metainfo
   * No direct libncurses5-dev build dependency
+  * Define optional posix limits to allow building on GNU/Hurd
 
  -- Milan Kupcevic <milan@debian.org>  Tue, 07 Nov 2017 00:30:16 -0500
 

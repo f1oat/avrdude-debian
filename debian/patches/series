@@ -1,3 +1,4 @@
+undefined-posix-limits-workaround.patch
 use-makeinfo.patch
 fix-ps-creationdate.patch
 Fix-paths-in-the-man-page.patch
