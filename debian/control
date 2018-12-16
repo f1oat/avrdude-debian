@@ -19,8 +19,8 @@ Build-Depends:
  libftdi-dev,
  libelf-dev
 Standards-Version: 4.0.0
-Vcs-Git: https://gitlab.com/debian/avrdude.git
-Vcs-Browser: https://gitlab.com/debian/avrdude.git
+Vcs-Git: https://salsa.debian.org/debian/avrdude.git
+Vcs-Browser: https://salsa.debian.org/debian/avrdude
 Homepage: http://savannah.nongnu.org/projects/avrdude/
 
 Package: avrdude
