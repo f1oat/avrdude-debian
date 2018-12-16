@@ -13,7 +13,6 @@ Build-Depends:
  texlive-latex-base,
  flex,
  bison,
- libncurses5-dev,
  libreadline-dev,
  libusb-dev,
  libftdi-dev,
