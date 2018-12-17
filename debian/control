@@ -3,8 +3,7 @@ Section: electronics
 Priority: optional
 Maintainer: Milan Kupcevic <milan@debian.org>
 Build-Depends:
- debhelper (>= 9),
- autotools-dev (>= 20100122.1),
+ debhelper (>= 9.20160114),
  dh-autoreconf,
  autoconf,
  automake,

@@ -5,6 +5,8 @@ avrdude (6.3-5) UNRELEASED; urgency=medium
   * Suggest dfu-programmer
   * Provide package metainfo
   * No direct libncurses5-dev build dependency
+  * autotools-dev is not needed anymore
+  * use dh_missing
   * Define optional posix limits to allow building on GNU/Hurd
   * Bump Standards-Version to 4.2.1
   * Use debian watch secure uri
