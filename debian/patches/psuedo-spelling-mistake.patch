@@ -1,0 +1,16 @@
+Description: correct a spelling mistake
+Author: Milan Kupcevic <milan@debian.org>
+Origin: other, https://savannah.nongnu.org/patch/index.php?9735
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- a/avrpart.c
++++ b/avrpart.c
+@@ -645,7 +645,7 @@
+           prefix, avr_pin_name(p->retry_pulse),
+           prefix, (p->flags & AVRPART_SERIALOK) ? "yes" : "no",
+           prefix, (p->flags & AVRPART_PARALLELOK) ?
+-            ((p->flags & AVRPART_PSEUDOPARALLEL) ? "psuedo" : "yes") : "no",
++            ((p->flags & AVRPART_PSEUDOPARALLEL) ? "pseudo" : "yes") : "no",
+           prefix, p->timeout,
+           prefix, p->stabdelay,
+           prefix, p->cmdexedelay,

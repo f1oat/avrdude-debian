@@ -1,3 +1,4 @@
+psuedo-spelling-mistake.patch
 undefined-posix-limits-workaround.patch
 use-makeinfo.patch
 fix-ps-creationdate.patch
