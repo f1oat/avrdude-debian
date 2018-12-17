@@ -1,4 +1,4 @@
-avrdude (6.3-5) UNRELEASED; urgency=medium
+avrdude (6.3-5) sid; urgency=medium
 
   * Update package maintenance Vcs-* fields
   * Use 'uaccess' tag in udev rules
@@ -12,7 +12,7 @@ avrdude (6.3-5) UNRELEASED; urgency=medium
   * Use debian watch secure uri
   * avrpart.c: correct a spelling mistake
 
- -- Milan Kupcevic <milan@debian.org>  Tue, 07 Nov 2017 00:30:16 -0500
+ -- Milan Kupcevic <milan@debian.org>  Mon, 17 Dec 2018 17:21:43 -0500
 
 avrdude (6.3-4) unstable; urgency=medium
 
