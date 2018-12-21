@@ -1,3 +1,9 @@
+avrdude (6.3-6) UNRELEASED; urgency=medium
+
+  * update metainfo release license
+
+ -- Milan Kupcevic <milan@debian.org>  Thu, 20 Dec 2018 18:44:32 -0500
+
 avrdude (6.3-5) sid; urgency=medium
 
   * Update package maintenance Vcs-* fields
