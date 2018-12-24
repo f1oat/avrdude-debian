@@ -1,6 +1,7 @@
 avrdude (6.3-6) UNRELEASED; urgency=medium
 
   * update metainfo release license
+  * udev: permit console users use usb serial adapters
 
  -- Milan Kupcevic <milan@debian.org>  Thu, 20 Dec 2018 18:44:32 -0500
 

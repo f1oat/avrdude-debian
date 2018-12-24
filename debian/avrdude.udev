@@ -1,5 +1,12 @@
-SUBSYSTEM!="usb", GOTO="avrdude_end"
 ACTION!="add|change", GOTO="avrdude_end"
+
+# /dev/ttyUSB
+SUBSYSTEMS=="usb-serial", TAG+="uaccess"
+
+# /dev/ttyACM
+SUBSYSTEMS=="usb", DRIVERS=="cdc_acm", TAG+="uaccess"
+
+SUBSYSTEM!="usb", GOTO="avrdude_end"
 
 # JTAG ICE mkII
 SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2103", TAG+="uaccess"
