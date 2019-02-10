@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: avr.c 1340 2014-11-14 10:22:52Z rliebscher $ */
+/* $Id: avr.c 1417 2018-01-16 21:17:04Z joerg_wunsch $ */
 
 #include "ac_cfg.h"
 
@@ -438,11 +438,15 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
     {
       rc = pgm->read_byte(pgm, p, mem, i, mem->buf + i);
       if (rc != 0) {
-	avrdude_message(MSG_INFO, "avr_read(): error reading address 0x%04lx\n", i);
-	if (rc == -1)
-	  avrdude_message(MSG_INFO, "    read operation not supported for memory \"%s\"\n",
+        avrdude_message(MSG_INFO, "avr_read(): error reading address 0x%04lx\n", i);
+        if (rc == -1) {
+          avrdude_message(MSG_INFO, "    read operation not supported for memory \"%s\"\n",
                           memtype);
-	return -2;
+          return -2;
+        }
+        avrdude_message(MSG_INFO, "    read operation failed for memory \"%s\"\n",
+                        memtype);
+        return rc;
       }
     }
     report_progress(i, mem->size, NULL);
@@ -1051,7 +1055,7 @@ int avr_signature(PROGRAMMER * pgm, AVRPART * p)
   if (rc < 0) {
     avrdude_message(MSG_INFO, "%s: error reading signature data for part \"%s\", rc=%d\n",
                     progname, p->desc, rc);
-    return -1;
+    return rc;
   }
   report_progress (1,1,NULL);
 
@@ -1187,6 +1191,16 @@ int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   int rc;
 
   rc = pgm->chip_erase(pgm, p);
+
+  return rc;
+}
+
+int avr_unlock(PROGRAMMER * pgm, AVRPART * p)
+{
+  int rc = -1;
+
+  if (pgm->unlock)
+    rc = pgm->unlock(pgm, p);
 
   return rc;
 }

@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: update.c 1355 2015-04-09 19:50:30Z joerg_wunsch $ */
+/* $Id: update.c 1425 2018-01-21 22:45:45Z joerg_wunsch $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -113,7 +113,9 @@ UPDATE * parse_op(char * s)
   cp = p;
   p = strrchr(cp, ':');
   if (p == NULL) {
-    upd->format = FMT_AUTO;
+    // missing format, default to "AUTO" for write and verify,
+    // and to binary for read operations:
+    upd->format = upd->op == DEVICE_READ? FMT_RBIN: FMT_AUTO;
     fnlen = strlen(cp);
     upd->filename = (char *)malloc(fnlen + 1);
   } else {

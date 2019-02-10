@@ -32,8 +32,17 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+# In order to get verbose build messages rather than a summary line
+# only, either use
 #
-# $Id: Makefile.am 1357 2015-10-30 23:11:22Z joerg_wunsch $
+# ./configure --disable-silent-rules
+#
+# or run make like
+#
+# make V=1
+
+#
+# $Id: Makefile.am 1411 2018-01-12 22:07:39Z joerg_wunsch $
 #
 
 
@@ -166,6 +175,7 @@ am_libavrdude_a_OBJECTS = libavrdude_a-config_gram.$(OBJEXT) \
 	libavrdude_a-stk500v2.$(OBJEXT) \
 	libavrdude_a-stk500generic.$(OBJEXT) \
 	libavrdude_a-usbasp.$(OBJEXT) \
+	libavrdude_a-usb_hidapi.$(OBJEXT) \
 	libavrdude_a-usb_libusb.$(OBJEXT) \
 	libavrdude_a-usbtiny.$(OBJEXT) libavrdude_a-update.$(OBJEXT) \
 	libavrdude_a-wiring.$(OBJEXT)
@@ -222,9 +232,9 @@ am__objects_1 = libavrdude_la-config_gram.lo libavrdude_la-lexer.lo \
 	libavrdude_la-ser_avrdoper.lo libavrdude_la-ser_posix.lo \
 	libavrdude_la-ser_win32.lo libavrdude_la-stk500.lo \
 	libavrdude_la-stk500v2.lo libavrdude_la-stk500generic.lo \
-	libavrdude_la-usbasp.lo libavrdude_la-usb_libusb.lo \
-	libavrdude_la-usbtiny.lo libavrdude_la-update.lo \
-	libavrdude_la-wiring.lo
+	libavrdude_la-usbasp.lo libavrdude_la-usb_hidapi.lo \
+	libavrdude_la-usb_libusb.lo libavrdude_la-usbtiny.lo \
+	libavrdude_la-update.lo libavrdude_la-wiring.lo
 am_libavrdude_la_OBJECTS = $(am__objects_1)
 libavrdude_la_OBJECTS = $(am_libavrdude_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -435,6 +445,7 @@ LIBELF = @LIBELF@
 LIBFTDI = @LIBFTDI@
 LIBFTDI1 = @LIBFTDI1@
 LIBHID = @LIBHID@
+LIBHIDAPI = @LIBHIDAPI@
 LIBOBJS = @LIBOBJS@
 LIBPTHREAD = @LIBPTHREAD@
 LIBS = @LIBS@
@@ -444,6 +455,7 @@ LIBUSB_1_0 = @LIBUSB_1_0@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
@@ -515,6 +527,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -540,6 +553,10 @@ EXTRA_DIST = \
 	ChangeLog-2011 \
 	ChangeLog-2012 \
 	ChangeLog-2013 \
+	ChangeLog-2014 \
+	ChangeLog-2015 \
+	ChangeLog-2016 \
+	ChangeLog-2017 \
 	avrdude.1 \
 	avrdude.spec \
 	bootstrap
@@ -565,7 +582,7 @@ libavrdude_la_CPPFLAGS = $(libavrdude_a_CPPFLAGS)
 avrdude_CFLAGS = @ENABLE_WARNINGS@
 libavrdude_a_CFLAGS = @ENABLE_WARNINGS@
 libavrdude_la_CFLAGS = $(libavrdude_a_CFLAGS)
-avrdude_LDADD = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB_1_0@ @LIBUSB@ @LIBFTDI1@ @LIBFTDI@ @LIBHID@ @LIBELF@ @LIBPTHREAD@ -lm
+avrdude_LDADD = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB_1_0@ @LIBHIDAPI@ @LIBUSB@ @LIBFTDI1@ @LIBFTDI@ @LIBHID@ @LIBELF@ @LIBPTHREAD@ -lm
 noinst_LIBRARIES = libavrdude.a
 lib_LTLIBRARIES = libavrdude.la
 libavrdude_a_SOURCES = \
@@ -649,6 +666,7 @@ libavrdude_a_SOURCES = \
 	usbasp.c \
 	usbasp.h \
 	usbdevs.h \
+	usb_hidapi.c \
 	usb_libusb.c \
 	usbtiny.h \
 	usbtiny.c \
@@ -876,6 +894,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-stk500generic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-stk500v2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-update.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-usb_hidapi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-usb_libusb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-usbasp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_a-usbtiny.Po@am__quote@
@@ -921,6 +940,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_la-stk500generic.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_la-stk500v2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_la-update.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_la-usb_hidapi.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_la-usb_libusb.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_la-usbasp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libavrdude_la-usbtiny.Plo@am__quote@
@@ -1521,6 +1541,20 @@ libavrdude_a-usbasp.obj: usbasp.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_a_CPPFLAGS) $(CPPFLAGS) $(libavrdude_a_CFLAGS) $(CFLAGS) -c -o libavrdude_a-usbasp.obj `if test -f 'usbasp.c'; then $(CYGPATH_W) 'usbasp.c'; else $(CYGPATH_W) '$(srcdir)/usbasp.c'; fi`
 
+libavrdude_a-usb_hidapi.o: usb_hidapi.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_a_CPPFLAGS) $(CPPFLAGS) $(libavrdude_a_CFLAGS) $(CFLAGS) -MT libavrdude_a-usb_hidapi.o -MD -MP -MF $(DEPDIR)/libavrdude_a-usb_hidapi.Tpo -c -o libavrdude_a-usb_hidapi.o `test -f 'usb_hidapi.c' || echo '$(srcdir)/'`usb_hidapi.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libavrdude_a-usb_hidapi.Tpo $(DEPDIR)/libavrdude_a-usb_hidapi.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='usb_hidapi.c' object='libavrdude_a-usb_hidapi.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_a_CPPFLAGS) $(CPPFLAGS) $(libavrdude_a_CFLAGS) $(CFLAGS) -c -o libavrdude_a-usb_hidapi.o `test -f 'usb_hidapi.c' || echo '$(srcdir)/'`usb_hidapi.c
+
+libavrdude_a-usb_hidapi.obj: usb_hidapi.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_a_CPPFLAGS) $(CPPFLAGS) $(libavrdude_a_CFLAGS) $(CFLAGS) -MT libavrdude_a-usb_hidapi.obj -MD -MP -MF $(DEPDIR)/libavrdude_a-usb_hidapi.Tpo -c -o libavrdude_a-usb_hidapi.obj `if test -f 'usb_hidapi.c'; then $(CYGPATH_W) 'usb_hidapi.c'; else $(CYGPATH_W) '$(srcdir)/usb_hidapi.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libavrdude_a-usb_hidapi.Tpo $(DEPDIR)/libavrdude_a-usb_hidapi.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='usb_hidapi.c' object='libavrdude_a-usb_hidapi.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_a_CPPFLAGS) $(CPPFLAGS) $(libavrdude_a_CFLAGS) $(CFLAGS) -c -o libavrdude_a-usb_hidapi.obj `if test -f 'usb_hidapi.c'; then $(CYGPATH_W) 'usb_hidapi.c'; else $(CYGPATH_W) '$(srcdir)/usb_hidapi.c'; fi`
+
 libavrdude_a-usb_libusb.o: usb_libusb.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_a_CPPFLAGS) $(CPPFLAGS) $(libavrdude_a_CFLAGS) $(CFLAGS) -MT libavrdude_a-usb_libusb.o -MD -MP -MF $(DEPDIR)/libavrdude_a-usb_libusb.Tpo -c -o libavrdude_a-usb_libusb.o `test -f 'usb_libusb.c' || echo '$(srcdir)/'`usb_libusb.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libavrdude_a-usb_libusb.Tpo $(DEPDIR)/libavrdude_a-usb_libusb.Po
@@ -1863,6 +1897,13 @@ libavrdude_la-usbasp.lo: usbasp.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='usbasp.c' object='libavrdude_la-usbasp.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_la_CPPFLAGS) $(CPPFLAGS) $(libavrdude_la_CFLAGS) $(CFLAGS) -c -o libavrdude_la-usbasp.lo `test -f 'usbasp.c' || echo '$(srcdir)/'`usbasp.c
+
+libavrdude_la-usb_hidapi.lo: usb_hidapi.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_la_CPPFLAGS) $(CPPFLAGS) $(libavrdude_la_CFLAGS) $(CFLAGS) -MT libavrdude_la-usb_hidapi.lo -MD -MP -MF $(DEPDIR)/libavrdude_la-usb_hidapi.Tpo -c -o libavrdude_la-usb_hidapi.lo `test -f 'usb_hidapi.c' || echo '$(srcdir)/'`usb_hidapi.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libavrdude_la-usb_hidapi.Tpo $(DEPDIR)/libavrdude_la-usb_hidapi.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='usb_hidapi.c' object='libavrdude_la-usb_hidapi.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_la_CPPFLAGS) $(CPPFLAGS) $(libavrdude_la_CFLAGS) $(CFLAGS) -c -o libavrdude_la-usb_hidapi.lo `test -f 'usb_hidapi.c' || echo '$(srcdir)/'`usb_hidapi.c
 
 libavrdude_la-usb_libusb.lo: usb_libusb.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavrdude_la_CPPFLAGS) $(CPPFLAGS) $(libavrdude_la_CFLAGS) $(CFLAGS) -MT libavrdude_la-usb_libusb.lo -MD -MP -MF $(DEPDIR)/libavrdude_la-usb_libusb.Tpo -c -o libavrdude_la-usb_libusb.lo `test -f 'usb_libusb.c' || echo '$(srcdir)/'`usb_libusb.c
