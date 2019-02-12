@@ -13,6 +13,7 @@ Build-Depends:
  flex,
  bison,
  libreadline-dev,
+ libhidapi-dev,
  libusb-dev,
  libftdi-dev,
  libelf-dev
