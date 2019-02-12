@@ -1,11 +1,11 @@
-avrdude (6.3-20171130+svn1429-1) UNRELEASED; urgency=medium
+avrdude (6.3-20171130+svn1429-1) sid; urgency=medium
 
   * new upstream release
   * remove upstream accepted patches
   * add new devices to metainfo, udev rules
   * use libhidapi
 
- -- Milan Kupcevic <milan@debian.org>  Sat, 09 Feb 2019 23:02:35 -0500
+ -- Milan Kupcevic <milan@debian.org>  Tue, 12 Feb 2019 02:25:09 -0500
 
 avrdude (6.3-6) sid; urgency=medium
 
