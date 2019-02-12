@@ -24,12 +24,46 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2111", TAG+="uaccess
 SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2140", TAG+="uaccess"
 # Atmel-ICE
 SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2141", TAG+="uaccess"
+# Atmel Power Debugger
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2144", TAG+="uaccess"
+# Xplained Mini board
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2145", TAG+="uaccess"
+# ATxmega64C3 DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fd6", TAG+="uaccess"
+# ATxmega128C3 DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fd7", TAG+="uaccess"
+# ATxmega256C3 DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fda", TAG+="uaccess"
+# ATxmega384C3 DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fdb", TAG+="uaccess"
+# ATxmega128A4U DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fde", TAG+="uaccess"
+# ATxmega64B3 DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fdf", TAG+="uaccess"
+# ATxmega128B3 DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fe0", TAG+="uaccess"
+# ATxmega64B1 DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fe1", TAG+="uaccess"
+# ATxmega256A3BU DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fe2", TAG+="uaccess"
+# ATxmega16A4U DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fe3", TAG+="uaccess"
 # ATxmega32A4U DFU
 SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fe4", TAG+="uaccess"
+# ATxmega64A4U DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fe5", TAG+="uaccess"
 # Cactus V6 DFU
 SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fe6", TAG+="uaccess"
+# ATxmega192A3U DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fe7", TAG+="uaccess"
+# ATxmega64A1U DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fe8", TAG+="uaccess"
 # Cactus RF60 DFU
 SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fea", TAG+="uaccess"
+# ATxmega256A3U DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fec", TAG+="uaccess"
+# ATxmega128A1U DFU
+SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fed", TAG+="uaccess"
 # atmega8u2 DFU
 SUBSYSTEM=="usb", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fee", TAG+="uaccess"
 # atmega16u2 DFU
@@ -64,6 +98,8 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="04d8", ATTR{idProduct}=="0033", TAG+="uaccess
 SUBSYSTEM=="usb", ATTR{idVendor}=="16c0", ATTR{idProduct}=="05dc", TAG+="uaccess"
 # NIBObee
 SUBSYSTEM=="usb", ATTR{idVendor}=="16c0", ATTR{idProduct}=="092f", TAG+="uaccess"
+# eHaJo
+SUBSYSTEM=="usb", ATTR{idVendor}=="16d0", ATTR{idProduct}=="0ba5", TAG+="uaccess"
 # USBtinyISP
 SUBSYSTEM=="usb", ATTR{idVendor}=="1781", ATTR{idProduct}=="0c9f", TAG+="uaccess"
 
