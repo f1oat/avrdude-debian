@@ -1,3 +1,9 @@
+avrdude (6.3-20171130+svn1429-2) UNRELEASED; urgency=medium
+
+  * revert usbtiny tpi implementation (closes: #922558)
+
+ -- Milan Kupcevic <milan@debian.org>  Mon, 18 Feb 2019 02:06:43 -0500
+
 avrdude (6.3-20171130+svn1429-1) sid; urgency=medium
 
   * new upstream release
